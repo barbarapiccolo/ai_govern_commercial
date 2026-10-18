@@ -1,0 +1,4 @@
+NORMATIVA BASE DE EJEMPLO PARA EL MOTOR RAG DEL DESPACHO:
+1. REGLA DEONTOLÓGICA DE SUPERVISIÓN HUMANA (HUMAN-IN-THE-LOOP): Ningún escrito judicial o contrato podrá ser presentado ni firmado sin la revisión, verificación de fuentes normativas y visado expreso del abogado titular responsable del expediente.
+2. REGLA DE PROTECCIÓN DE DATOS Y SECRETO PROFESIONAL: Queda prohibida la transferencia de datos personales o confidenciales de clientes a modelos de inteligencia artificial públicos sin enmascaramiento previo Zero-Trust PII.
+3. REGLA PROCESAL DE VERIFICACIÓN DE CITAS: Toda cita de artículos legales o sentencias debe corresponder de manera exacta a los textos cargados en la carpeta /app/data/rag_normativa de la rama jurídica correspondiente.

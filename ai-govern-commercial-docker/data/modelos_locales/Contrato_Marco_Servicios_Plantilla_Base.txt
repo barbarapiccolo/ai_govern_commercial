@@ -1,0 +1,7 @@
+CONTRATO MARCO DE PRESTACIÓN DE SERVICIOS PROFESIONALES
+
+Entre {{CLIENTE}}, con identificación fiscal {{ID_FISCAL_CLIENTE}}, domiciliado en {{DOMICILIO_CLIENTE}}, por una parte; y por la otra {{CONTRAPARTE}}, con identificación fiscal {{ID_FISCAL_CONTRAPARTE}}, se ha convenido en celebrar el presente Contrato sujeto a las siguientes cláusulas:
+
+PRIMERA (OBJETO): El presente instrumento tiene por objeto {{OBJETO_CONTRACTUAL}}.
+SEGUNDA (HONORARIOS Y FORMA DE PAGO): Las partes pactan como contraprestación la suma de {{MONTO_HONORARIOS}}.
+TERCERA (CONFIDENCIALIDAD Y PROTECCIÓN DE DATOS): Las partes se obligan a mantener estricto secreto profesional conforme a la normativa vigente en {{JURISDICCION}}.

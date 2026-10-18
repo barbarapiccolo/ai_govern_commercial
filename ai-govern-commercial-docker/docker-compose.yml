@@ -1,0 +1,48 @@
+version: '3.9'
+
+services:
+  # =========================================================================
+  # 1. BACKEND GATEWAY ZERO-TRUST PII, MULTI-LLM, CONECTOR DRIVE/LOCAL & RAG
+  # =========================================================================
+  ai-govern-backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: ai-govern-zerotrust-gateway
+    restart: unless-stopped
+    ports:
+      - "${BACKEND_PORT:-8000}:8000"
+    env_file:
+      - .env
+    volumes:
+      # Carpeta local del despacho para conectar sus propios Modelos Jurídicos (.docx, .txt, .md)
+      - ./data/modelos_locales:/app/data/modelos_locales
+      # Carpeta local del despacho para cargar su Normativa Legal aplicable (RAG por rama)
+      - ./data/rag_normativa:/app/data/rag_normativa
+      # Base de datos local de Trazabilidad SHA-256 y aprobaciones Human-in-the-Loop
+      - ./data/trazabilidad_db:/app/data/trazabilidad_db
+    networks:
+      - ai_govern_private_net
+
+  # =========================================================================
+  # 2. FRONTEND SISTEMA OPERATIVO JURÍDICO (WHITE-LABEL EDITION)
+  # =========================================================================
+  ai-govern-frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: ai-govern-legal-os-ui
+    restart: unless-stopped
+    ports:
+      - "${FRONTEND_PORT:-3000}:3000"
+    environment:
+      - NEXT_PUBLIC_GATEWAY_URL=http://localhost:${BACKEND_PORT:-8000}
+      - NEXT_PUBLIC_DEPLOYMENT_MODE=DOCKER_ON_PREMISE
+    depends_on:
+      - ai-govern-backend
+    networks:
+      - ai_govern_private_net
+
+networks:
+  ai_govern_private_net:
+    driver: bridge
