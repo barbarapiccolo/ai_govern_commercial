@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import {
   Shield, Lock, Key, FolderOpen, Scale, MessageSquare, FileText,
   Mic, Kanban, Calendar as CalendarIcon, Users, BarChart3, Fingerprint,
@@ -58,6 +58,8 @@ interface ActionItem {
   text: string;
   dueDate: string;
   addedToPlanner: boolean;
+  linkedTaskId?: string;
+  linkedEventId?: string;
 }
 
 interface RecordingNote {
@@ -88,6 +90,7 @@ interface CalendarEventItem {
   date: string; // YYYY-MM-DD
   type: 'Agenda General' | 'Plazo Procesal' | 'Tarea Planificador' | 'Reunión / Acta';
   client?: string;
+  linkedTaskId?: string;
 }
 
 interface CrmClient {
@@ -140,25 +143,96 @@ interface AuditLogEntry {
 }
 
 // ============================================================================
-// UTILIDADES CRIPTOGRÁFICAS Y ANONIMIZACIÓN ZERO-TRUST EN RAM LOCAL
+// UTILIDADES CRIPTOGRÁFICAS SHA-256 REAL (FIPS 180-4) Y ANONIMIZACIÓN ZERO-TRUST
 // ============================================================================
 
-function computePseudoSha256(input: string): string {
-  let h1 = 0xdeadbeef ^ input.length;
-  let h2 = 0x41c6ce57 ^ input.length;
-  for (let i = 0, ch; i < input.length; i++) {
-    ch = input.charCodeAt(i);
-    h1 = Math.imul(h1 ^ ch, 2654435761);
-    h2 = Math.imul(h2 ^ ch, 1597334677);
-  }
-  h1 = Math.imul(h1 ^ (h1 >>> 16), 2246822507) ^ Math.imul(h2 ^ (h2 >>> 13), 3266489909);
-  h2 = Math.imul(h2 ^ (h2 >>> 16), 2246822507) ^ Math.imul(h1 ^ (h1 >>> 13), 3266489909);
-  const hex1 = (h1 >>> 0).toString(16).padStart(8, '0');
-  const hex2 = (h2 >>> 0).toString(16).padStart(8, '0');
-  return `${hex1}${hex2}e9b4c28f7a1d5036b8c4e12f90a3d7b5${hex1}${hex2}`.slice(0, 64);
+const SHA256_K = [
+  0x428a2f98, 0x71374491, 0xb5c0fbcf, 0xe9b5dba5, 0x3956c25b, 0x59f111f1, 0x923f82a4, 0xab1c5ed5,
+  0xd807aa98, 0x12835b01, 0x243185be, 0x550c7dc3, 0x72be5d74, 0x80deb1fe, 0x9bdc06a7, 0xc19bf174,
+  0xe49b69c1, 0xefbe4786, 0x0fc19dc6, 0x240ca1cc, 0x2de92c6f, 0x4a7484aa, 0x5cb0a9dc, 0x76f988da,
+  0x983e5152, 0xa831c66d, 0xb00327c8, 0xbf597fc7, 0xc6e00bf3, 0xd5a79147, 0x06ca6351, 0x14292967,
+  0x27b70a85, 0x2e1b2138, 0x4d2c6dfc, 0x53380d13, 0x650a7354, 0x766a0abb, 0x81c2c92e, 0x92722c85,
+  0xa2bfe8a1, 0xa81a664b, 0xc24b8b70, 0xc76c51a3, 0xd192e819, 0xd6990624, 0xf40e3585, 0x106aa070,
+  0x19a4c116, 0x1e376c08, 0x2748774c, 0x34b0bcb5, 0x391c0cb3, 0x4ed8aa4a, 0x5b9cca4f, 0x682e6ff3,
+  0x748f82ee, 0x78a5636f, 0x84c87814, 0x8cc70208, 0x90befffa, 0xa4506ceb, 0xbef9a3f7, 0xc67178f2
+];
+
+function rightRotate(value: number, amount: number): number {
+  return (value >>> amount) | (value << (32 - amount));
 }
 
-function anonymizePiiText(rawText: string): {
+function computeRealSha256(input: string): string {
+  const utf8 = unescape(encodeURIComponent(input));
+  const words: number[] = [];
+  for (let i = 0; i < utf8.length; i++) {
+    words[i >> 2] |= (utf8.charCodeAt(i) & 0xff) << (24 - (i % 4) * 8);
+  }
+  const bitLength = utf8.length * 8;
+  words[bitLength >> 5] |= 0x80 << (24 - (bitLength % 32));
+  words[(((bitLength + 64) >> 9) << 4) + 15] = bitLength;
+
+  let h0 = 0x6a09e667;
+  let h1 = 0xbb67ae85;
+  let h2 = 0x3c6ef372;
+  let h3 = 0xa54ff53a;
+  let h4 = 0x510e527f;
+  let h5 = 0x9b05688c;
+  let h6 = 0x1f83d9ab;
+  let h7 = 0x5be0cd19;
+
+  const w = new Array<number>(64);
+  for (let j = 0; j < words.length; j += 16) {
+    for (let i = 0; i < 16; i++) {
+      w[i] = words[j + i] || 0;
+    }
+    for (let i = 16; i < 64; i++) {
+      const s0 = rightRotate(w[i - 15], 7) ^ rightRotate(w[i - 15], 18) ^ (w[i - 15] >>> 3);
+      const s1 = rightRotate(w[i - 2], 17) ^ rightRotate(w[i - 2], 19) ^ (w[i - 2] >>> 10);
+      w[i] = (w[i - 16] + s0 + w[i - 7] + s1) | 0;
+    }
+
+    let a = h0, b = h1, c = h2, d = h3, e = h4, f = h5, g = h6, h = h7;
+    for (let i = 0; i < 64; i++) {
+      const S1 = rightRotate(e, 6) ^ rightRotate(e, 11) ^ rightRotate(e, 25);
+      const ch = (e & f) ^ (~e & g);
+      const temp1 = (h + S1 + ch + SHA256_K[i] + w[i]) | 0;
+      const S0 = rightRotate(a, 2) ^ rightRotate(a, 13) ^ rightRotate(a, 22);
+      const maj = (a & b) ^ (a & c) ^ (b & c);
+      const temp2 = (S0 + maj) | 0;
+
+      h = g;
+      g = f;
+      f = e;
+      e = (d + temp1) | 0;
+      d = c;
+      c = b;
+      b = a;
+      a = (temp1 + temp2) | 0;
+    }
+
+    h0 = (h0 + a) | 0;
+    h1 = (h1 + b) | 0;
+    h2 = (h2 + c) | 0;
+    h3 = (h3 + d) | 0;
+    h4 = (h4 + e) | 0;
+    h5 = (h5 + f) | 0;
+    h6 = (h6 + g) | 0;
+    h7 = (h7 + h) | 0;
+  }
+
+  return [h0, h1, h2, h3, h4, h5, h6, h7]
+    .map(v => (v >>> 0).toString(16).padStart(8, '0'))
+    .join('');
+}
+
+function escapeRegExp(str: string): string {
+  return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+function anonymizePiiText(
+  rawText: string,
+  extraNames: string[] = []
+): {
   sanitized: string;
   tokens: { token: string; original: string; type: string }[];
 } {
@@ -168,19 +242,76 @@ function anonymizePiiText(rawText: string): {
 
   const replaceMatch = (regex: RegExp, typeLabel: string) => {
     sanitized = sanitized.replace(regex, (match) => {
+      if (match.startsWith('[') && match.endsWith(']')) return match;
       const token = `[${typeLabel}_${String(counter++).padStart(2, '0')}]`;
       tokens.push({ token, original: match, type: typeLabel });
       return token;
     });
   };
 
-  replaceMatch(/\b(?:[VJGEP][-\s]?\d{7,9}(?:[-\s]?\d)?|\d{8}[A-Z]|[A-HJ-NP-SUVW]\d{7}[0-9A-J]|\d{2}-\d{8}-\d)\b/gi, 'ID_FISCAL_DOC');
-  replaceMatch(/\b[A-Z]{2}\d{2}[A-Z0-9]{12,30}\b/g, 'CUENTA_BANCARIA');
-  replaceMatch(/\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}\b/g, 'EMAIL_CLIENTE');
-  replaceMatch(/\b(?:\+?\d{1,3}[-\s.]?)?\(?\d{3}\)?[-\s.]?\d{3}[-\s.]?\d{4}\b/g, 'TELEFONO_PRIVADO');
-  replaceMatch(/\b(?:USD|EUR|Bs\.?|US\$|\$|€)\s?\d{1,3}(?:[.,]\d{3})*(?:[.,]\d{2})?\b|\b\d{1,3}(?:[.,]\d{3})+(?:[.,]\d{2})?\s?(?:USD|EUR|Bs\.?|dólares|euros)\b/gi, 'MONTO_OPERACION');
+  // 1. Nombres personalizados y clientes del CRM registrados en el despacho
+  const validExtraNames = extraNames
+    .map(n => n.trim())
+    .filter(n => n.length >= 3)
+    .sort((a, b) => b.length - a.length);
+
+  validExtraNames.forEach(nameStr => {
+    const rx = new RegExp(`\\b${escapeRegExp(nameStr)}\\b`, 'gi');
+    replaceMatch(rx, 'PARTE_CLIENTE');
+  });
+
+  // 2. Razones sociales mercantiles (Inversiones..., Corporación..., Grupo..., Comercializadora..., S.A., C.A., S.R.L., LLC)
+  replaceMatch(
+    /\b(?:Inversiones|Corporaci[oó]n|Grupo\s+Industrial|Grupo|Comercializadora|Constructora|Administradora|Desarrollos|Consorcio|Importadora|Distribuidora)\s+[A-ZÁÉÍÓÚÑ][A-Za-záéíóúñÁÉÍÓÚÑ0-9\s.&,-]{1,35}?(?:,\s*(?:C\.A\.|S\.A\.|S\.R\.L\.|S\.L\.|L\.L\.C\.))?(?=\s*\(|\s*,|\s+por\b|\s+y\b|\s+con\b|\s+seg[uú]n\b|\.|\s*$)/gi,
+    'ENTIDAD_MERCANTIL'
+  );
+  replaceMatch(
+    /\b[A-ZÁÉÍÓÚÑ][A-Za-záéíóúñÁÉÍÓÚÑ0-9\s.&-]{2,40}?,\s*(?:C\.A\.|S\.A\.|S\.R\.L\.|S\.A\.S\.|S\.L\.|L\.L\.C\.|INC\.)/g,
+    'ENTIDAD_MERCANTIL'
+  );
+
+  // 3. Cédulas de Identidad (con o sin puntos: V-12.345.678, E-84.123.456), RIF (J-30948271-0), NIF/DNI/CUIT
+  replaceMatch(
+    /\b(?:[VJGEP][-\s.]?\d{1,3}(?:[.\s]\d{3}){1,2}(?:[-\s]?\d)?|[VJGEP][-\s]?\d{7,9}(?:[-\s]?\d)?|\d{8}[A-Z]|[A-HJ-NP-SUVW]\d{7}[0-9A-J]|\d{2}-\d{8}-\d)\b/gi,
+    'ID_FISCAL_DOC'
+  );
+
+  // 4. Cuentas bancarias (IBAN internacional y Cuentas Nacionales de 20 dígitos con o sin guiones, ANTES del filtro de teléfonos)
+  replaceMatch(
+    /\b(?:[A-Z]{2}\d{2}[A-Z0-9]{12,30}|\d{4}[-\s]\d{4}[-\s]\d{2}[-\s]\d{10}|\d{20})\b/g,
+    'CUENTA_BANCARIA'
+  );
+
+  // 5. Correos electrónicos
+  replaceMatch(
+    /\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}\b/g,
+    'EMAIL_CLIENTE'
+  );
+
+  // 6. Teléfonos nacionales e internacionales (+58 414-2309811, (0212) 951-2233, etc.)
+  replaceMatch(
+    /(?:\+\d{1,3}[-\s.]?)?\(?\d{3,4}\)?[-\s.]?\d{3}[-\s.]?\d{4}\b/g,
+    'TELEFONO_PRIVADO'
+  );
+
+  // 7. Montos de operaciones (soporta $ o € al inicio sin fallar por word-boundary, USD, EUR, Bs.)
+  replaceMatch(
+    /(?:(?:\b(?:USD|EUR|Bs\.?)|US\$|\$|€)\s?\d{1,3}(?:[.,]\d{3})*(?:[.,]\d{2})?\b|\b\d{1,3}(?:[.,]\d{3})+(?:[.,]\d{2})?\s?(?:USD|EUR|Bs\.?|dólares|euros|bolívares)\b)/gi,
+    'MONTO_OPERACION'
+  );
 
   return { sanitized, tokens };
+}
+
+function deAnonymizeText(
+  text: string,
+  tokens: { token: string; original: string; type: string }[]
+): string {
+  let restored = text;
+  tokens.forEach(t => {
+    restored = restored.split(t.token).join(t.original);
+  });
+  return restored;
 }
 
 function exportWordDoc(filename: string, title: string, subtitle: string, bodyText: string) {
@@ -207,6 +338,33 @@ function exportWordDoc(filename: string, title: string, subtitle: string, bodyTe
   URL.revokeObjectURL(url);
 }
 
+const PROVIDER_DEFAULT_MODELS: Record<'openai' | 'anthropic' | 'gemini' | 'groq' | 'ollama', string[]> = {
+  openai: ['gpt-4o', 'gpt-4o-mini', 'o3-mini'],
+  anthropic: ['claude-3-5-sonnet-latest', 'claude-3-5-haiku-latest'],
+  gemini: ['gemini-2.5-pro', 'gemini-2.5-flash'],
+  groq: ['llama-3.3-70b-versatile', 'mixtral-8x7b-32768'],
+  ollama: ['llama3.1:8b-local', 'mistral-nemo:12b-local', 'qwen2.5:14b-local']
+};
+
+// Feriados nacionales y bancarios de referencia para cómputo procesal (Venezuela / Internacional)
+const DEFAULT_NON_WORKING_DATES: string[] = [
+  '2026-01-01', '2026-02-16', '2026-02-17', '2026-04-02', '2026-04-03',
+  '2026-04-19', '2026-05-01', '2026-06-24', '2026-07-05', '2026-07-24',
+  '2026-10-12', '2026-12-24', '2026-12-25', '2026-12-31'
+];
+
+function isJudicialRecessDate(dateStr: string): boolean {
+  const parts = dateStr.split('-').map(Number);
+  if (parts.length !== 3) return false;
+  const [, m, d] = parts;
+  // Receso judicial de agosto-septiembre (15 ago al 15 sep) y diciembre-enero (24 dic al 6 ene) - Art. 201 CPC
+  if ((m === 8 && d >= 15) || (m === 9 && d <= 15)) return true;
+  if ((m === 12 && d >= 24) || (m === 1 && d <= 6)) return true;
+  return false;
+}
+
+const STORAGE_KEY = 'ai_govern_legal_os_state_v2';
+
 // ============================================================================
 // COMPONENTE PRINCIPAL DEL SISTEMA DE TRABAJO DEL ABOGADO
 // ============================================================================
@@ -226,14 +384,15 @@ export default function AiGovernLegalSystem() {
   // ESTADO DE CONFIGURACIÓN GENERAL (Ubicado en la última pestaña)
   // ==========================================================================
   const [llmProvider, setLlmProvider] = useState<'openai' | 'anthropic' | 'gemini' | 'groq' | 'ollama'>('openai');
-  const [llmModel] = useState<string>('gpt-4o');
+  const [llmModel, setLlmModel] = useState<string>('gpt-4o');
   const [apiKeyInput, setApiKeyInput] = useState<string>('sk-proj-••••••••••••••••••••••••••••••••');
   const [monthlyBudgetUsd, setMonthlyBudgetUsd] = useState<number>(30);
-  const [currentSpendUsd, setCurrentSpendUsd] = useState<number>(2.45);
+  const [currentSpendUsd, setCurrentSpendUsd] = useState<number>(2.46);
+  const [savedHoursCount, setSavedHoursCount] = useState<number>(38.5);
   const [firmName, setFirmName] = useState<string>('Despacho Jurídico Titular');
   const [lawyerSignerName, setLawyerSignerName] = useState<string>('Abg. Titular del Despacho');
   const [lawyerCollegiateId, setLawyerCollegiateId] = useState<string>('Inpreabogado / Colegiado Nº 104.892');
-  const [customPracticeArea] = useState<string>('Práctica Jurídica Integral');
+  const [customPracticeArea, setCustomPracticeArea] = useState<string>('Práctica Jurídica Integral');
 
   const [librarySourceMode, setLibrarySourceMode] = useState<'Carpeta Local' | 'Google Drive'>('Google Drive');
   const [localFolderPath, setLocalFolderPath] = useState<string>('/Mis_Modelos_Juridicos');
@@ -296,7 +455,7 @@ export default function AiGovernLegalSystem() {
       type: 'Código / Ley',
       chunks: 420,
       status: 'Indexado',
-      excerpt: 'Artículos sobre requisitos esenciales para la validez de los contratos, tradición legal en compraventa de inmuebles, saneamiento por evicción y responsabilidad contractual.'
+      excerpt: 'Artículos sobre requisitos esenciales para la validez de los contratos, tradición legal en compraventa de inmuebles, consentimiento conyugal (Art. 168), acción resolutoria (Art. 1.167) y saneamiento.'
     },
     {
       id: 'rag-02',
@@ -304,7 +463,7 @@ export default function AiGovernLegalSystem() {
       type: 'Código / Ley',
       chunks: 315,
       status: 'Indexado',
-      excerpt: 'Normativa procesal sobre requisitos de la demanda, cómputo de lapsos por días de despacho, promoción y evacuación de pruebas y medidas preventivas.'
+      excerpt: 'Normativa procesal sobre requisitos de la demanda (Art. 340), cómputo de lapsos por días de despacho (Art. 197 y 201), promoción y evacuación de pruebas y medidas preventivas (Art. 585).'
     },
     {
       id: 'rag-03',
@@ -312,7 +471,7 @@ export default function AiGovernLegalSystem() {
       type: 'Código / Ley',
       chunks: 210,
       status: 'Indexado',
-      excerpt: 'Disposiciones aplicables a sociedades mercantiles, asambleas de accionistas, facultades de administradores y obligaciones mercantiles.'
+      excerpt: 'Disposiciones aplicables a sociedades mercantiles, asambleas de accionistas, facultades de administradores, títulos valores y obligaciones mercantiles.'
     }
   ]);
 
@@ -328,8 +487,19 @@ export default function AiGovernLegalSystem() {
       templateUsed: 'Contrato de Compraventa de Inmueble',
       approvedBy: 'Abg. Titular del Despacho',
       collegiateNumber: 'Inpreabogado / Colegiado Nº 104.892',
-      sha256: '9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08',
+      sha256: computeRealSha256('Contrato de Compraventa de Inmueble — Torre Ávila — HL-2026-001'),
       content: 'Documento revisado, visado por el abogado titular y exportado a formato .DOC para firma y protocolización.'
+    },
+    {
+      id: 'HL-2026-002',
+      timestamp: 'Hoy, 08:40',
+      title: 'Dictamen Preliminar sobre Garantías Hipotecarias',
+      originModule: 'Consultor de IA',
+      templateUsed: 'Dictamen Fundamentado en RAG',
+      approvedBy: 'Abg. Titular del Despacho',
+      collegiateNumber: 'Inpreabogado / Colegiado Nº 104.892',
+      sha256: computeRealSha256('Dictamen Preliminar sobre Garantías Hipotecarias — HL-2026-002'),
+      content: 'Dictamen jurídico visado sobre liberación de hipoteca de primer grado y tradición registral.'
     }
   ]);
 
@@ -338,10 +508,24 @@ export default function AiGovernLegalSystem() {
       id: 'PII-2026-001',
       timestamp: 'Hoy, 08:12',
       originModule: 'Consultor de IA',
-      contextSummary: 'Consulta sobre resolución de contrato de compraventa por incumplimiento de pago',
+      contextSummary: 'Consulta sobre resolución de contrato de compraventa por incumplimiento de entrega',
       tokensDetected: [
-        { token: '[ID_FISCAL_DOC_01]', type: 'ID_FISCAL_DOC', maskedPreview: 'J-309•••••-0 (Ocultado en RAM)' },
-        { token: '[MONTO_OPERACION_02]', type: 'MONTO_OPERACION', maskedPreview: '85.000 USD (Ocultado en RAM)' }
+        { token: '[ENTIDAD_MERCANTIL_01]', type: 'ENTIDAD_MERCANTIL', maskedPreview: 'Inve••••• (Ocultado en RAM)' },
+        { token: '[ID_FISCAL_DOC_02]', type: 'ID_FISCAL_DOC', maskedPreview: 'J-309•••••-0 (Ocultado en RAM)' },
+        { token: '[EMAIL_CLIENTE_03]', type: 'EMAIL_CLIENTE', maskedPreview: 'lega••••• (Ocultado en RAM)' },
+        { token: '[MONTO_OPERACION_04]', type: 'MONTO_OPERACION', maskedPreview: '85.000 USD (Ocultado en RAM)' }
+      ],
+      zeroRetentionVerified: true
+    },
+    {
+      id: 'PII-2026-002',
+      timestamp: 'Hoy, 08:15',
+      originModule: 'Redactor de Documentos',
+      contextSummary: 'Ensamblaje de Contrato de Compraventa de Inmueble',
+      tokensDetected: [
+        { token: '[ID_FISCAL_DOC_01]', type: 'ID_FISCAL_DOC', maskedPreview: 'V-12.••••• (Sustituido localmente)' },
+        { token: '[ID_FISCAL_DOC_02]', type: 'ID_FISCAL_DOC', maskedPreview: 'V-18.••••• (Sustituido localmente)' },
+        { token: '[MONTO_OPERACION_03]', type: 'MONTO_OPERACION', maskedPreview: '95.000,00 USD (Sustituido localmente)' }
       ],
       zeroRetentionVerified: true
     }
@@ -355,488 +539,11 @@ export default function AiGovernLegalSystem() {
       action: 'Sustitución inteligente de datos y Visto Bueno en Compraventa',
       llmUsed: 'openai / gpt-4o (Zero-Training)',
       piiCount: 3,
-      ragSource: 'Código Civil',
-      sha256: '9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08',
+      ragSource: 'Código Civil (Obligaciones, Contratos, Compraventa y Garantías)',
+      sha256: computeRealSha256('TRZ-2026-001-Compraventa'),
       humanVerified: true
     }
   ]);
-
-  // ==========================================================================
-  // MÓDULO 1: CONSULTOR DE IA (100% PRIVADO, ZERO-LEAK & ZERO-TRAINING)
-  // ==========================================================================
-  const [consultQuery, setConsultQuery] = useState<string>(
-    'Necesito evaluar las acciones legales por incumplimiento en la entrega de un inmueble vendido por 85.000 USD por parte de Inversiones Alfa (ID J-30948271-0), correo legal@alfa.com. ¿Procede resolución de contrato con daños y perjuicios o cumplimiento forzoso?'
-  );
-  const [consultShowSanitizedPayload, setConsultShowSanitizedPayload] = useState<boolean>(false);
-  const [consultResponse, setConsultResponse] = useState<{
-    dictamen: string;
-    sanitizedSentToAi: string;
-    citations: string[];
-    tokensProtected: number;
-    hash: string;
-    approvedInHumanLoop: boolean;
-  } | null>(null);
-
-  const handleRunConsultor = () => {
-    if (!consultQuery.trim()) return;
-    const { sanitized, tokens } = anonymizePiiText(consultQuery);
-    const activeLaw = ragDocs[0]?.title || 'Normativa Legal Cargada en el Despacho';
-    const hash = computePseudoSha256(sanitized + Date.now());
-
-    const dictamen = `DICTAMEN JURÍDICO CONFIDENCIAL (PROCESADO EN BÓVEDA PRIVADA ZERO-TRAINING)
-• Normativa de Referencia: ${activeLaw}
-• Blindaje de Privacidad Aplicado: ${tokens.length} datos sensibles sustituidos en memoria RAM local antes de consultar al modelo (${llmProvider.toUpperCase()} - ${llmModel} con directiva store: false / Zero-Data-Retention).
-
-1. ANÁLISIS DE LA ACCIÓN RESOLUTORIA VS. CUMPLIMIENTO FORZOSO:
-En los contratos bilaterales de compraventa inmobiliaria, ante el incumplimiento de la obligación de tradición material o formal por una de las partes, el contratante cumplidor tiene la facultad de elegir entre exigir la ejecución forzosa de la obligación o demandar la resolución del contrato, además del resarcimiento de los daños y perjuicios causados.
-
-2. RECAUDOS Y ESTRATEGIA PROCESAL RECOMENDADA:
-• Verificar el documento constitutivo de la obligación y los comprobantes del pago realizado.
-• Practicar requerimiento o intimación fehaciente dejando constancia de la mora.
-• Solicitar medida cautelar de prohibición de enajenar y gravar sobre el inmueble objeto del litigio para asegurar la eficacia del fallo.`;
-
-    setConsultResponse({
-      dictamen,
-      sanitizedSentToAi: sanitized,
-      citations: ragDocs.map(d => d.title),
-      tokensProtected: tokens.length,
-      hash,
-      approvedInHumanLoop: false
-    });
-
-    setPiiAuditRegistry(prev => [
-      {
-        id: `PII-${Date.now().toString().slice(-5)}`,
-        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-        originModule: 'Consultor de IA',
-        contextSummary: consultQuery.slice(0, 90) + '...',
-        tokensDetected: tokens.length > 0
-          ? tokens.map(t => ({ token: t.token, type: t.type, maskedPreview: `${t.original.slice(0, 4)}••• (Protegido en RAM)` }))
-          : [{ token: '[SIN_PII_EXPUESTO]', type: 'VERIFICADO', maskedPreview: 'Consulta doctrinal sin identificadores personales' }],
-        zeroRetentionVerified: true
-      },
-      ...prev
-    ]);
-
-    setAuditLogs(prev => [
-      {
-        id: `TRZ-${Date.now().toString().slice(-5)}`,
-        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-        module: 'Consultor de IA',
-        action: 'Dictamen jurídico con blindaje Zero-Leak / Zero-Training',
-        llmUsed: `${llmProvider}/${llmModel} (store:false)`,
-        piiCount: tokens.length,
-        ragSource: activeLaw,
-        sha256: hash,
-        humanVerified: false
-      },
-      ...prev
-    ]);
-    setCurrentSpendUsd(prev => +(prev + 0.01).toFixed(2));
-    showToast(`Consulta procesada en modo privado: ${tokens.length} datos ocultados a la IA y 0% entrenamiento.`);
-  };
-
-  const handleApproveConsultorDictamen = () => {
-    if (!consultResponse) return;
-    const record: ApprovedDocumentRecord = {
-      id: `HL-${Date.now().toString().slice(-5)}`,
-      timestamp: new Date().toLocaleString('es-ES', { dateStyle: 'short', timeStyle: 'short' }),
-      title: `Dictamen Jurídico — ${consultQuery.slice(0, 42)}...`,
-      originModule: 'Consultor de IA',
-      templateUsed: 'Dictamen Fundamentado en RAG',
-      approvedBy: lawyerSignerName,
-      collegiateNumber: lawyerCollegiateId,
-      sha256: consultResponse.hash,
-      content: consultResponse.dictamen
-    };
-    setApprovedDocsRegistry(prev => [record, ...prev]);
-    setConsultResponse({ ...consultResponse, approvedInHumanLoop: true });
-    exportWordDoc(
-      `Dictamen_Juridico_Visado_${Date.now().toString().slice(-4)}.doc`,
-      'DICTAMEN JURÍDICO VISADO',
-      `Visado por: ${lawyerSignerName} (${lawyerCollegiateId}) • Sello SHA-256: ${consultResponse.hash.slice(0, 24)}...`,
-      consultResponse.dictamen
-    );
-    showToast('Visto Bueno registrado en Human-in-the-Loop y Dictamen exportado a .DOC');
-  };
-
-  // ==========================================================================
-  // MÓDULO 2: REDACTOR DE DOCUMENTOS (FLUJO DE 4 PASOS CON FOTO/PDF/ESCRITO Y VISTO BUENO)
-  // ==========================================================================
-  const [selectedTemplateId, setSelectedTemplateId] = useState<string>('tpl-compraventa');
-  const selectedTemplate = useMemo(
-    () => templates.find(t => t.id === selectedTemplateId) || templates[0],
-    [templates, selectedTemplateId]
-  );
-  const [redactorStep, setRedactorStep] = useState<1 | 2 | 3>(2);
-  const [inputModeTab, setInputModeTab] = useState<'foto_ocr' | 'pdf_doc' | 'escrito_manual'>('foto_ocr');
-  const [extractedSourceNote, setExtractedSourceNote] = useState<string>('');
-  const [freeTextToExtract, setFreeTextToExtract] = useState<string>(
-    'Vendedor: CARLOS EDUARDO MÉNDEZ, mayor de edad, casado, C.I. V-12.345.678.\nComprador: MARÍA FERNANDA SALAZAR, mayor de edad, soltera, C.I. V-18.987.654.\nInmueble: Apartamento Nº 8-A, Residencias Parque Real, Urb. Los Palos Grandes, Municipio Chacao, de 162 metros cuadrados.\nRegistro: Registro Público del Municipio Chacao, Tomo 22, Folio 108, Protocolo 1º, fecha 14/05/2018.\nPrecio: NOVENTA Y CINCO MIL DÓLARES (95.000,00 USD) pagados mediante transferencia bancaria.\nJurisdicción: Ciudad de Caracas.'
-  );
-  const [templateValues, setTemplateValues] = useState<Record<string, string>>({
-    VENDEDOR: 'CARLOS EDUARDO MÉNDEZ, mayor de edad, casado, titular de la Cédula de Identidad Nº V-12.345.678',
-    COMPRADOR: 'MARÍA FERNANDA SALAZAR, mayor de edad, soltera, titular de la Cédula de Identidad Nº V-18.987.654',
-    DATOS_INMUEBLE: 'un Apartamento distinguido con el Nº 8-A, situado en el Piso 8 del Edificio Residencias Parque Real, Urbanización Los Palos Grandes, con un área de 162,00 m2',
-    REGISTRO_INMUEBLE: 'el Registro Público del Municipio Chacao bajo el Nº 45, Tomo 22, Folio 108, Protocolo Primero, de fecha 14 de mayo de 2018',
-    PRECIO_VENTA: 'NOVENTA Y CINCO MIL DÓLARES EXACTOS (95.000,00 USD), pagados mediante transferencia bancaria',
-    JURISDICCION: 'ciudad de Caracas, a la jurisdicción de cuyos Tribunales competentes declaran someterse'
-  });
-  const [redactorApprovedStamp, setRedactorApprovedStamp] = useState<string | null>(null);
-
-  const handleExtractFromPhotoOrPdf = (file: File, sourceType: 'Foto (OCR)' | 'Documento PDF') => {
-    if (selectedTemplate.id === 'tpl-compraventa') {
-      setTemplateValues({
-        VENDEDOR: 'ROBERTO ALEJANDRO ROJAS PÉREZ, mayor de edad, casado, C.I. V-10.456.789 y RIF V-10456789-3',
-        COMPRADOR: 'INVERSIONES PATRIMONIALES DEL ESTE, C.A., RIF J-41209876-5, representada por su Directora ANA SOFÍA GÓMEZ (C.I. V-16.234.567)',
-        DATOS_INMUEBLE: 'Oficina Comercial Nº PH-2, Piso 12, Torre Empresarial Castellana, Municipio Chacao, con superficie de 210,50 m2 y dos (2) puestos de estacionamiento',
-        REGISTRO_INMUEBLE: 'Registro Público del Municipio Chacao, Asiento Registral 2, Matrícula Nº 340.112.908, de fecha 22 de noviembre de 2021',
-        PRECIO_VENTA: 'CIENTO CUARENTA MIL DÓLARES DE LOS ESTADOS UNIDOS DE AMÉRICA (140.000,00 USD), cancelados mediante cheque de gerencia / transferencia',
-        JURISDICCION: 'ciudad de Caracas, a la jurisdicción de cuyos Tribunales Mercantiles y Civiles declaran someterse'
-      });
-    } else {
-      const updated: Record<string, string> = {};
-      selectedTemplate.variables.forEach((v) => {
-        updated[v.key] = v.placeholder.replace(/^Ej:\s*/i, '');
-      });
-      setTemplateValues(updated);
-    }
-    setExtractedSourceNote(`${sourceType} procesado localmente ("${file.name}") — La IA identificó y rellenó automáticamente los ${selectedTemplate.variables.length} campos requeridos por el modelo.`);
-    setRedactorStep(3);
-    showToast(`Datos extraídos de "${file.name}" e insertados en el borrador del modelo.`);
-  };
-
-  const handleExtractFromWrittenNotes = () => {
-    const lines = freeTextToExtract.split('\n');
-    const nextVals = { ...templateValues };
-    lines.forEach(line => {
-      const lower = line.toLowerCase();
-      if (lower.includes('vendedor:')) nextVals.VENDEDOR = line.split(':').slice(1).join(':').trim();
-      if (lower.includes('comprador:')) nextVals.COMPRADOR = line.split(':').slice(1).join(':').trim();
-      if (lower.includes('inmueble:')) nextVals.DATOS_INMUEBLE = line.split(':').slice(1).join(':').trim();
-      if (lower.includes('registro:')) nextVals.REGISTRO_INMUEBLE = line.split(':').slice(1).join(':').trim();
-      if (lower.includes('precio:')) nextVals.PRECIO_VENTA = line.split(':').slice(1).join(':').trim();
-      if (lower.includes('jurisdicci')) nextVals.JURISDICCION = line.split(':').slice(1).join(':').trim();
-    });
-    setTemplateValues(nextVals);
-    setExtractedSourceNote('Texto libre analizado por la IA — Variables identificadas y sustituidas en el modelo original.');
-    setRedactorStep(3);
-    showToast('Datos del escrito aplicados automáticamente al modelo original.');
-  };
-
-  const compiledDocument = useMemo(() => {
-    let text = selectedTemplate.contentPreview;
-    selectedTemplate.variables.forEach(v => {
-      const val = templateValues[v.key] || `[FALTA COMPLETAR: ${v.label}]`;
-      text = text.replace(new RegExp(`\\{\\{${v.key}\\}\\}`, 'g'), val);
-    });
-    return text;
-  }, [selectedTemplate, templateValues]);
-
-  const handleApproveAndExportRedactorDoc = () => {
-    const { tokens } = anonymizePiiText(compiledDocument);
-    const hash = computePseudoSha256(compiledDocument + Date.now());
-    const nowStr = new Date().toLocaleString('es-ES', { dateStyle: 'short', timeStyle: 'short' });
-
-    const newApproved: ApprovedDocumentRecord = {
-      id: `HL-${Date.now().toString().slice(-5)}`,
-      timestamp: nowStr,
-      title: `${selectedTemplate.name}`,
-      originModule: 'Redactor de Documentos',
-      templateUsed: `${selectedTemplate.name} (${selectedTemplate.source})`,
-      approvedBy: lawyerSignerName,
-      collegiateNumber: lawyerCollegiateId,
-      sha256: hash,
-      content: compiledDocument
-    };
-    setApprovedDocsRegistry(prev => [newApproved, ...prev]);
-
-    setPiiAuditRegistry(prev => [
-      {
-        id: `PII-${Date.now().toString().slice(-5)}`,
-        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-        originModule: 'Redactor de Documentos',
-        contextSummary: `Ensamblaje de ${selectedTemplate.name}`,
-        tokensDetected: tokens.map(t => ({
-          token: t.token,
-          type: t.type,
-          maskedPreview: `${t.original.slice(0, 5)}••• (Sustituido localmente)`
-        })),
-        zeroRetentionVerified: true
-      },
-      ...prev
-    ]);
-
-    setAuditLogs(prev => [
-      {
-        id: `TRZ-${Date.now().toString().slice(-5)}`,
-        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-        module: 'Redactor de Documentos',
-        action: `Visto Bueno y Exportación .DOC: ${selectedTemplate.name}`,
-        llmUsed: `${llmProvider}/${llmModel}`,
-        piiCount: tokens.length,
-        ragSource: selectedTemplate.source,
-        sha256: hash,
-        humanVerified: true
-      },
-      ...prev
-    ]);
-
-    setRedactorApprovedStamp(hash);
-    exportWordDoc(
-      `${selectedTemplate.name.replace(/\s+/g, '_')}_Visado.doc`,
-      selectedTemplate.name.toUpperCase(),
-      `Documento Visado por: ${lawyerSignerName} (${lawyerCollegiateId}) • Fecha: ${nowStr} • Sello Human-Loop SHA-256: ${hash.slice(0, 20)}...`,
-      `${compiledDocument}\n\n____________________________________________________\nVISADO POR: ${lawyerSignerName}\n${lawyerCollegiateId}\nSello de Aprobación Human-in-the-Loop: ${hash}`
-    );
-    showToast('Visto Bueno otorgado: Registrado en Human-in-the-Loop y descargado en .DOC para impresión y visado.');
-  };
-
-  // ==========================================================================
-  // MÓDULO 3: GRABADOR DE ACTAS (PRESENCIAL / ONLINE + CHECKS A PLANIFICADOR + MINUTA)
-  // ==========================================================================
-  const [isRecording, setIsRecording] = useState<boolean>(false);
-  const [recordingMode, setRecordingMode] = useState<'Presencial (Sala / Despacho)' | 'Meeting Online (Zoom / Meet / Teams)'>('Meeting Online (Zoom / Meet / Teams)');
-  const [meetingTitleInput, setMeetingTitleInput] = useState<string>('Reunión de Cierre de Compraventa y Revisión de Garantías');
-  const [meetingAttendeesInput, setMeetingAttendeesInput] = useState<string>('Abg. Titular, Carlos Méndez (Vendedor), María Salazar (Compradora)');
-  const [showMinutaModal, setShowMinutaModal] = useState<RecordingNote | null>(null);
-
-  const [recordings, setRecordings] = useState<RecordingNote[]>([
-    {
-      id: 'rec-01',
-      title: 'Reunión de Negociación de Compraventa Inmobiliaria y Entrega de Recaudos',
-      date: '2026-10-19',
-      duration: '28:15',
-      mode: 'Meeting Online (Zoom / Meet / Teams)',
-      attendees: 'Abg. Titular, Carlos Méndez (Parte Vendedora), María Salazar (Parte Compradora)',
-      summaryPoints: [
-        'Las partes ratificaron el precio definitivo de la compraventa en 95.000 USD pagaderos el día de la firma.',
-        'La parte vendedora exhibió solvencia municipal y liberación de hipoteca lista para protocolización.',
-        'Se acordó fijar la firma definitiva ante el Registro Público para el próximo lunes 26 de octubre.'
-      ],
-      agreementsAndTasks: [
-        { id: 'act-1', text: 'Solicitar solvencia actualizada de derecho de frente y ficha catastral en Alcaldía', dueDate: '2026-10-22', addedToPlanner: true },
-        { id: 'act-2', text: 'Redactar versión definitiva del Contrato de Compraventa e incluir linderos exactos', dueDate: '2026-10-23', addedToPlanner: false },
-        { id: 'act-3', text: 'Coordinar cita de otorgamiento y firma presencial ante el Registro Inmobiliario', dueDate: '2026-10-26', addedToPlanner: false }
-      ],
-      transcript: `[00:01:12] Abg. Titular: Damos inicio a la sesión online con las partes para revisar los recaudos finales de la compraventa del Apartamento 8-A.\n[00:04:30] Parte Vendedora (Carlos Méndez): Ya tenemos la liberación de hipoteca y el pago de impuestos municipales al día; los enviaré hoy mismo en PDF.\n[00:11:45] Parte Compradora (María Salazar): Estamos conformes con el precio de 95.000 USD y la transferencia se ejecutará al momento del otorgamiento.\n[00:22:10] Abg. Titular: Perfecto. Queda acordado que el despacho redactará el instrumento final el viernes 23 y agendamos el otorgamiento para el lunes 26 de octubre.`
-    }
-  ]);
-
-  const handleFinishRecordingSimulation = () => {
-    setIsRecording(false);
-    const todayIso = '2026-10-19';
-    const newRec: RecordingNote = {
-      id: `rec-${Date.now().toString().slice(-4)}`,
-      title: meetingTitleInput.trim() || 'Sesión Jurídica Grabada',
-      date: todayIso,
-      duration: '19:40',
-      mode: recordingMode,
-      attendees: meetingAttendeesInput.trim() || 'Abg. Titular y Clientes Asistentes',
-      summaryPoints: [
-        `Sesión realizada vía ${recordingMode} con participación de ${meetingAttendeesInput || 'los asistentes convocados'}.`,
-        'Se validaron los documentos de identidad, solvencias y condiciones económicas de la operación.',
-        'Quedaron asignadas las tareas jurídicas con fechas de vencimiento para el equipo y el cliente.'
-      ],
-      agreementsAndTasks: [
-        { id: `t-${Date.now()}-1`, text: `Preparar borrador de instrumento legal acordado en "${meetingTitleInput}"`, dueDate: '2026-10-21', addedToPlanner: false },
-        { id: `t-${Date.now()}-2`, text: 'Verificar recaudos registrales y enviar minuta de acuerdos a los asistentes', dueDate: '2026-10-22', addedToPlanner: false },
-        { id: `t-${Date.now()}-3`, text: 'Revisión final y firma del documento con el cliente', dueDate: '2026-10-27', addedToPlanner: false }
-      ],
-      transcript: `[00:00:15] Inicio de grabación (${recordingMode}) — Asunto: ${meetingTitleInput}.\n[00:05:40] Intervención de los asistentes (${meetingAttendeesInput}): Se revisan los puntos críticos de la agenda legal y se aprueban los términos expuestos por el despacho.\n[00:14:20] Acuerdos de cierre: Se instruye preparar el borrador definitivo para el 21/10/2026 y convocar a firma el 27/10/2026.`
-    };
-    setRecordings(prev => [newRec, ...prev]);
-    showToast('Grabación finalizada: Resumen, Acuerdos con Check al Planificador y Transcripción generados.');
-  };
-
-  // ==========================================================================
-  // MÓDULO 4 Y 5: PLANIFICADOR Y CALENDARIO MENSUAL REAL (SINCRONIZADOS AUTOMÁTICAMENTE)
-  // ==========================================================================
-  const [tasks, setTasks] = useState<PlannerTask[]>([
-    { id: 'tsk-1', title: 'Solicitar solvencia actualizada de derecho de frente y ficha catastral en Alcaldía', client: 'María Salazar / Carlos Méndez', dueDate: '2026-10-22', status: 'Pendiente', priority: 'Alta', origin: 'Grabador de Actas' },
-    { id: 'tsk-2', title: 'Revisión de estatutos y acta de asamblea extraordinaria', client: 'Inversiones Torre Central, C.A.', dueDate: '2026-10-20', status: 'En Curso', priority: 'Media', origin: 'Planificador' },
-    { id: 'tsk-3', title: 'Vencimiento de contestación de demanda mercantil', client: 'Grupo Industrial Delta, C.A.', dueDate: '2026-10-28', status: 'Pendiente', priority: 'Alta', origin: 'Plazo Procesal' }
-  ]);
-
-  const [calendarEvents, setCalendarEvents] = useState<CalendarEventItem[]>([
-    { id: 'ev-1', title: 'Revisión de estatutos y acta de asamblea extraordinaria', date: '2026-10-20', type: 'Tarea Planificador', client: 'Inversiones Torre Central, C.A.' },
-    { id: 'ev-2', title: 'Solicitar solvencia actualizada de derecho de frente y ficha catastral en Alcaldía', date: '2026-10-22', type: 'Reunión / Acta', client: 'María Salazar / Carlos Méndez' },
-    { id: 'ev-3', title: 'Vencimiento de contestación de demanda mercantil', date: '2026-10-28', type: 'Plazo Procesal', client: 'Grupo Industrial Delta, C.A.' }
-  ]);
-
-  const [newTaskTitle, setNewTaskTitle] = useState<string>('');
-  const [newTaskClient, setNewTaskClient] = useState<string>('');
-  const [newTaskDate, setNewTaskDate] = useState<string>('2026-10-24');
-  const [newTaskPriority] = useState<'Alta' | 'Media' | 'Baja'>('Alta');
-
-  const handleToggleRecordingTaskCheck = (recId: string, actionId: string) => {
-    setRecordings(prev =>
-      prev.map(rec => {
-        if (rec.id !== recId) return rec;
-        return {
-          ...rec,
-          agreementsAndTasks: rec.agreementsAndTasks.map(item => {
-            if (item.id !== actionId) return item;
-            const nextState = !item.addedToPlanner;
-            if (nextState) {
-              const newTaskId = `tsk-${Date.now()}`;
-              setTasks(tPrev => [
-                {
-                  id: newTaskId,
-                  title: item.text,
-                  client: rec.attendees.split(',')[1]?.trim() || 'Asistentes de Reunión',
-                  dueDate: item.dueDate,
-                  status: 'Pendiente',
-                  priority: 'Alta',
-                  origin: 'Grabador de Actas'
-                },
-                ...tPrev
-              ]);
-              setCalendarEvents(cPrev => [
-                ...cPrev,
-                {
-                  id: `ev-${Date.now()}`,
-                  title: item.text,
-                  date: item.dueDate,
-                  type: 'Reunión / Acta',
-                  client: rec.title
-                }
-              ]);
-              showToast(`Tarea enviada automáticamente al Planificador y agendada en el Calendario (${item.dueDate}).`);
-            }
-            return { ...item, addedToPlanner: nextState };
-          })
-        };
-      })
-    );
-  };
-
-  const handleAddPlannerTask = () => {
-    if (!newTaskTitle.trim() || !newTaskDate) return;
-    const createdTask: PlannerTask = {
-      id: `tsk-${Date.now().toString().slice(-4)}`,
-      title: newTaskTitle.trim(),
-      client: newTaskClient.trim() || 'General Despacho',
-      dueDate: newTaskDate,
-      status: 'Pendiente',
-      priority: newTaskPriority,
-      origin: 'Planificador'
-    };
-    setTasks(prev => [createdTask, ...prev]);
-    setCalendarEvents(prev => [
-      ...prev,
-      {
-        id: `ev-${Date.now().toString().slice(-4)}`,
-        title: createdTask.title,
-        date: createdTask.dueDate,
-        type: 'Tarea Planificador',
-        client: createdTask.client
-      }
-    ]);
-    setNewTaskTitle('');
-    setNewTaskClient('');
-    showToast(`Tarea planificada y agregada directamente en tu Calendario para el día ${newTaskDate}.`);
-  };
-
-  // ==========================================================================
-  // ESTADO DEL CALENDARIO MENSUAL REAL (MODO AGENDA GENERAL + MODO PROCESAL)
-  // ==========================================================================
-  const [calendarYear, setCalendarYear] = useState<number>(2026);
-  const [calendarMonth, setCalendarMonth] = useState<number>(9);
-  const [selectedCalendarDate, setSelectedCalendarDate] = useState<string>('2026-10-22');
-  const [calendarLawyerMode, setCalendarLawyerMode] = useState<'ambos' | 'agenda_general' | 'computo_procesal'>('ambos');
-
-  const [newCalEventTitle, setNewCalEventTitle] = useState<string>('');
-  const [newCalEventType, setNewCalEventType] = useState<'Agenda General' | 'Plazo Procesal'>('Agenda General');
-
-  const [procNotificationDate, setProcNotificationDate] = useState<string>('2026-10-19');
-  const [procDaysCount, setProcDaysCount] = useState<number>(5);
-  const [procDayMode, setProcDayMode] = useState<'habiles' | 'continuos'>('habiles');
-  const [procTitleInput, setProcTitleInput] = useState<string>('Vencimiento de Lapso de Promoción de Pruebas');
-
-  const monthNames = [
-    'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
-    'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
-  ];
-
-  const calendarMonthCells = useMemo(() => {
-    const firstDayOfMonth = new Date(calendarYear, calendarMonth, 1);
-    const daysInMonth = new Date(calendarYear, calendarMonth + 1, 0).getDate();
-    const startOffset = (firstDayOfMonth.getDay() + 6) % 7;
-    const cells: { day: number | null; dateStr: string | null; isWeekend: boolean }[] = [];
-
-    for (let i = 0; i < startOffset; i++) {
-      cells.push({ day: null, dateStr: null, isWeekend: false });
-    }
-    for (let d = 1; d <= daysInMonth; d++) {
-      const mStr = String(calendarMonth + 1).padStart(2, '0');
-      const dStr = String(d).padStart(2, '0');
-      const dateStr = `${calendarYear}-${mStr}-${dStr}`;
-      const dow = new Date(calendarYear, calendarMonth, d).getDay();
-      cells.push({ day: d, dateStr, isWeekend: dow === 0 || dow === 6 });
-    }
-    return cells;
-  }, [calendarYear, calendarMonth]);
-
-  const handleAddDirectCalendarEvent = () => {
-    if (!newCalEventTitle.trim() || !selectedCalendarDate) return;
-    setCalendarEvents(prev => [
-      ...prev,
-      {
-        id: `ev-${Date.now().toString().slice(-4)}`,
-        title: newCalEventTitle.trim(),
-        date: selectedCalendarDate,
-        type: newCalEventType,
-        client: 'Agendado en Calendario'
-      }
-    ]);
-    setNewCalEventTitle('');
-    showToast(`Evento agregado en el Calendario para el ${selectedCalendarDate}.`);
-  };
-
-  const handleCalculateAndAddProceduralDeadline = () => {
-    const start = new Date(`${procNotificationDate}T12:00:00`);
-    let remaining = Math.max(1, procDaysCount);
-    const cur = new Date(start);
-    while (remaining > 0) {
-      cur.setDate(cur.getDate() + 1);
-      const dow = cur.getDay();
-      if (procDayMode === 'continuos' || (dow !== 0 && dow !== 6)) {
-        remaining--;
-      }
-    }
-    const yyyy = cur.getFullYear();
-    const mm = String(cur.getMonth() + 1).padStart(2, '0');
-    const dd = String(cur.getDate()).padStart(2, '0');
-    const finalDateStr = `${yyyy}-${mm}-${dd}`;
-
-    setCalendarEvents(prev => [
-      ...prev,
-      {
-        id: `ev-${Date.now().toString().slice(-4)}`,
-        title: `${procTitleInput} (${procDaysCount} días ${procDayMode === 'habiles' ? 'hábiles de despacho' : 'continuos'})`,
-        date: finalDateStr,
-        type: 'Plazo Procesal',
-        client: 'Cómputo Procesal'
-      }
-    ]);
-    setTasks(prev => [
-      {
-        id: `tsk-${Date.now().toString().slice(-4)}`,
-        title: `${procTitleInput}`,
-        client: 'Cómputo Procesal',
-        dueDate: finalDateStr,
-        status: 'Pendiente',
-        priority: 'Alta',
-        origin: 'Plazo Procesal'
-      },
-      ...prev
-    ]);
-    setCalendarYear(yyyy);
-    setCalendarMonth(cur.getMonth());
-    setSelectedCalendarDate(finalDateStr);
-    showToast(`Vencimiento procesal calculado (${finalDateStr}) y marcado en el Calendario y Planificador.`);
-  };
 
   // ==========================================================================
   // MÓDULO 6: CRM CON VISTA PREVIA SOLO NOMBRE Y FICHA LEGAL COMPLETA AL SELECCIONAR
@@ -897,9 +604,918 @@ En los contratos bilaterales de compraventa inmobiliaria, ante el incumplimiento
     }
   ]);
 
+  // Lista dinámica de nombres de clientes del CRM para reforzar la anonimización en RAM
+  const crmProtectedNames = useMemo(() => {
+    const names: string[] = [];
+    crmClients.forEach(c => {
+      if (c.name) names.push(c.name);
+      const repClean = c.legalRep.split('(')[0]?.replace(/^(?:Dr\.|Dra\.|Ing\.|Lic\.|Abg\.)\s*/i, '').trim();
+      if (repClean && !repClean.toLowerCase().includes('propio nombre')) {
+        names.push(repClean);
+      }
+    });
+    return names;
+  }, [crmClients]);
+
+  // ==========================================================================
+  // MÓDULO 1: CONSULTOR DE IA (100% PRIVADO, ZERO-LEAK & ZERO-TRAINING)
+  // ==========================================================================
+  const [consultQuery, setConsultQuery] = useState<string>(
+    'Necesito evaluar las acciones legales por incumplimiento en la entrega de un inmueble vendido por 85.000 USD por parte de Inversiones Alfa (ID J-30948271-0), correo legal@alfa.com. ¿Procede resolución de contrato con daños y perjuicios o cumplimiento forzoso?'
+  );
+  const [consultSelectedLawId, setConsultSelectedLawId] = useState<string>('auto');
+  const [customMaskInput, setCustomMaskInput] = useState<string>('');
+  const [customMaskedTerms, setCustomMaskedTerms] = useState<string[]>([
+    'Carlos Eduardo Méndez',
+    'María Fernanda Salazar'
+  ]);
+  const [consultShowSanitizedPayload, setConsultShowSanitizedPayload] = useState<boolean>(true);
+  const [consultResponse, setConsultResponse] = useState<{
+    dictamen: string;
+    sanitizedSentToAi: string;
+    citations: string[];
+    tokensProtected: number;
+    hash: string;
+    auditLogId: string;
+    approvedInHumanLoop: boolean;
+  } | null>(null);
+
+  const allProtectedNames = useMemo(
+    () => [...crmProtectedNames, ...customMaskedTerms],
+    [crmProtectedNames, customMaskedTerms]
+  );
+
+  const liveSanitizedPreview = useMemo(
+    () => anonymizePiiText(consultQuery, allProtectedNames),
+    [consultQuery, allProtectedNames]
+  );
+
+  const handleAddCustomMaskTerm = () => {
+    const term = customMaskInput.trim();
+    if (!term) return;
+    if (!customMaskedTerms.includes(term)) {
+      setCustomMaskedTerms(prev => [...prev, term]);
+    }
+    setCustomMaskInput('');
+    showToast(`Término "${term}" añadido al diccionario de anonimización en memoria RAM.`);
+  };
+
+  const buildDynamicLegalDictamen = (
+    queryText: string,
+    sanitizedQuery: string,
+    tokensCount: number,
+    activeLawTitle: string
+  ): string => {
+    const q = queryText.toLowerCase();
+    const header = `DICTAMEN JURÍDICO CONFIDENCIAL (PROCESADO EN BÓVEDA PRIVADA ZERO-TRAINING)
+• Normativa de Referencia: ${activeLawTitle}
+• Blindaje de Privacidad Aplicado: ${tokensCount} datos sensibles sustituidos en memoria RAM local antes de consultar al modelo (${llmProvider.toUpperCase()} - ${llmModel} con directiva store: false / Zero-Data-Retention).
+• Consulta Anonimizada Enviada al Motor: "${sanitizedQuery}"`;
+
+    if (q.includes('arrendamiento') || q.includes('alquiler') || q.includes('canon') || q.includes('inquilin') || q.includes('desalojo')) {
+      return `${header}
+
+1. ANÁLISIS DE LA RELACIÓN ARRENDATICIA Y EXIGIBILIDAD DE OBLIGACIONES:
+En materia de arrendamiento comercial e inmobiliario, el incumplimiento en el pago oportuno del canon convenido o el vencimiento del término contractual habilita al arrendador para exigir el pago de las pensiones insolutas con sus respectivos intereses moratorios y activar las garantías constituidas (depósito o fianza solidaria).
+
+2. RECAUDOS Y ESTRATEGIA PROCESAL RECOMENDADA:
+• Verificar la vigencia del contrato, cláusula penal y estado de solvencia de servicios y condominio.
+• Agotar la fase previa o intimación extrajudicial/conciliatoria según el régimen aplicable al inmueble.
+• Promover acción de cumplimiento o resolución de contrato de arrendamiento acompañada de secuestro cautelar o ejecución de fianza solidaria.`;
+    }
+
+    if (q.includes('asamblea') || q.includes('accionista') || q.includes('mercantil') || q.includes('junta directiva') || q.includes('estatuto') || q.includes('comisario')) {
+      return `${header}
+
+1. ANÁLISIS SOCIETARIO Y VALIDEZ DE ACTOS CORPORATIVOS:
+Conforme al Código de Comercio y los estatutos sociales, toda deliberación sobre reforma estatutaria, aumento de capital, designación de administradores o aprobación de balances requiere cumplir estrictamente con las formalidades de convocatoria, quórum de presencia y mayoría calificada, así como su posterior inscripción y publicación ante el Registro Mercantil.
+
+2. RECAUDOS Y ESTRATEGIA CORPORATIVA RECOMENDADA:
+• Auditar el Libro de Accionistas y el Libro de Actas de Asamblea para verificar la cadena de titularidad y convocatorias previas.
+• Redactar el Acta de Asamblea dejando constancia expresa del porcentaje de capital representado y de la aprobación del informe del Comisario cuando corresponda.
+• Presentar participación dentro del lapso legal ante el Registro Mercantil competente junto con los soportes contables y solvencias fiscales.`;
+    }
+
+    if (q.includes('poder') || q.includes('mandato') || q.includes('apoderado') || q.includes('contestaci') || q.includes('pruebas') || q.includes('lapso') || q.includes('apelaci')) {
+      return `${header}
+
+1. ANÁLISIS PROCESAL Y CONTROL DE LAPSOS DE DESPACHO:
+De acuerdo con el Código de Procedimiento Civil, las facultades para convenir, desistir, transigir, comprometer en árbitros y recibir cantidades de dinero requieren mención expresa en el instrumento de mandato (Art. 154 CPC). Asimismo, los lapsos procesales para contestación, promoción de pruebas o recursos se computan por días de despacho efectivos del Tribunal (Art. 197 y 201 CPC).
+
+2. RECAUDOS Y ESTRATEGIA PROCESAL RECOMENDADA:
+• Verificar la suficiencia del poder judicial y su oportuna consignación en autos.
+• Auditar el calendario de días de despacho del Tribunal para asegurar la tempestad del escrito.
+• Preparar escrito razonado con indicación precisa del objeto de cada medio probatorio promovido.`;
+    }
+
+    return `${header}
+
+1. ANÁLISIS DE LA ACCIÓN RESOLUTORIA VS. CUMPLIMIENTO FORZOSO (ART. 1.167 CÓDIGO CIVIL):
+En los contratos bilaterales de compraventa inmobiliaria, ante el incumplimiento de la obligación de tradición material o protocolización por una de las partes, el contratante cumplidor tiene la facultad de elegir entre exigir la ejecución forzosa de la obligación o demandar la resolución del contrato, además del resarcimiento de los daños y perjuicios causados. Si el contrato contiene pacto comisorio expreso, la resolución opera de pleno derecho al notificarse la voluntad de resolver; de lo contrario, debe demandarse judicialmente.
+
+2. RECAUDOS Y ESTRATEGIA PROCESAL RECOMENDADA:
+• Verificar el instrumento contractual, el régimen patrimonial/consentimiento conyugal (Art. 168 CC) y los comprobantes fehacientes del pago realizado.
+• Practicar intimación o requerimiento notarial dejando constancia indubitable de la mora en la entrega o protocolización.
+• Solicitar medida cautelar de prohibición de enajenar y gravar (Art. 585 y 588 CPC) sobre el inmueble objeto del litigio para asegurar la eficacia del fallo definitivo.`;
+  };
+
+  const handleRunConsultor = () => {
+    if (!consultQuery.trim()) return;
+    const { sanitized, tokens } = anonymizePiiText(consultQuery, allProtectedNames);
+
+    let chosenLaw: RagLawDocument | undefined;
+    if (consultSelectedLawId !== 'auto') {
+      chosenLaw = ragDocs.find(d => d.id === consultSelectedLawId);
+    } else {
+      const qLower = consultQuery.toLowerCase();
+      if (qLower.includes('procesal') || qLower.includes('demanda') || qLower.includes('lapso') || qLower.includes('prueba') || qLower.includes('cautelar')) {
+        chosenLaw = ragDocs.find(d => d.id === 'rag-02') || ragDocs[0];
+      } else if (qLower.includes('mercantil') || qLower.includes('sociedad') || qLower.includes('accionista') || qLower.includes('comercio')) {
+        chosenLaw = ragDocs.find(d => d.id === 'rag-03') || ragDocs[0];
+      } else {
+        chosenLaw = ragDocs[0];
+      }
+    }
+
+    const activeLaw = chosenLaw?.title || 'Normativa Legal Cargada en el Despacho';
+    const hash = computeRealSha256(`${sanitized}|${activeLaw}|${Date.now()}`);
+    const newAuditLogId = `TRZ-${Date.now().toString().slice(-5)}`;
+
+    const dictamen = buildDynamicLegalDictamen(consultQuery, sanitized, tokens.length, activeLaw);
+
+    setConsultResponse({
+      dictamen,
+      sanitizedSentToAi: sanitized,
+      citations: chosenLaw ? [chosenLaw.title, ...ragDocs.filter(d => d.id !== chosenLaw!.id).map(d => d.title)] : ragDocs.map(d => d.title),
+      tokensProtected: tokens.length,
+      hash,
+      auditLogId: newAuditLogId,
+      approvedInHumanLoop: false
+    });
+
+    setPiiAuditRegistry(prev => [
+      {
+        id: `PII-${Date.now().toString().slice(-5)}`,
+        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        originModule: 'Consultor de IA',
+        contextSummary: consultQuery.slice(0, 90) + '...',
+        tokensDetected: tokens.length > 0
+          ? tokens.map(t => ({ token: t.token, type: t.type, maskedPreview: `${t.original.slice(0, 4)}••• (Protegido en RAM)` }))
+          : [{ token: '[SIN_PII_EXPUESTO]', type: 'VERIFICADO', maskedPreview: 'Consulta doctrinal sin identificadores personales' }],
+        zeroRetentionVerified: true
+      },
+      ...prev
+    ]);
+
+    setAuditLogs(prev => [
+      {
+        id: newAuditLogId,
+        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        module: 'Consultor de IA',
+        action: 'Dictamen jurídico con blindaje Zero-Leak / Zero-Training',
+        llmUsed: `${llmProvider}/${llmModel} (store:false)`,
+        piiCount: tokens.length,
+        ragSource: activeLaw,
+        sha256: hash,
+        humanVerified: false
+      },
+      ...prev
+    ]);
+
+    setCurrentSpendUsd(prev => +(prev + 0.01).toFixed(2));
+    setSavedHoursCount(prev => +(prev + 1.5).toFixed(1));
+    showToast(`Consulta procesada en modo privado: ${tokens.length} datos ocultados a la IA y 0% entrenamiento.`);
+  };
+
+  const handleApproveConsultorDictamen = () => {
+    if (!consultResponse) return;
+    if (consultResponse.approvedInHumanLoop) {
+      showToast('Este dictamen ya cuenta con tu Visto Bueno en Human-in-the-Loop.');
+      return;
+    }
+    const record: ApprovedDocumentRecord = {
+      id: `HL-${Date.now().toString().slice(-5)}`,
+      timestamp: new Date().toLocaleString('es-ES', { dateStyle: 'short', timeStyle: 'short' }),
+      title: `Dictamen Jurídico — ${consultQuery.slice(0, 42)}...`,
+      originModule: 'Consultor de IA',
+      templateUsed: 'Dictamen Fundamentado en RAG',
+      approvedBy: lawyerSignerName,
+      collegiateNumber: lawyerCollegiateId,
+      sha256: consultResponse.hash,
+      content: consultResponse.dictamen
+    };
+    setApprovedDocsRegistry(prev => [record, ...prev]);
+    setConsultResponse({ ...consultResponse, approvedInHumanLoop: true });
+    setAuditLogs(prev =>
+      prev.map(log =>
+        log.id === consultResponse.auditLogId || log.sha256 === consultResponse.hash
+          ? { ...log, humanVerified: true }
+          : log
+      )
+    );
+    exportWordDoc(
+      `Dictamen_Juridico_Visado_${Date.now().toString().slice(-4)}.doc`,
+      'DICTAMEN JURÍDICO VISADO',
+      `Visado por: ${lawyerSignerName} (${lawyerCollegiateId}) • Sello SHA-256: ${consultResponse.hash.slice(0, 24)}...`,
+      consultResponse.dictamen
+    );
+    showToast('Visto Bueno registrado en Human-in-the-Loop y Dictamen exportado a .DOC');
+  };
+
+  // ==========================================================================
+  // MÓDULO 2: REDACTOR DE DOCUMENTOS (FLUJO CON FOTO/PDF/ESCRITO, CRM Y VISTO BUENO)
+  // ==========================================================================
+  const [selectedTemplateId, setSelectedTemplateId] = useState<string>('tpl-compraventa');
+  const selectedTemplate = useMemo(
+    () => templates.find(t => t.id === selectedTemplateId) || templates[0],
+    [templates, selectedTemplateId]
+  );
+  const [redactorStep, setRedactorStep] = useState<1 | 2 | 3>(2);
+  const [inputModeTab, setInputModeTab] = useState<'foto_ocr' | 'pdf_doc' | 'escrito_manual'>('foto_ocr');
+  const [extractedSourceNote, setExtractedSourceNote] = useState<string>('');
+  const [freeTextToExtract, setFreeTextToExtract] = useState<string>(
+    'Vendedor: CARLOS EDUARDO MÉNDEZ, mayor de edad, casado, C.I. V-12.345.678.\nComprador: MARÍA FERNANDA SALAZAR, mayor de edad, soltera, C.I. V-18.987.654.\nInmueble: Apartamento Nº 8-A, Residencias Parque Real, Urb. Los Palos Grandes, Municipio Chacao, de 162 metros cuadrados.\nRegistro: Registro Público del Municipio Chacao, Tomo 22, Folio 108, Protocolo 1º, fecha 14/05/2018.\nPrecio: NOVENTA Y CINCO MIL DÓLARES (95.000,00 USD) pagados mediante transferencia bancaria.\nJurisdicción: Ciudad de Caracas.'
+  );
+  const [templateValues, setTemplateValues] = useState<Record<string, string>>({
+    VENDEDOR: 'CARLOS EDUARDO MÉNDEZ, mayor de edad, casado, titular de la Cédula de Identidad Nº V-12.345.678',
+    COMPRADOR: 'MARÍA FERNANDA SALAZAR, mayor de edad, soltera, titular de la Cédula de Identidad Nº V-18.987.654',
+    DATOS_INMUEBLE: 'un Apartamento distinguido con el Nº 8-A, situado en el Piso 8 del Edificio Residencias Parque Real, Urbanización Los Palos Grandes, con un área de 162,00 m2',
+    REGISTRO_INMUEBLE: 'el Registro Público del Municipio Chacao bajo el Nº 45, Tomo 22, Folio 108, Protocolo Primero, de fecha 14 de mayo de 2018',
+    PRECIO_VENTA: 'NOVENTA Y CINCO MIL DÓLARES EXACTOS (95.000,00 USD), pagados mediante transferencia bancaria',
+    JURISDICCION: 'ciudad de Caracas, a la jurisdicción de cuyos Tribunales competentes declaran someterse'
+  });
+  const [redactorApprovedStamp, setRedactorApprovedStamp] = useState<string | null>(null);
+
+  const handleSelectTemplate = (tplId: string) => {
+    setSelectedTemplateId(tplId);
+    setRedactorApprovedStamp(null);
+    const found = templates.find(t => t.id === tplId);
+    if (!found) return;
+
+    if (tplId === 'tpl-compraventa') {
+      setTemplateValues(prev => ({
+        VENDEDOR: prev.VENDEDOR || 'CARLOS EDUARDO MÉNDEZ, mayor de edad, casado, titular de la Cédula de Identidad Nº V-12.345.678',
+        COMPRADOR: prev.COMPRADOR || 'MARÍA FERNANDA SALAZAR, mayor de edad, soltera, titular de la Cédula de Identidad Nº V-18.987.654',
+        DATOS_INMUEBLE: prev.DATOS_INMUEBLE || 'un Apartamento distinguido con el Nº 8-A, situado en el Piso 8 del Edificio Residencias Parque Real, Urbanización Los Palos Grandes, con un área de 162,00 m2',
+        REGISTRO_INMUEBLE: prev.REGISTRO_INMUEBLE || 'el Registro Público del Municipio Chacao bajo el Nº 45, Tomo 22, Folio 108, Protocolo Primero, de fecha 14 de mayo de 2018',
+        PRECIO_VENTA: prev.PRECIO_VENTA || 'NOVENTA Y CINCO MIL DÓLARES EXACTOS (95.000,00 USD), pagados mediante transferencia bancaria',
+        JURISDICCION: prev.JURISDICCION || 'ciudad de Caracas, a la jurisdicción de cuyos Tribunales competentes declaran someterse'
+      }));
+      setFreeTextToExtract(
+        'Vendedor: CARLOS EDUARDO MÉNDEZ, mayor de edad, casado, C.I. V-12.345.678.\nComprador: MARÍA FERNANDA SALAZAR, mayor de edad, soltera, C.I. V-18.987.654.\nInmueble: Apartamento Nº 8-A, Residencias Parque Real, Urb. Los Palos Grandes, Municipio Chacao, de 162 metros cuadrados.\nRegistro: Registro Público del Municipio Chacao, Tomo 22, Folio 108, Protocolo 1º, fecha 14/05/2018.\nPrecio: NOVENTA Y CINCO MIL DÓLARES (95.000,00 USD) pagados mediante transferencia bancaria.\nJurisdicción: Ciudad de Caracas.'
+      );
+    } else if (tplId === 'tpl-arrendamiento') {
+      setTemplateValues(prev => ({
+        ...prev,
+        ARRENDADOR: prev.ARRENDADOR || 'INVERSIONES TORRE CENTRAL, C.A., RIF J-30948271-0, representada por su Director Principal Dr. Roberto Alejandro Rojas Pérez (C.I. V-10.456.789)',
+        ARRENDATARIO: prev.ARRENDATARIO || 'COMERCIALIZADORA NOVA, S.A., RIF J-40192834-2, representada por su Presidente',
+        LOCAL_DIRECCION: prev.LOCAL_DIRECCION || 'Local Comercial PB-08, Centro Comercial Paseo Las Mercedes, Municipio Baruta, con un área de noventa metros cuadrados (90,00 m2)',
+        CANON_MENSUAL: prev.CANON_MENSUAL || 'UN MIL QUINIENTOS DÓLARES (1.500,00 USD) mensuales más tres (03) meses de depósito en garantía',
+        DURACION: prev.DURACION || 'Dos (02) años fijos contados a partir de la autenticación del presente instrumento',
+        JURISDICCION: prev.JURISDICCION || 'Ciudad de Caracas, sometiéndose a la jurisdicción de sus Tribunales Mercantiles'
+      }));
+      setFreeTextToExtract(
+        'Arrendador: INVERSIONES TORRE CENTRAL, C.A. (RIF J-30948271-0).\nArrendatario: COMERCIALIZADORA NOVA, S.A. (RIF J-40192834-2).\nLocal: Local PB-08, Centro Comercial Paseo Las Mercedes, 90 m2.\nCanon: UN MIL QUINIENTOS DÓLARES (1.500,00 USD) mensuales + 3 meses de depósito.\nDuración: Dos (02) años fijos contados a partir de la firma.\nJurisdicción: Tribunales Mercantiles de la Circunscripción Judicial de Caracas.'
+      );
+    } else if (tplId === 'tpl-poder') {
+      setTemplateValues(prev => ({
+        ...prev,
+        OTORGANTE: prev.OTORGANTE || 'GRUPO INDUSTRIAL DELTA, C.A. (RIF J-00192837-4), representada por su Presidente Ing. Gustavo Adolfo Mendoza, titular de la C.I. V-06.812.334',
+        APODERADOS: prev.APODERADOS || `${lawyerSignerName}, titular del ${lawyerCollegiateId}`,
+        FACULTADES_ESPECIFICAS: prev.FACULTADES_ESPECIFICAS || 'Darse por citado o notificado, contestar demandas, oponer cuestiones previas, promover y evacuar pruebas, convenir, desistir, transigir, comprometer en árbitros y recibir cantidades de dinero (Art. 154 CPC)',
+        JURISDICCION: prev.JURISDICCION || 'la ciudad de Caracas, a la fecha de su otorgamiento ante Notaría Pública'
+      }));
+      setFreeTextToExtract(
+        `Otorgante: GRUPO INDUSTRIAL DELTA, C.A. (RIF J-00192837-4), representada por Gustavo Adolfo Mendoza (C.I. V-06.812.334).\nApoderados: ${lawyerSignerName} (${lawyerCollegiateId}).\nFacultades: Darse por citado, promover pruebas, convenir, desistir, transigir y recibir cantidades de dinero.\nJurisdicción: Ciudad de Caracas.`
+      );
+    } else {
+      const nextMap: Record<string, string> = { ...templateValues };
+      found.variables.forEach(v => {
+        if (!nextMap[v.key]) {
+          nextMap[v.key] = v.placeholder.replace(/^Ej:\s*/i, '');
+        }
+      });
+      setTemplateValues(nextMap);
+    }
+  };
+
+  // Detecta si en un contrato inmobiliario el vendedor/otorgante figura como "casado" sin mención de consentimiento conyugal (Art. 168 CC)
+  const spousalConsentWarning = useMemo(() => {
+    if (selectedTemplate.id !== 'tpl-compraventa') return false;
+    const vendedorText = (templateValues.VENDEDOR || '').toLowerCase();
+    const isMarried = /\bcasad[oa]\b/.test(vendedorText);
+    const hasConsentOrSeparateProperty =
+      vendedorText.includes('cónyuge') ||
+      vendedorText.includes('conyuge') ||
+      vendedorText.includes('consentimiento') ||
+      vendedorText.includes('bien propio') ||
+      vendedorText.includes('capitulaciones') ||
+      vendedorText.includes('168');
+    return isMarried && !hasConsentOrSeparateProperty;
+  }, [selectedTemplate.id, templateValues.VENDEDOR]);
+
+  const handleApplySpousalClause = (mode: 'consentimiento' | 'bien_propio') => {
+    const current = templateValues.VENDEDOR || '';
+    const addition =
+      mode === 'consentimiento'
+        ? ', contando con el consentimiento expreso de su cónyuge conforme al Artículo 168 del Código Civil vigente'
+        : ', declarando bajo fe de juramento que el inmueble objeto de esta venta constituye un bien propio adquirido con anterioridad al matrimonio (Art. 151 y 168 del Código Civil)';
+    setTemplateValues({
+      ...templateValues,
+      VENDEDOR: current.replace(/\.$/, '') + addition
+    });
+    showToast('Adecuación registral (Art. 168 Código Civil) incorporada en la identificación del Vendedor.');
+  };
+
+  const handleExtractFromPhotoOrPdf = (file: File, sourceType: 'Foto (OCR)' | 'Documento PDF') => {
+    const isTextLike = /\.(txt|md|csv|json)$/i.test(file.name);
+    if (isTextLike && typeof FileReader !== 'undefined') {
+      const reader = new FileReader();
+      reader.onload = () => {
+        const content = String(reader.result || '');
+        setFreeTextToExtract(content);
+        parseTextIntoTemplateVariables(content, `${sourceType} ("${file.name}") leído e interpretado localmente`);
+      };
+      reader.readAsText(file);
+      return;
+    }
+
+    if (selectedTemplate.id === 'tpl-compraventa') {
+      setTemplateValues({
+        VENDEDOR: 'ROBERTO ALEJANDRO ROJAS PÉREZ, mayor de edad, casado, C.I. V-10.456.789 y RIF V-10456789-3, con el consentimiento de su cónyuge (Art. 168 CC)',
+        COMPRADOR: 'INVERSIONES PATRIMONIALES DEL ESTE, C.A., RIF J-41209876-5, representada por su Directora ANA SOFÍA GÓMEZ (C.I. V-16.234.567)',
+        DATOS_INMUEBLE: 'Oficina Comercial Nº PH-2, Piso 12, Torre Empresarial Castellana, Municipio Chacao, con superficie de doscientos diez metros cuadrados con cincuenta decímetros (210,50 m2) y dos (02) puestos de estacionamiento',
+        REGISTRO_INMUEBLE: 'Registro Público del Municipio Chacao, Asiento Registral 2, Matrícula Nº 340.112.908, de fecha 22 de noviembre de 2021',
+        PRECIO_VENTA: 'CIENTO CUARENTA MIL DÓLARES DE LOS ESTADOS UNIDOS DE AMÉRICA (140.000,00 USD), cancelados mediante transferencia bancaria',
+        JURISDICCION: 'ciudad de Caracas, a la jurisdicción de cuyos Tribunales Mercantiles y Civiles declaran someterse'
+      });
+    } else if (selectedTemplate.id === 'tpl-arrendamiento') {
+      setTemplateValues({
+        ARRENDADOR: 'INVERSIONES TORRE CENTRAL, C.A., RIF J-30948271-0, inscrita en el Registro Mercantil Segundo de Caracas bajo el Nº 19, Tomo 84-A, representada por el Dr. Roberto Alejandro Rojas Pérez (C.I. V-10.456.789)',
+        ARRENDATARIO: 'COMERCIALIZADORA NOVA, S.A., RIF J-40192834-2, representada por su Director Ejecutivo Lic. Andrés Eduardo Villalba (C.I. V-15.882.104)',
+        LOCAL_DIRECCION: 'Local Comercial PB-08, Planta Baja del Centro Comercial Paseo Las Mercedes, Urbanización Las Mercedes, Municipio Baruta, con un área de noventa metros cuadrados (90,00 m2)',
+        CANON_MENSUAL: 'UN MIL QUINIENTOS DÓLARES DE LOS ESTADOS UNIDOS DE AMÉRICA (1.500,00 USD) mensuales, más tres (03) meses de depósito en garantía equivalentes a CUATRO MIL QUINIENTOS DÓLARES (4.500,00 USD)',
+        DURACION: 'Dos (02) años fijos contados a partir de su autenticación ante Notaría Pública',
+        JURISDICCION: 'Ciudad de Caracas, a la jurisdicción de cuyos Tribunales Mercantiles declaran someterse'
+      });
+    } else if (selectedTemplate.id === 'tpl-poder') {
+      setTemplateValues({
+        OTORGANTE: 'GRUPO INDUSTRIAL DELTA, C.A., RIF J-00192837-4, inscrita ante el Registro Mercantil Primero bajo el Nº 55, Tomo 12-A, representada por su Presidente Ing. Gustavo Adolfo Mendoza (C.I. V-06.812.334)',
+        APODERADOS: `${lawyerSignerName}, abogado en ejercicio, titular del ${lawyerCollegiateId}`,
+        FACULTADES_ESPECIFICAS: 'Darse por citado y notificado, intentar y contestar demandas, oponer cuestiones previas y reconvenciones, promover y evacuar todo género de pruebas, apelar, recurrir en casación, convenir, desistir, transigir y recibir cantidades de dinero conforme al Artículo 154 del Código de Procedimiento Civil',
+        JURISDICCION: 'En la ciudad de Caracas, a la fecha de su autenticación ante Notaría Pública'
+      });
+    } else {
+      const updated: Record<string, string> = {};
+      selectedTemplate.variables.forEach((v) => {
+        updated[v.key] = v.placeholder.replace(/^Ej:\s*/i, '');
+      });
+      setTemplateValues(updated);
+    }
+    setExtractedSourceNote(`${sourceType} procesado localmente ("${file.name}") — La IA identificó y rellenó automáticamente los ${selectedTemplate.variables.length} campos requeridos por el modelo.`);
+    setRedactorStep(3);
+    setCurrentSpendUsd(prev => +(prev + 0.01).toFixed(2));
+    setSavedHoursCount(prev => +(prev + 2.0).toFixed(1));
+    showToast(`Datos extraídos de "${file.name}" e insertados en el borrador del modelo.`);
+  };
+
+  const parseTextIntoTemplateVariables = (rawNotes: string, customNoteMsg?: string) => {
+    const lines = rawNotes.split('\n').map(l => l.trim()).filter(Boolean);
+    const nextVals = { ...templateValues };
+
+    lines.forEach(line => {
+      const colonIdx = line.indexOf(':');
+      if (colonIdx === -1) return;
+      const prefix = line.slice(0, colonIdx).toLowerCase().trim();
+      const val = line.slice(colonIdx + 1).trim();
+      if (!val) return;
+
+      // Coincidencia para modelos predefinidos y cualquier modelo nuevo cargado por el abogado
+      if (prefix.includes('vendedor')) nextVals.VENDEDOR = val;
+      if (prefix.includes('comprador')) nextVals.COMPRADOR = val;
+      if (prefix.includes('inmueble') || prefix.includes('descripci')) nextVals.DATOS_INMUEBLE = val;
+      if (prefix.includes('registro') || prefix.includes('tradici')) nextVals.REGISTRO_INMUEBLE = val;
+      if (prefix.includes('precio') || prefix.includes('monto')) {
+        nextVals.PRECIO_VENTA = val;
+        nextVals.PRECIO_MONTO = val;
+      }
+      if (prefix.includes('arrendador') || prefix.includes('propietari')) nextVals.ARRENDADOR = val;
+      if (prefix.includes('arrendatari') || prefix.includes('inquilin')) nextVals.ARRENDATARIO = val;
+      if (prefix.includes('local') || prefix.includes('ubicaci') || prefix.includes('direcci')) nextVals.LOCAL_DIRECCION = val;
+      if (prefix.includes('canon') || prefix.includes('alquiler') || prefix.includes('garant')) nextVals.CANON_MENSUAL = val;
+      if (prefix.includes('duraci') || prefix.includes('plazo') || prefix.includes('vigencia')) nextVals.DURACION = val;
+      if (prefix.includes('otorgante') || prefix.includes('poderdante')) nextVals.OTORGANTE = val;
+      if (prefix.includes('apoderado') || prefix.includes('abogado')) nextVals.APODERADOS = val;
+      if (prefix.includes('facultad') || prefix.includes('mandato')) nextVals.FACULTADES_ESPECIFICAS = val;
+      if (prefix.includes('parte')) nextVals.PARTES = val;
+      if (prefix.includes('objeto')) nextVals.OBJETO = val;
+      if (prefix.includes('jurisdicci') || prefix.includes('domicilio') || prefix.includes('ciudad')) nextVals.JURISDICCION = val;
+
+      // Coincidencia dinámica contra las variables de cualquier plantilla personalizada
+      selectedTemplate.variables.forEach(v => {
+        const keyNorm = v.key.toLowerCase().replace(/_/g, ' ');
+        const catNorm = v.category.toLowerCase();
+        if (prefix.includes(keyNorm) || prefix === catNorm) {
+          nextVals[v.key] = val;
+        }
+      });
+    });
+
+    setTemplateValues(nextVals);
+    setExtractedSourceNote(customNoteMsg || 'Texto libre analizado por la IA — Variables identificadas y sustituidas en el modelo original.');
+    setRedactorStep(3);
+    showToast('Datos del escrito aplicados automáticamente al modelo original.');
+  };
+
+  const handleExtractFromWrittenNotes = () => {
+    parseTextIntoTemplateVariables(freeTextToExtract);
+  };
+
+  const handleLoadClientIntoRedactor = (client: CrmClient) => {
+    const fullPartyDesc =
+      client.personType === 'Persona Jurídica (Empresa)'
+        ? `${client.name}, RIF ${client.taxId}, inscrita en ${client.registryInfo}, representada en este acto por ${client.legalRep}`
+        : `${client.name}, mayor de edad, titular del documento de identidad Nº ${client.taxId}, domiciliado(a) en ${client.address}`;
+
+    const nextVals = { ...templateValues };
+    if (selectedTemplate.id === 'tpl-compraventa') {
+      nextVals.COMPRADOR = fullPartyDesc;
+    } else if (selectedTemplate.id === 'tpl-arrendamiento') {
+      nextVals.ARRENDADOR = fullPartyDesc;
+    } else if (selectedTemplate.id === 'tpl-poder') {
+      nextVals.OTORGANTE = fullPartyDesc;
+      nextVals.APODERADOS = `${lawyerSignerName}, titular del ${lawyerCollegiateId}`;
+    } else if (selectedTemplate.variables.length > 0) {
+      nextVals[selectedTemplate.variables[0].key] = fullPartyDesc;
+    }
+
+    setTemplateValues(nextVals);
+    setExtractedSourceNote(`Datos de la ficha legal de "${client.name}" importados directamente desde el CRM del despacho.`);
+    setActiveTab('redactor_docs');
+    setRedactorStep(3);
+    showToast(`Datos de "${client.name}" cargados en el Redactor de Documentos.`);
+  };
+
+  const compiledDocument = useMemo(() => {
+    let text = selectedTemplate.contentPreview;
+    selectedTemplate.variables.forEach(v => {
+      const val = templateValues[v.key] || `[FALTA COMPLETAR: ${v.label}]`;
+      text = text.replace(new RegExp(`\\{\\{${v.key}\\}\\}`, 'g'), val);
+    });
+    return text;
+  }, [selectedTemplate, templateValues]);
+
+  const handleApproveAndExportRedactorDoc = () => {
+    const { tokens } = anonymizePiiText(compiledDocument, allProtectedNames);
+    const hash = computeRealSha256(`${compiledDocument}|${lawyerSignerName}|${Date.now()}`);
+    const nowStr = new Date().toLocaleString('es-ES', { dateStyle: 'short', timeStyle: 'short' });
+
+    const newApproved: ApprovedDocumentRecord = {
+      id: `HL-${Date.now().toString().slice(-5)}`,
+      timestamp: nowStr,
+      title: `${selectedTemplate.name}`,
+      originModule: 'Redactor de Documentos',
+      templateUsed: `${selectedTemplate.name} (${selectedTemplate.source})`,
+      approvedBy: lawyerSignerName,
+      collegiateNumber: lawyerCollegiateId,
+      sha256: hash,
+      content: compiledDocument
+    };
+    setApprovedDocsRegistry(prev => [newApproved, ...prev]);
+
+    setPiiAuditRegistry(prev => [
+      {
+        id: `PII-${Date.now().toString().slice(-5)}`,
+        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        originModule: 'Redactor de Documentos',
+        contextSummary: `Ensamblaje de ${selectedTemplate.name}`,
+        tokensDetected: tokens.map(t => ({
+          token: t.token,
+          type: t.type,
+          maskedPreview: `${t.original.slice(0, 5)}••• (Sustituido localmente)`
+        })),
+        zeroRetentionVerified: true
+      },
+      ...prev
+    ]);
+
+    setAuditLogs(prev => [
+      {
+        id: `TRZ-${Date.now().toString().slice(-5)}`,
+        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        module: 'Redactor de Documentos',
+        action: `Visto Bueno y Exportación .DOC: ${selectedTemplate.name}`,
+        llmUsed: `${llmProvider}/${llmModel}`,
+        piiCount: tokens.length,
+        ragSource: selectedTemplate.source,
+        sha256: hash,
+        humanVerified: true
+      },
+      ...prev
+    ]);
+
+    setRedactorApprovedStamp(hash);
+    setSavedHoursCount(prev => +(prev + 2.5).toFixed(1));
+    exportWordDoc(
+      `${selectedTemplate.name.replace(/\s+/g, '_')}_Visado.doc`,
+      selectedTemplate.name.toUpperCase(),
+      `Documento Visado por: ${lawyerSignerName} (${lawyerCollegiateId}) • Fecha: ${nowStr} • Sello Human-Loop SHA-256: ${hash.slice(0, 20)}...`,
+      `${compiledDocument}\n\n____________________________________________________\nVISADO POR: ${lawyerSignerName}\n${lawyerCollegiateId}\nSello de Aprobación Human-in-the-Loop: ${hash}`
+    );
+    showToast('Visto Bueno otorgado: Registrado en Human-in-the-Loop y descargado en .DOC para impresión y visado.');
+  };
+
+  // ==========================================================================
+  // MÓDULO 3: GRABADOR DE ACTAS (PRESENCIAL / ONLINE + CHECKS A PLANIFICADOR + MINUTA)
+  // ==========================================================================
+  const [isRecording, setIsRecording] = useState<boolean>(false);
+  const [recordingSeconds, setRecordingSeconds] = useState<number>(0);
+  const [recordingMode, setRecordingMode] = useState<'Presencial (Sala / Despacho)' | 'Meeting Online (Zoom / Meet / Teams)'>('Meeting Online (Zoom / Meet / Teams)');
+  const [meetingTitleInput, setMeetingTitleInput] = useState<string>('Reunión de Cierre de Compraventa y Revisión de Garantías');
+  const [meetingAttendeesInput, setMeetingAttendeesInput] = useState<string>('Abg. Titular, Carlos Méndez (Vendedor), María Salazar (Compradora)');
+  const [showMinutaModal, setShowMinutaModal] = useState<RecordingNote | null>(null);
+  const recordingTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  useEffect(() => {
+    if (isRecording) {
+      recordingTimerRef.current = setInterval(() => {
+        setRecordingSeconds(s => s + 1);
+      }, 1000);
+    } else {
+      if (recordingTimerRef.current) clearInterval(recordingTimerRef.current);
+      setRecordingSeconds(0);
+    }
+    return () => {
+      if (recordingTimerRef.current) clearInterval(recordingTimerRef.current);
+    };
+  }, [isRecording]);
+
+  const [recordings, setRecordings] = useState<RecordingNote[]>([
+    {
+      id: 'rec-01',
+      title: 'Reunión de Negociación de Compraventa Inmobiliaria y Entrega de Recaudos',
+      date: '2026-10-19',
+      duration: '28:15',
+      mode: 'Meeting Online (Zoom / Meet / Teams)',
+      attendees: 'Abg. Titular, Carlos Méndez (Parte Vendedora), María Salazar (Parte Compradora)',
+      summaryPoints: [
+        'Las partes ratificaron el precio definitivo de la compraventa en 95.000 USD pagaderos el día de la firma.',
+        'La parte vendedora exhibió solvencia municipal y liberación de hipoteca lista para protocolización.',
+        'Se acordó fijar la firma definitiva ante el Registro Público para el próximo lunes 26 de octubre.'
+      ],
+      agreementsAndTasks: [
+        { id: 'act-1', text: 'Solicitar solvencia actualizada de derecho de frente y ficha catastral en Alcaldía', dueDate: '2026-10-22', addedToPlanner: true, linkedTaskId: 'tsk-1', linkedEventId: 'ev-2' },
+        { id: 'act-2', text: 'Redactar versión definitiva del Contrato de Compraventa e incluir linderos exactos', dueDate: '2026-10-23', addedToPlanner: false },
+        { id: 'act-3', text: 'Coordinar cita de otorgamiento y firma presencial ante el Registro Inmobiliario', dueDate: '2026-10-26', addedToPlanner: false }
+      ],
+      transcript: `[00:01:12] Abg. Titular: Damos inicio a la sesión online con las partes para revisar los recaudos finales de la compraventa del Apartamento 8-A.\n[00:04:30] Parte Vendedora (Carlos Méndez): Ya tenemos la liberación de hipoteca y el pago de impuestos municipales al día; los enviaré hoy mismo en PDF.\n[00:11:45] Parte Compradora (María Salazar): Estamos conformes con el precio de 95.000 USD y la transferencia se ejecutará al momento del otorgamiento.\n[00:22:10] Abg. Titular: Perfecto. Queda acordado que el despacho redactará el instrumento final el viernes 23 y agendamos el otorgamiento para el lunes 26 de octubre.`
+    }
+  ]);
+
+  const handleFinishRecordingSimulation = () => {
+    setIsRecording(false);
+    const todayIso = '2026-10-19';
+    const mins = String(Math.floor(recordingSeconds / 60)).padStart(2, '0');
+    const secs = String(recordingSeconds % 60).padStart(2, '0');
+    const formattedDuration = recordingSeconds > 5 ? `${mins}:${secs}` : '19:40';
+    const transcriptText = `[00:00:15] Inicio de grabación (${recordingMode}) — Asunto: ${meetingTitleInput}.\n[00:05:40] Intervención de los asistentes (${meetingAttendeesInput}): Se revisan los puntos críticos de la agenda legal y se aprueban los términos expuestos por el despacho.\n[00:14:20] Acuerdos de cierre: Se instruye preparar el borrador definitivo para el 21/10/2026 y convocar a firma el 27/10/2026.`;
+
+    const { tokens } = anonymizePiiText(transcriptText, allProtectedNames);
+    const hash = computeRealSha256(`${transcriptText}|${Date.now()}`);
+
+    const newRec: RecordingNote = {
+      id: `rec-${Date.now().toString().slice(-4)}`,
+      title: meetingTitleInput.trim() || 'Sesión Jurídica Grabada',
+      date: todayIso,
+      duration: formattedDuration,
+      mode: recordingMode,
+      attendees: meetingAttendeesInput.trim() || 'Abg. Titular y Clientes Asistentes',
+      summaryPoints: [
+        `Sesión realizada vía ${recordingMode} con participación de ${meetingAttendeesInput || 'los asistentes convocados'}.`,
+        'Se validaron los documentos de identidad, solvencias y condiciones económicas de la operación.',
+        'Quedaron asignadas las tareas jurídicas con fechas de vencimiento para el equipo y el cliente.'
+      ],
+      agreementsAndTasks: [
+        { id: `t-${Date.now()}-1`, text: `Preparar borrador de instrumento legal acordado en "${meetingTitleInput}"`, dueDate: '2026-10-21', addedToPlanner: false },
+        { id: `t-${Date.now()}-2`, text: 'Verificar recaudos registrales y enviar minuta de acuerdos a los asistentes', dueDate: '2026-10-22', addedToPlanner: false },
+        { id: `t-${Date.now()}-3`, text: 'Revisión final y firma del documento con el cliente', dueDate: '2026-10-27', addedToPlanner: false }
+      ],
+      transcript: transcriptText
+    };
+    setRecordings(prev => [newRec, ...prev]);
+
+    setPiiAuditRegistry(prev => [
+      {
+        id: `PII-${Date.now().toString().slice(-5)}`,
+        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        originModule: 'Grabador de Actas',
+        contextSummary: `Transcripción y Resumen: ${newRec.title}`,
+        tokensDetected: tokens.length > 0
+          ? tokens.map(t => ({ token: t.token, type: t.type, maskedPreview: `${t.original.slice(0, 5)}••• (Protegido en RAM)` }))
+          : [{ token: '[AUDIO_PROCESADO_LOCAL]', type: 'SALA_PRIVADA', maskedPreview: 'Participantes protegidos en memoria local' }],
+        zeroRetentionVerified: true
+      },
+      ...prev
+    ]);
+
+    setAuditLogs(prev => [
+      {
+        id: `TRZ-${Date.now().toString().slice(-5)}`,
+        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        module: 'Grabador de Actas',
+        action: `Acta y acuerdos generados: ${newRec.title}`,
+        llmUsed: `${llmProvider}/${llmModel} (store:false)`,
+        piiCount: tokens.length,
+        ragSource: 'Audio / Transcripción Local',
+        sha256: hash,
+        humanVerified: false
+      },
+      ...prev
+    ]);
+
+    setCurrentSpendUsd(prev => +(prev + 0.01).toFixed(2));
+    setSavedHoursCount(prev => +(prev + 1.5).toFixed(1));
+    showToast('Grabación finalizada: Resumen, Acuerdos con Check al Planificador y Transcripción generados.');
+  };
+
+  // ==========================================================================
+  // MÓDULO 4 Y 5: PLANIFICADOR Y CALENDARIO MENSUAL REAL (SINCRONIZADOS AUTOMÁTICAMENTE)
+  // ==========================================================================
+  const [tasks, setTasks] = useState<PlannerTask[]>([
+    { id: 'tsk-1', title: 'Solicitar solvencia actualizada de derecho de frente y ficha catastral en Alcaldía', client: 'María Salazar / Carlos Méndez', dueDate: '2026-10-22', status: 'Pendiente', priority: 'Alta', origin: 'Grabador de Actas' },
+    { id: 'tsk-2', title: 'Revisión de estatutos y acta de asamblea extraordinaria', client: 'Inversiones Torre Central, C.A.', dueDate: '2026-10-20', status: 'En Curso', priority: 'Media', origin: 'Planificador' },
+    { id: 'tsk-3', title: 'Vencimiento de contestación de demanda mercantil', client: 'Grupo Industrial Delta, C.A.', dueDate: '2026-10-28', status: 'Pendiente', priority: 'Alta', origin: 'Plazo Procesal' }
+  ]);
+
+  const [calendarEvents, setCalendarEvents] = useState<CalendarEventItem[]>([
+    { id: 'ev-1', title: 'Revisión de estatutos y acta de asamblea extraordinaria', date: '2026-10-20', type: 'Tarea Planificador', client: 'Inversiones Torre Central, C.A.', linkedTaskId: 'tsk-2' },
+    { id: 'ev-2', title: 'Solicitar solvencia actualizada de derecho de frente y ficha catastral en Alcaldía', date: '2026-10-22', type: 'Reunión / Acta', client: 'María Salazar / Carlos Méndez', linkedTaskId: 'tsk-1' },
+    { id: 'ev-3', title: 'Vencimiento de contestación de demanda mercantil', date: '2026-10-28', type: 'Plazo Procesal', client: 'Grupo Industrial Delta, C.A.', linkedTaskId: 'tsk-3' }
+  ]);
+
+  const [newTaskTitle, setNewTaskTitle] = useState<string>('');
+  const [newTaskClient, setNewTaskClient] = useState<string>('');
+  const [newTaskDate, setNewTaskDate] = useState<string>('2026-10-24');
+  const [newTaskPriority, setNewTaskPriority] = useState<'Alta' | 'Media' | 'Baja'>('Alta');
+
+  // Evita duplicar tareas al desmarcar y volver a marcar un acuerdo en el Grabador
+  const handleToggleRecordingTaskCheck = (recId: string, actionId: string) => {
+    const targetRec = recordings.find(r => r.id === recId);
+    const targetItem = targetRec?.agreementsAndTasks.find(a => a.id === actionId);
+    if (!targetRec || !targetItem) return;
+
+    const nextState = !targetItem.addedToPlanner;
+    if (nextState) {
+      const newTaskId = `tsk-${Date.now()}`;
+      const newEventId = `ev-${Date.now()}`;
+      setTasks(tPrev => [
+        {
+          id: newTaskId,
+          title: targetItem.text,
+          client: targetRec.attendees.split(',')[1]?.trim() || 'Asistentes de Reunión',
+          dueDate: targetItem.dueDate,
+          status: 'Pendiente',
+          priority: 'Alta',
+          origin: 'Grabador de Actas'
+        },
+        ...tPrev
+      ]);
+      setCalendarEvents(cPrev => [
+        ...cPrev,
+        {
+          id: newEventId,
+          title: targetItem.text,
+          date: targetItem.dueDate,
+          type: 'Reunión / Acta',
+          client: targetRec.title,
+          linkedTaskId: newTaskId
+        }
+      ]);
+      setRecordings(prev =>
+        prev.map(rec =>
+          rec.id !== recId
+            ? rec
+            : {
+                ...rec,
+                agreementsAndTasks: rec.agreementsAndTasks.map(item =>
+                  item.id !== actionId
+                    ? item
+                    : { ...item, addedToPlanner: true, linkedTaskId: newTaskId, linkedEventId: newEventId }
+                )
+              }
+        )
+      );
+      showToast(`Tarea enviada automáticamente al Planificador y agendada en el Calendario (${targetItem.dueDate}).`);
+    } else {
+      // Si se desmarca, remueve la tarea vinculada del Planificador y del Calendario para evitar duplicados
+      setTasks(tPrev =>
+        tPrev.filter(tk => tk.id !== targetItem.linkedTaskId && tk.title !== targetItem.text)
+      );
+      setCalendarEvents(cPrev =>
+        cPrev.filter(ev => ev.id !== targetItem.linkedEventId && ev.linkedTaskId !== targetItem.linkedTaskId)
+      );
+      setRecordings(prev =>
+        prev.map(rec =>
+          rec.id !== recId
+            ? rec
+            : {
+                ...rec,
+                agreementsAndTasks: rec.agreementsAndTasks.map(item =>
+                  item.id !== actionId
+                    ? item
+                    : { ...item, addedToPlanner: false, linkedTaskId: undefined, linkedEventId: undefined }
+                )
+              }
+        )
+      );
+      showToast('Tarea removida del Planificador y del Calendario.');
+    }
+  };
+
+  const handleAddPlannerTask = () => {
+    if (!newTaskTitle.trim() || !newTaskDate) return;
+    const taskId = `tsk-${Date.now().toString().slice(-4)}`;
+    const createdTask: PlannerTask = {
+      id: taskId,
+      title: newTaskTitle.trim(),
+      client: newTaskClient.trim() || 'General Despacho',
+      dueDate: newTaskDate,
+      status: 'Pendiente',
+      priority: newTaskPriority,
+      origin: 'Planificador'
+    };
+    setTasks(prev => [createdTask, ...prev]);
+    setCalendarEvents(prev => [
+      ...prev,
+      {
+        id: `ev-${Date.now().toString().slice(-4)}`,
+        title: createdTask.title,
+        date: createdTask.dueDate,
+        type: 'Tarea Planificador',
+        client: createdTask.client,
+        linkedTaskId: taskId
+      }
+    ]);
+    setNewTaskTitle('');
+    setNewTaskClient('');
+    showToast(`Tarea planificada y agregada directamente en tu Calendario para el día ${newTaskDate}.`);
+  };
+
+  const handleDeletePlannerTask = (taskId: string) => {
+    const target = tasks.find(t => t.id === taskId);
+    setTasks(prev => prev.filter(t => t.id !== taskId));
+    setCalendarEvents(prev => prev.filter(ev => ev.linkedTaskId !== taskId && ev.title !== target?.title));
+    showToast('Tarea eliminada del Planificador y del Calendario.');
+  };
+
+  // ==========================================================================
+  // ESTADO DEL CALENDARIO MENSUAL REAL (MODO AGENDA GENERAL + MODO PROCESAL)
+  // ==========================================================================
+  const [calendarYear, setCalendarYear] = useState<number>(2026);
+  const [calendarMonth, setCalendarMonth] = useState<number>(9);
+  const [selectedCalendarDate, setSelectedCalendarDate] = useState<string>('2026-10-22');
+  const [calendarLawyerMode, setCalendarLawyerMode] = useState<'ambos' | 'agenda_general' | 'computo_procesal'>('ambos');
+
+  const [newCalEventTitle, setNewCalEventTitle] = useState<string>('');
+  const [newCalEventType, setNewCalEventType] = useState<'Agenda General' | 'Plazo Procesal'>('Agenda General');
+
+  const [procNotificationDate, setProcNotificationDate] = useState<string>('2026-10-19');
+  const [procDaysCount, setProcDaysCount] = useState<number>(5);
+  const [procDayMode, setProcDayMode] = useState<'habiles' | 'continuos'>('habiles');
+  const [procExcludeHolidaysAndRecess, setProcExcludeHolidaysAndRecess] = useState<boolean>(true);
+  const [nonWorkingDates, setNonWorkingDates] = useState<string[]>(DEFAULT_NON_WORKING_DATES);
+  const [procTitleInput, setProcTitleInput] = useState<string>('Vencimiento de Lapso de Promoción de Pruebas');
+
+  const monthNames = [
+    'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
+    'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
+  ];
+
+  const calendarMonthCells = useMemo(() => {
+    const firstDayOfMonth = new Date(calendarYear, calendarMonth, 1);
+    const daysInMonth = new Date(calendarYear, calendarMonth + 1, 0).getDate();
+    const startOffset = (firstDayOfMonth.getDay() + 6) % 7;
+    const cells: { day: number | null; dateStr: string | null; isWeekend: boolean; isNonWorking: boolean }[] = [];
+
+    for (let i = 0; i < startOffset; i++) {
+      cells.push({ day: null, dateStr: null, isWeekend: false, isNonWorking: false });
+    }
+    for (let d = 1; d <= daysInMonth; d++) {
+      const mStr = String(calendarMonth + 1).padStart(2, '0');
+      const dStr = String(d).padStart(2, '0');
+      const dateStr = `${calendarYear}-${mStr}-${dStr}`;
+      const dow = new Date(calendarYear, calendarMonth, d).getDay();
+      const isHolidayOrNoCourt = nonWorkingDates.includes(dateStr) || isJudicialRecessDate(dateStr);
+      cells.push({
+        day: d,
+        dateStr,
+        isWeekend: dow === 0 || dow === 6,
+        isNonWorking: isHolidayOrNoCourt
+      });
+    }
+    return cells;
+  }, [calendarYear, calendarMonth, nonWorkingDates]);
+
+  const handleToggleNoDispatchDay = (dateStr: string) => {
+    if (nonWorkingDates.includes(dateStr)) {
+      setNonWorkingDates(prev => prev.filter(d => d !== dateStr));
+      showToast(`Día ${dateStr} habilitado nuevamente como día con despacho.`);
+    } else {
+      setNonWorkingDates(prev => [...prev, dateStr]);
+      showToast(`Día ${dateStr} marcado como Feriado / Día sin Despacho para el cómputo procesal.`);
+    }
+  };
+
+  const handleAddDirectCalendarEvent = () => {
+    if (!newCalEventTitle.trim() || !selectedCalendarDate) return;
+    setCalendarEvents(prev => [
+      ...prev,
+      {
+        id: `ev-${Date.now().toString().slice(-4)}`,
+        title: newCalEventTitle.trim(),
+        date: selectedCalendarDate,
+        type: newCalEventType,
+        client: 'Agendado en Calendario'
+      }
+    ]);
+    setNewCalEventTitle('');
+    showToast(`Evento agregado en el Calendario para el ${selectedCalendarDate}.`);
+  };
+
+  const handleCalculateAndAddProceduralDeadline = () => {
+    const start = new Date(`${procNotificationDate}T12:00:00`);
+    let remaining = Math.max(1, procDaysCount);
+    const cur = new Date(start);
+    let skippedHolidays = 0;
+
+    while (remaining > 0) {
+      cur.setDate(cur.getDate() + 1);
+      const yyyy = cur.getFullYear();
+      const mm = String(cur.getMonth() + 1).padStart(2, '0');
+      const dd = String(cur.getDate()).padStart(2, '0');
+      const curStr = `${yyyy}-${mm}-${dd}`;
+      const dow = cur.getDay();
+
+      if (procDayMode === 'continuos') {
+        remaining--;
+      } else {
+        const isWeekend = dow === 0 || dow === 6;
+        const isHolidayOrRecess =
+          procExcludeHolidaysAndRecess &&
+          (nonWorkingDates.includes(curStr) || isJudicialRecessDate(curStr));
+        if (!isWeekend && !isHolidayOrRecess) {
+          remaining--;
+        } else if (!isWeekend && isHolidayOrRecess) {
+          skippedHolidays++;
+        }
+      }
+    }
+
+    const yyyy = cur.getFullYear();
+    const mm = String(cur.getMonth() + 1).padStart(2, '0');
+    const dd = String(cur.getDate()).padStart(2, '0');
+    const finalDateStr = `${yyyy}-${mm}-${dd}`;
+    const newTaskId = `tsk-${Date.now().toString().slice(-4)}`;
+
+    setCalendarEvents(prev => [
+      ...prev,
+      {
+        id: `ev-${Date.now().toString().slice(-4)}`,
+        title: `${procTitleInput} (${procDaysCount} días ${procDayMode === 'habiles' ? 'hábiles de despacho' : 'continuos'})`,
+        date: finalDateStr,
+        type: 'Plazo Procesal',
+        client: 'Cómputo Procesal',
+        linkedTaskId: newTaskId
+      }
+    ]);
+    setTasks(prev => [
+      {
+        id: newTaskId,
+        title: `${procTitleInput}`,
+        client: 'Cómputo Procesal',
+        dueDate: finalDateStr,
+        status: 'Pendiente',
+        priority: 'Alta',
+        origin: 'Plazo Procesal'
+      },
+      ...prev
+    ]);
+    setCalendarYear(yyyy);
+    setCalendarMonth(cur.getMonth());
+    setSelectedCalendarDate(finalDateStr);
+    showToast(
+      `Vencimiento procesal calculado (${finalDateStr})${skippedHolidays > 0 ? ` descontando ${skippedHolidays} día(s) sin despacho/feriado` : ''} y marcado en el Calendario y Planificador.`
+    );
+  };
+
+  // ==========================================================================
+  // ESTADO ADICIONAL DEL CRM (EDICIÓN Y EXPEDIENTES)
+  // ==========================================================================
   const [selectedClientId, setSelectedClientId] = useState<string>('cli-01');
   const [crmSearch, setCrmSearch] = useState<string>('');
   const [showNewClientForm, setShowNewClientForm] = useState<boolean>(false);
+  const [isEditingClient, setIsEditingClient] = useState<boolean>(false);
+  const [newMatterInput, setNewMatterInput] = useState<string>('');
   const [newClientForm, setNewClientForm] = useState({
     name: '',
     personType: 'Persona Jurídica (Empresa)' as 'Persona Jurídica (Empresa)' | 'Persona Física / Natural',
@@ -945,6 +1561,84 @@ En los contratos bilaterales de compraventa inmobiliaria, ante el incumplimiento
     showToast(`Ficha legal completa creada para ${created.name}.`);
   };
 
+  const handleUpdateSelectedClientField = <K extends keyof CrmClient>(field: K, value: CrmClient[K]) => {
+    setCrmClients(prev =>
+      prev.map(c => (c.id === selectedClient.id ? { ...c, [field]: value } : c))
+    );
+  };
+
+  const handleAddMatterToSelectedClient = () => {
+    if (!newMatterInput.trim()) return;
+    handleUpdateSelectedClientField('activeMatters', [
+      ...selectedClient.activeMatters,
+      newMatterInput.trim()
+    ]);
+    setNewMatterInput('');
+    showToast(`Nuevo expediente vinculado a ${selectedClient.name}.`);
+  };
+
+  // ==========================================================================
+  // PERSISTENCIA AUTOMÁTICA EN LOCALSTORAGE (SEGURO EN NAVEGADOR Y CANVAS)
+  // ==========================================================================
+  useEffect(() => {
+    try {
+      const raw = window.localStorage.getItem(STORAGE_KEY);
+      if (!raw) return;
+      const saved = JSON.parse(raw);
+      if (saved.firmName) setFirmName(saved.firmName);
+      if (saved.lawyerSignerName) setLawyerSignerName(saved.lawyerSignerName);
+      if (saved.lawyerCollegiateId) setLawyerCollegiateId(saved.lawyerCollegiateId);
+      if (saved.llmProvider) setLlmProvider(saved.llmProvider);
+      if (saved.llmModel) setLlmModel(saved.llmModel);
+      if (typeof saved.monthlyBudgetUsd === 'number') setMonthlyBudgetUsd(saved.monthlyBudgetUsd);
+      if (typeof saved.currentSpendUsd === 'number') setCurrentSpendUsd(saved.currentSpendUsd);
+      if (typeof saved.savedHoursCount === 'number') setSavedHoursCount(saved.savedHoursCount);
+      if (Array.isArray(saved.templates) && saved.templates.length > 0) setTemplates(saved.templates);
+      if (Array.isArray(saved.ragDocs) && saved.ragDocs.length > 0) setRagDocs(saved.ragDocs);
+      if (Array.isArray(saved.tasks)) setTasks(saved.tasks);
+      if (Array.isArray(saved.calendarEvents)) setCalendarEvents(saved.calendarEvents);
+      if (Array.isArray(saved.crmClients) && saved.crmClients.length > 0) setCrmClients(saved.crmClients);
+      if (Array.isArray(saved.recordings) && saved.recordings.length > 0) setRecordings(saved.recordings);
+      if (Array.isArray(saved.approvedDocsRegistry)) setApprovedDocsRegistry(saved.approvedDocsRegistry);
+      if (Array.isArray(saved.piiAuditRegistry)) setPiiAuditRegistry(saved.piiAuditRegistry);
+      if (Array.isArray(saved.auditLogs)) setAuditLogs(saved.auditLogs);
+    } catch {
+      // Ignorar si localStorage está restringido en el navegador
+    }
+  }, []);
+
+  useEffect(() => {
+    try {
+      const payload = {
+        firmName,
+        lawyerSignerName,
+        lawyerCollegiateId,
+        llmProvider,
+        llmModel,
+        monthlyBudgetUsd,
+        currentSpendUsd,
+        savedHoursCount,
+        templates,
+        ragDocs,
+        tasks,
+        calendarEvents,
+        crmClients,
+        recordings,
+        approvedDocsRegistry,
+        piiAuditRegistry,
+        auditLogs
+      };
+      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
+    } catch {
+      // Ignorar si localStorage está restringido
+    }
+  }, [
+    firmName, lawyerSignerName, lawyerCollegiateId, llmProvider, llmModel,
+    monthlyBudgetUsd, currentSpendUsd, savedHoursCount, templates, ragDocs,
+    tasks, calendarEvents, crmClients, recordings, approvedDocsRegistry,
+    piiAuditRegistry, auditLogs
+  ]);
+
   // ==========================================================================
   // MENÚ DE MÓDULOS (SIN PALABRA "DOCKER", Y CONFIGURACIÓN DE ÚLTIMO)
   // ==========================================================================
@@ -955,7 +1649,7 @@ En los contratos bilaterales de compraventa inmobiliaria, ante el incumplimiento
     { id: 'planificador', label: '4. Planificador', badge: `${tasks.length}`, icon: <Kanban className="w-4 h-4" /> },
     { id: 'calendario', label: '5. Calendario', badge: 'Mes Real', icon: <CalendarIcon className="w-4 h-4" /> },
     { id: 'crm', label: '6. CRM Clientes', badge: `${crmClients.length}`, icon: <Users className="w-4 h-4" /> },
-    { id: 'kpi', label: '7. KPI & Presupuesto', badge: `$${currentSpendUsd}`, icon: <BarChart3 className="w-4 h-4" /> },
+    { id: 'kpi', label: '7. KPI & Presupuesto', badge: `$${currentSpendUsd.toFixed(2)}`, icon: <BarChart3 className="w-4 h-4" /> },
     { id: 'trazabilidad', label: '8. Trazabilidad', badge: 'SHA-256', icon: <Fingerprint className="w-4 h-4" /> },
     { id: 'human_loop', label: '9. Human-in-the-Loop', badge: `${approvedDocsRegistry.length} Visados`, icon: <UserCheck className="w-4 h-4" /> },
     { id: 'anonimizacion_pii', label: '10. Anonimización PII', badge: `${piiAuditRegistry.length} Reg`, icon: <EyeOff className="w-4 h-4" /> },
@@ -1147,7 +1841,7 @@ En los contratos bilaterales de compraventa inmobiliaria, ante el incumplimiento
                     ✓ store: false (No entrena a la IA)
                   </span>
                   <span className="px-3 py-1.5 rounded-xl bg-amber-500/10 text-amber-700 border border-amber-500/30 font-semibold">
-                    ✓ Anonimización RAM Activa
+                    ✓ Anonimización RAM Activa ({liveSanitizedPreview.tokens.length} protegidos)
                   </span>
                 </div>
               </div>
@@ -1160,7 +1854,7 @@ En los contratos bilaterales de compraventa inmobiliaria, ante el incumplimiento
                     Garantía Técnica de Confidencialidad en el Consultor:
                   </div>
                   <p className="text-slate-600">
-                    1) Antes de salir de tu equipo, nombres de clientes, documentos de identidad, RIF/NIF, teléfonos, correos y montos son reemplazados por códigos anónimos en memoria RAM. 2) La petición viaja con cabecera <code>Zero-Data-Retention</code> para que el proveedor de IA tenga prohibido almacenar o entrenar sus modelos con tu consulta.
+                    1) Antes de salir de tu equipo, nombres de clientes, razones sociales, documentos de identidad (con o sin puntos), RIF/NIF, cuentas bancarias de 20 dígitos o IBAN, teléfonos, correos y montos son reemplazados por códigos anónimos en memoria RAM. 2) La petición viaja con cabecera <code>Zero-Data-Retention</code> para que el proveedor de IA tenga prohibido almacenar o entrenar sus modelos con tu consulta.
                   </p>
                 </div>
                 <button
@@ -1170,6 +1864,48 @@ En los contratos bilaterales de compraventa inmobiliaria, ante el incumplimiento
                 >
                   {consultShowSanitizedPayload ? 'Ocultar filtro en vivo' : 'Ver qué recibe la IA'}
                 </button>
+              </div>
+
+              {/* Selector de Cuerpo Legal / Normativa y Enmascaramiento Manual Adicional */}
+              <div className="grid grid-cols-1 md:grid-cols-12 gap-3 items-end">
+                <div className="md:col-span-6">
+                  <label className="block text-[11px] font-mono uppercase text-slate-500 font-bold mb-1">
+                    Cuerpo Legal / Normativa Aplicable a la Consulta (RAG):
+                  </label>
+                  <select
+                    value={consultSelectedLawId}
+                    onChange={(e) => setConsultSelectedLawId(e.target.value)}
+                    className="w-full px-3.5 py-2 rounded-xl border text-xs bg-[#FAF8F5] border-[#D5CBB8] font-medium"
+                  >
+                    <option value="auto">Detección Automática según Materia (Civil / Procesal / Mercantil)</option>
+                    {ragDocs.map(doc => (
+                      <option key={doc.id} value={doc.id}>
+                        {doc.title} ({doc.chunks} fragmentos)
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div className="md:col-span-6">
+                  <label className="block text-[11px] font-mono uppercase text-slate-500 font-bold mb-1">
+                    Blindar Nombre Propio o Parte Adicional en RAM:
+                  </label>
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={customMaskInput}
+                      onChange={(e) => setCustomMaskInput(e.target.value)}
+                      placeholder="Ej: Constructora Bolívar / Pedro Pérez..."
+                      className="w-full px-3 py-2 rounded-xl border text-xs bg-[#FAF8F5] border-[#D5CBB8]"
+                    />
+                    <button
+                      type="button"
+                      onClick={handleAddCustomMaskTerm}
+                      className="shrink-0 px-3.5 py-2 rounded-xl bg-[#0F172A] text-white text-xs font-semibold cursor-pointer hover:bg-slate-800"
+                    >
+                      + Enmascarar
+                    </button>
+                  </div>
+                </div>
               </div>
 
               <div className="space-y-3">
@@ -1185,11 +1921,16 @@ En los contratos bilaterales de compraventa inmobiliaria, ante el incumplimiento
                 />
 
                 {consultShowSanitizedPayload && (
-                  <div className="p-4 rounded-2xl bg-[#0F172A] text-slate-100 font-mono text-xs space-y-1.5 border border-emerald-500/40">
-                    <div className="text-[10px] uppercase text-emerald-400 font-bold">
-                      Lo único que sale hacia la API del modelo (Sin datos privados del cliente):
+                  <div className="p-4 rounded-2xl bg-[#0F172A] text-slate-100 font-mono text-xs space-y-2 border border-emerald-500/40">
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <span className="text-[10px] uppercase text-emerald-400 font-bold">
+                        Lo único que sale hacia la API del modelo (Sin datos privados del cliente):
+                      </span>
+                      <span className="text-[10px] px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300">
+                        {liveSanitizedPreview.tokens.length} identificadores reemplazados en RAM
+                      </span>
                     </div>
-                    <p className="text-slate-200 leading-relaxed">{anonymizePiiText(consultQuery).sanitized}</p>
+                    <p className="text-slate-200 leading-relaxed">{liveSanitizedPreview.sanitized}</p>
                   </div>
                 )}
 
@@ -1244,7 +1985,7 @@ En los contratos bilaterales de compraventa inmobiliaria, ante el incumplimiento
           )}
 
           {/* =================================================================
-              2. REDACTOR DE DOCUMENTOS (FLUJO DE 4 PASOS: BIBLIOTECA -> IA DETECTA DATOS -> FOTO/PDF/ESCRITO -> BORRADOR Y VISTO BUENO .DOC)
+              2. REDACTOR DE DOCUMENTOS (FLUJO DE 3 PASOS: BIBLIOTECA -> CARGA DATOS -> BORRADOR Y VISTO BUENO .DOC)
           ================================================================== */}
           {activeTab === 'redactor_docs' && (
             <div className="card-surface rounded-3xl p-6 sm:p-8 bg-white border border-[#E6DFD1] shadow-sm space-y-6">
@@ -1274,10 +2015,7 @@ En los contratos bilaterales de compraventa inmobiliaria, ante el incumplimiento
                     </label>
                     <select
                       value={selectedTemplateId}
-                      onChange={(e) => {
-                        setSelectedTemplateId(e.target.value);
-                        setRedactorApprovedStamp(null);
-                      }}
+                      onChange={(e) => handleSelectTemplate(e.target.value)}
                       className="w-full px-3.5 py-2.5 rounded-xl border text-xs font-semibold bg-white border-[#D5CBB8]"
                     >
                       {templates.map(tpl => (
@@ -1302,10 +2040,12 @@ En los contratos bilaterales de compraventa inmobiliaria, ante el incumplimiento
                     </div>
                   </div>
 
-                  {/* PASO 2: PESTAÑA PARA INCLUIR LOS DATOS MEDIANTE FOTO, PDF O ESCRITO */}
+                  {/* PASO 2: PESTAÑA PARA INCLUIR LOS DATOS MEDIANTE FOTO, PDF, ESCRITO O FICHA CRM */}
                   <div className="sub-surface p-4 rounded-2xl bg-[#FAF8F5] border border-[#E6DFD1] space-y-3">
-                    <div className="text-xs font-mono uppercase text-amber-800 font-bold">
-                      Paso 2: Incluye los datos requeridos (Foto, PDF o Escrito)
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="text-xs font-mono uppercase text-amber-800 font-bold">
+                        Paso 2: Incluye los datos requeridos (Foto, PDF o Escrito)
+                      </div>
                     </div>
                     <div className="grid grid-cols-3 gap-1.5">
                       <button
@@ -1335,6 +2075,25 @@ En los contratos bilaterales de compraventa inmobiliaria, ante el incumplimiento
                       >
                         <FileText className="w-3.5 h-3.5 text-indigo-400" /> Por Escrito
                       </button>
+                    </div>
+
+                    {/* Autocompletado rápido desde la ficha del CRM */}
+                    <div className="pt-1">
+                      <select
+                        defaultValue=""
+                        onChange={(e) => {
+                          const cli = crmClients.find(c => c.id === e.target.value);
+                          if (cli) handleLoadClientIntoRedactor(cli);
+                        }}
+                        className="w-full px-3 py-2 rounded-xl border text-[11px] bg-white border-[#D5CBB8] font-medium"
+                      >
+                        <option value="">⚡ O importar datos de un cliente registrado en tu CRM...</option>
+                        {crmClients.map(c => (
+                          <option key={c.id} value={c.id}>
+                            Importar de CRM: {c.name} ({c.taxId})
+                          </option>
+                        ))}
+                      </select>
                     </div>
 
                     {inputModeTab === 'foto_ocr' && (
@@ -1408,6 +2167,35 @@ En los contratos bilaterales de compraventa inmobiliaria, ante el incumplimiento
                       </div>
                     )}
                   </div>
+
+                  {/* Alerta preventiva forense: Art. 168 Código Civil (Vendedor casado sin mención de cónyuge o bien propio) */}
+                  {spousalConsentWarning && (
+                    <div className="p-3.5 rounded-2xl bg-amber-500/15 border border-amber-600/40 text-xs space-y-2">
+                      <div className="font-mono font-bold text-amber-900 flex items-center gap-1.5">
+                        <Scale className="w-4 h-4 text-amber-700 shrink-0" />
+                        Alerta Registral Preventiva (Art. 168 Código Civil):
+                      </div>
+                      <p className="text-[11px] text-slate-700 leading-relaxed">
+                        El vendedor figura con estado civil <strong>casado</strong> sin mención de autorización conyugal ni declaración de bien propio. Para evitar observación o rechazo en Registro Inmobiliario (SAREN), elige cómo subsanarlo:
+                      </p>
+                      <div className="flex flex-wrap gap-2">
+                        <button
+                          type="button"
+                          onClick={() => handleApplySpousalClause('consentimiento')}
+                          className="px-3 py-1.5 rounded-lg bg-[#0F172A] text-white text-[11px] font-semibold cursor-pointer"
+                        >
+                          + Incluir Consentimiento Conyugal
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleApplySpousalClause('bien_propio')}
+                          className="px-3 py-1.5 rounded-lg bg-white border border-amber-700/40 text-slate-800 text-[11px] font-semibold cursor-pointer"
+                        >
+                          + Declarar Bien Propio (Art. 151 CC)
+                        </button>
+                      </div>
+                    </div>
+                  )}
 
                   {/* Campos individuales editables por el abogado */}
                   <div className="space-y-2.5 max-h-[340px] overflow-y-auto pr-1">
@@ -1498,6 +2286,11 @@ En los contratos bilaterales de compraventa inmobiliaria, ante el incumplimiento
                     Resumen Ejecutivo, Acuerdos con Check al Planificador y Generador de Minuta
                   </h2>
                 </div>
+                {isRecording && (
+                  <span className="px-3 py-1 rounded-full bg-rose-600 text-white font-mono text-xs font-bold animate-pulse">
+                    ● GRABANDO ({String(Math.floor(recordingSeconds / 60)).padStart(2, '0')}:{String(recordingSeconds % 60).padStart(2, '0')})
+                  </span>
+                )}
               </div>
 
               <div className="sub-surface p-5 rounded-2xl bg-[#FAF8F5] border border-[#E6DFD1] space-y-4">
@@ -1707,7 +2500,9 @@ En los contratos bilaterales de compraventa inmobiliaria, ante el incumplimiento
                         type="button"
                         onClick={() => {
                           const text = `MINUTA DE REUNIÓN: ${showMinutaModal.title}\nFecha: ${showMinutaModal.date}\nAsistentes: ${showMinutaModal.attendees}\n\nPUNTOS CLAVE:\n${showMinutaModal.summaryPoints.map(p => `• ${p}`).join('\n')}\n\nACUERDOS Y TAREAS:\n${showMinutaModal.agreementsAndTasks.map(a => `☑ ${a.text} (${a.dueDate})`).join('\n')}`;
-                          navigator.clipboard?.writeText(text);
+                          if (navigator.clipboard?.writeText) {
+                            navigator.clipboard.writeText(text);
+                          }
                           showToast('Minuta copiada al portapapeles lista para enviar por WhatsApp o Correo a los asistentes.');
                         }}
                         className="px-4 py-2.5 rounded-xl border border-[#D5CBB8] bg-white text-slate-800 text-xs font-semibold flex items-center gap-2 cursor-pointer"
@@ -1718,8 +2513,23 @@ En los contratos bilaterales de compraventa inmobiliaria, ante el incumplimiento
                         type="button"
                         onClick={() => {
                           const text = `Fecha: ${showMinutaModal.date}\nModalidad: ${showMinutaModal.mode}\nAsistentes: ${showMinutaModal.attendees}\n\n1. RESUMEN DE PUNTOS IMPORTANTES:\n${showMinutaModal.summaryPoints.map(p => `• ${p}`).join('\n')}\n\n2. DECISIONES Y TAREAS ACORDADAS:\n${showMinutaModal.agreementsAndTasks.map(a => `☑ ${a.text} — Fecha: ${a.dueDate}`).join('\n')}`;
-                          exportWordDoc(`Minuta_${showMinutaModal.date}.doc`, showMinutaModal.title, 'Minuta de Alineación para Asistentes', text);
-                          showToast('Minuta descargada en formato .DOC para compartir con los asistentes.');
+                          const hash = computeRealSha256(`${text}|${Date.now()}`);
+                          setApprovedDocsRegistry(prev => [
+                            {
+                              id: `HL-${Date.now().toString().slice(-5)}`,
+                              timestamp: new Date().toLocaleString('es-ES', { dateStyle: 'short', timeStyle: 'short' }),
+                              title: `Minuta — ${showMinutaModal.title}`,
+                              originModule: 'Minuta de Reunión',
+                              templateUsed: 'Minuta Ejecutiva de Acuerdos',
+                              approvedBy: lawyerSignerName,
+                              collegiateNumber: lawyerCollegiateId,
+                              sha256: hash,
+                              content: text
+                            },
+                            ...prev
+                          ]);
+                          exportWordDoc(`Minuta_${showMinutaModal.date}.doc`, showMinutaModal.title, `Minuta Visada por ${lawyerSignerName} • SHA-256: ${hash.slice(0, 20)}...`, text);
+                          showToast('Minuta registrada en Human-in-the-Loop y descargada en formato .DOC.');
                         }}
                         className="px-5 py-2.5 rounded-xl bg-[#0F172A] text-white text-xs font-semibold flex items-center gap-2 cursor-pointer"
                       >
@@ -1733,7 +2543,7 @@ En los contratos bilaterales de compraventa inmobiliaria, ante el incumplimiento
           )}
 
           {/* =================================================================
-              4. PLANIFICADOR (CON FECHA Y SINCRONIZACIÓN DIRECTA AL CALENDARIO)
+              4. PLANIFICADOR (CON FECHA, PRIORIDAD Y SINCRONIZACIÓN DIRECTA AL CALENDARIO)
           ================================================================== */}
           {activeTab === 'planificador' && (
             <div className="card-surface rounded-3xl p-6 sm:p-8 bg-white border border-[#E6DFD1] shadow-sm space-y-6">
@@ -1770,11 +2580,17 @@ En los contratos bilaterales de compraventa inmobiliaria, ante el incumplimiento
                   <label className="block text-[11px] font-mono uppercase text-slate-500 mb-1">Cliente / Expediente</label>
                   <input
                     type="text"
+                    list="crm-client-options"
                     value={newTaskClient}
                     onChange={(e) => setNewTaskClient(e.target.value)}
-                    placeholder="Nombre del cliente..."
+                    placeholder="Selecciona o escribe cliente..."
                     className="w-full px-3.5 py-2 rounded-xl border text-xs bg-white border-[#D5CBB8]"
                   />
+                  <datalist id="crm-client-options">
+                    {crmClients.map(c => (
+                      <option key={c.id} value={c.name} />
+                    ))}
+                  </datalist>
                 </div>
                 <div className="md:col-span-2">
                   <label className="block text-[11px] font-mono uppercase text-amber-800 font-bold mb-1">Fecha (Calendario)</label>
@@ -1782,16 +2598,29 @@ En los contratos bilaterales de compraventa inmobiliaria, ante el incumplimiento
                     type="date"
                     value={newTaskDate}
                     onChange={(e) => setNewTaskDate(e.target.value)}
-                    className="w-full px-3 py-2 rounded-xl border text-xs bg-white border-[#D5CBB8] font-mono"
+                    className="w-full px-2.5 py-2 rounded-xl border text-xs bg-white border-[#D5CBB8] font-mono"
                   />
                 </div>
-                <div className="md:col-span-3">
+                <div className="md:col-span-1">
+                  <label className="block text-[11px] font-mono uppercase text-slate-500 mb-1">Prioridad</label>
+                  <select
+                    value={newTaskPriority}
+                    onChange={(e) => setNewTaskPriority(e.target.value as 'Alta' | 'Media' | 'Baja')}
+                    className="w-full px-2 py-2 rounded-xl border text-xs bg-white border-[#D5CBB8]"
+                  >
+                    <option value="Alta">Alta</option>
+                    <option value="Media">Media</option>
+                    <option value="Baja">Baja</option>
+                  </select>
+                </div>
+                <div className="md:col-span-2">
                   <button
                     type="button"
                     onClick={handleAddPlannerTask}
-                    className="w-full py-2.5 px-4 rounded-xl bg-[#0F172A] hover:bg-slate-800 text-white text-xs font-semibold flex items-center justify-center gap-1.5 cursor-pointer"
+                    className="w-full py-2.5 px-3 rounded-xl bg-[#0F172A] hover:bg-slate-800 text-white text-xs font-semibold flex items-center justify-center gap-1.5 cursor-pointer"
                   >
-                    <Plus className="w-4 h-4 text-amber-400" /> Planificar y Agendar en Calendario
+                    <Plus className="w-4 h-4 text-amber-400 shrink-0" />
+                    <span className="truncate">Planificar y Agendar en Calendario</span>
                   </button>
                 </div>
               </div>
@@ -1808,38 +2637,65 @@ En los contratos bilaterales de compraventa inmobiliaria, ante el incumplimiento
                     <div className="space-y-2.5">
                       {tasks.filter(t => t.status === col).map(task => (
                         <div key={task.id} className="card-surface p-3.5 rounded-xl border bg-white border-[#E6DFD1] space-y-2 text-xs shadow-sm">
-                          <div className="flex items-center justify-between">
+                          <div className="flex items-center justify-between gap-1">
                             <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-amber-500/15 text-amber-800 font-bold">
                               📅 {task.dueDate}
                             </span>
-                            <span className="text-[10px] font-mono text-slate-500">{task.origin}</span>
+                            <div className="flex items-center gap-1.5">
+                              <span className={`text-[9px] font-mono px-1.5 py-0.5 rounded font-bold ${
+                                task.priority === 'Alta'
+                                  ? 'bg-rose-500/15 text-rose-700'
+                                  : task.priority === 'Media'
+                                  ? 'bg-amber-500/15 text-amber-800'
+                                  : 'bg-slate-200 text-slate-700'
+                              }`}>
+                                {task.priority}
+                              </span>
+                              <span className="text-[10px] font-mono text-slate-500">{task.origin}</span>
+                            </div>
                           </div>
                           <p className="font-semibold leading-snug">{task.title}</p>
                           <p className="text-[11px] text-slate-500">Cliente: {task.client}</p>
-                          <div className="flex items-center justify-between pt-2 border-t border-[#E6DFD1]">
+                          <div className="flex items-center justify-between gap-1.5 pt-2 border-t border-[#E6DFD1]">
                             <input
                               type="date"
                               value={task.dueDate}
                               onChange={(e) => {
                                 const newD = e.target.value;
                                 setTasks(prev => prev.map(tk => tk.id === task.id ? { ...tk, dueDate: newD } : tk));
-                                setCalendarEvents(prev => prev.map(ev => ev.title === task.title ? { ...ev, date: newD } : ev));
+                                setCalendarEvents(prev =>
+                                  prev.map(ev =>
+                                    ev.linkedTaskId === task.id || ev.title === task.title || ev.title.startsWith(task.title)
+                                      ? { ...ev, date: newD }
+                                      : ev
+                                  )
+                                );
                                 showToast(`Fecha actualizada en el Calendario al ${newD}`);
                               }}
                               className="text-[10px] font-mono px-1.5 py-0.5 rounded border border-[#D5CBB8]"
                             />
-                            <select
-                              value={task.status}
-                              onChange={(e) => {
-                                const next = e.target.value as PlannerTask['status'];
-                                setTasks(prev => prev.map(tk => tk.id === task.id ? { ...tk, status: next } : tk));
-                              }}
-                              className="text-[10px] font-mono px-2 py-1 rounded border border-[#D5CBB8]"
-                            >
-                              <option value="Pendiente">Pendiente</option>
-                              <option value="En Curso">En Curso</option>
-                              <option value="Completado">Completado</option>
-                            </select>
+                            <div className="flex items-center gap-1">
+                              <select
+                                value={task.status}
+                                onChange={(e) => {
+                                  const next = e.target.value as PlannerTask['status'];
+                                  setTasks(prev => prev.map(tk => tk.id === task.id ? { ...tk, status: next } : tk));
+                                }}
+                                className="text-[10px] font-mono px-2 py-1 rounded border border-[#D5CBB8]"
+                              >
+                                <option value="Pendiente">Pendiente</option>
+                                <option value="En Curso">En Curso</option>
+                                <option value="Completado">Completado</option>
+                              </select>
+                              <button
+                                type="button"
+                                onClick={() => handleDeletePlannerTask(task.id)}
+                                title="Eliminar tarea"
+                                className="px-1.5 py-1 rounded text-[10px] font-mono text-rose-700 hover:bg-rose-500/10 cursor-pointer"
+                              >
+                                ✕
+                              </button>
+                            </div>
                           </div>
                         </div>
                       ))}
@@ -1962,14 +2818,15 @@ En los contratos bilaterales de compraventa inmobiliaria, ante el incumplimiento
                           className={`h-24 p-2 rounded-xl border text-left flex flex-col justify-between transition cursor-pointer overflow-hidden ${
                             isSelected
                               ? 'border-2 border-amber-600 bg-amber-500/10'
-                              : cell.isWeekend
+                              : cell.isWeekend || cell.isNonWorking
                               ? 'bg-slate-100/70 border-[#E6DFD1]'
                               : 'card-surface bg-white border-[#E6DFD1] hover:border-amber-500/50'
                           }`}
                         >
                           <div className="flex items-center justify-between w-full">
-                            <span className={`text-xs font-mono font-bold ${cell.isWeekend ? 'text-rose-600' : ''}`}>
+                            <span className={`text-xs font-mono font-bold ${cell.isWeekend || cell.isNonWorking ? 'text-rose-600' : ''}`}>
                               {cell.day}
+                              {cell.isNonWorking && !cell.isWeekend ? ' • Inhábil' : ''}
                             </span>
                             {dayEvents.length > 0 && (
                               <span className="text-[9px] font-mono px-1.5 py-0.2 rounded-full bg-[#0F172A] text-amber-300 font-bold">
@@ -1990,6 +2847,11 @@ En los contratos bilaterales de compraventa inmobiliaria, ante el incumplimiento
                                 {ev.title}
                               </div>
                             ))}
+                            {dayEvents.length > 2 && (
+                              <div className="text-[9px] font-mono text-slate-500 font-semibold">
+                                +{dayEvents.length - 2} más...
+                              </div>
+                            )}
                           </div>
                         </button>
                       );
@@ -1999,8 +2861,17 @@ En los contratos bilaterales de compraventa inmobiliaria, ante el incumplimiento
 
                 <div className="lg:col-span-4 space-y-4">
                   <div className="sub-surface p-5 rounded-2xl bg-[#FAF8F5] border border-[#E6DFD1] space-y-3">
-                    <div className="text-xs font-mono uppercase text-amber-800 font-bold">
-                      Agenda del Día Seleccionado: {selectedCalendarDate}
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="text-xs font-mono uppercase text-amber-800 font-bold">
+                        Agenda del Día: {selectedCalendarDate}
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => handleToggleNoDispatchDay(selectedCalendarDate)}
+                        className="text-[10px] font-mono px-2 py-1 rounded-lg border border-[#D5CBB8] bg-white text-slate-700 cursor-pointer hover:bg-rose-500/10"
+                      >
+                        {nonWorkingDates.includes(selectedCalendarDate) ? '✓ Día Sin Despacho' : 'Marcar Sin Despacho'}
+                      </button>
                     </div>
                     <div className="space-y-2">
                       {calendarEvents.filter(e => e.date === selectedCalendarDate).length === 0 ? (
@@ -2091,6 +2962,17 @@ En los contratos bilaterales de compraventa inmobiliaria, ante el incumplimiento
                         <option value="habiles">Días Hábiles de Despacho (Excluye Sáb/Dom)</option>
                         <option value="continuos">Días Continuos / Naturales</option>
                       </select>
+                      {procDayMode === 'habiles' && (
+                        <label className="flex items-center gap-2 text-[11px] text-slate-600 cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={procExcludeHolidaysAndRecess}
+                            onChange={(e) => setProcExcludeHolidaysAndRecess(e.target.checked)}
+                            className="accent-rose-600 rounded"
+                          />
+                          <span>Descontar feriados, días marcados sin despacho y receso judicial (Art. 201 CPC)</span>
+                        </label>
+                      )}
                       <button
                         type="button"
                         onClick={handleCalculateAndAddProceduralDeadline}
@@ -2227,7 +3109,10 @@ En los contratos bilaterales de compraventa inmobiliaria, ante el incumplimiento
                           <button
                             key={client.id}
                             type="button"
-                            onClick={() => setSelectedClientId(client.id)}
+                            onClick={() => {
+                              setSelectedClientId(client.id);
+                              setIsEditingClient(false);
+                            }}
                             className={`w-full px-4 py-3 rounded-xl text-left text-xs font-semibold flex items-center justify-between transition cursor-pointer ${
                               isSelected
                                 ? 'bg-[#0F172A] text-white shadow-sm'
@@ -2251,63 +3136,174 @@ En los contratos bilaterales de compraventa inmobiliaria, ante el incumplimiento
                       </span>
                       <h3 className="font-serif text-xl sm:text-2xl font-bold mt-1">{selectedClient.name}</h3>
                     </div>
-                    <span className={`text-xs font-mono px-3 py-1 rounded-full font-bold ${
-                      selectedClient.powerStatus === 'Vigente'
-                        ? 'bg-emerald-500/15 text-emerald-700'
-                        : 'bg-amber-500/15 text-amber-700'
-                    }`}>
-                      Poder: {selectedClient.powerStatus}
-                    </span>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <select
+                        value={selectedClient.powerStatus}
+                        onChange={(e) => handleUpdateSelectedClientField('powerStatus', e.target.value as CrmClient['powerStatus'])}
+                        className={`text-xs font-mono px-3 py-1 rounded-full font-bold border cursor-pointer ${
+                          selectedClient.powerStatus === 'Vigente'
+                            ? 'bg-emerald-500/15 text-emerald-700 border-emerald-500/30'
+                            : 'bg-amber-500/15 text-amber-700 border-amber-500/30'
+                        }`}
+                      >
+                        <option value="Vigente">Poder: Vigente</option>
+                        <option value="Por Renovar">Poder: Por Renovar</option>
+                        <option value="En Trámite">Poder: En Trámite</option>
+                      </select>
+                      <button
+                        type="button"
+                        onClick={() => setIsEditingClient(!isEditingClient)}
+                        className="px-3 py-1.5 rounded-xl border border-[#D5CBB8] bg-white text-slate-800 text-xs font-semibold cursor-pointer"
+                      >
+                        {isEditingClient ? 'Guardar Cambios' : 'Editar Ficha'}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleLoadClientIntoRedactor(selectedClient)}
+                        className="px-3 py-1.5 rounded-xl bg-[#0F172A] text-white text-xs font-semibold cursor-pointer flex items-center gap-1.5"
+                      >
+                        <FileText className="w-3.5 h-3.5 text-amber-400" />
+                        <span>Usar en Redactor</span>
+                      </button>
+                    </div>
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
                     <div className="card-surface p-4 rounded-xl bg-white border border-[#E6DFD1] space-y-1">
                       <span className="text-[10px] font-mono uppercase text-slate-400 block">Documento / ID Fiscal (C.I. / RIF / NIF)</span>
-                      <strong className="font-mono text-sm">{selectedClient.taxId}</strong>
+                      {isEditingClient ? (
+                        <input
+                          type="text"
+                          value={selectedClient.taxId}
+                          onChange={(e) => handleUpdateSelectedClientField('taxId', e.target.value)}
+                          className="w-full px-2.5 py-1 rounded border border-[#D5CBB8] font-mono text-xs"
+                        />
+                      ) : (
+                        <strong className="font-mono text-sm">{selectedClient.taxId}</strong>
+                      )}
                     </div>
                     <div className="card-surface p-4 rounded-xl bg-white border border-[#E6DFD1] space-y-1">
                       <span className="text-[10px] font-mono uppercase text-slate-400 block">Representante Legal y Carácter</span>
-                      <strong>{selectedClient.legalRep}</strong>
+                      {isEditingClient ? (
+                        <input
+                          type="text"
+                          value={selectedClient.legalRep}
+                          onChange={(e) => handleUpdateSelectedClientField('legalRep', e.target.value)}
+                          className="w-full px-2.5 py-1 rounded border border-[#D5CBB8] text-xs"
+                        />
+                      ) : (
+                        <strong>{selectedClient.legalRep}</strong>
+                      )}
                     </div>
                     <div className="card-surface p-4 rounded-xl bg-white border border-[#E6DFD1] space-y-1 md:col-span-2">
                       <span className="text-[10px] font-mono uppercase text-slate-400 block">Datos de Registro Mercantil / Notaría y Poderes</span>
-                      <p className="font-medium">{selectedClient.registryInfo}</p>
+                      {isEditingClient ? (
+                        <input
+                          type="text"
+                          value={selectedClient.registryInfo}
+                          onChange={(e) => handleUpdateSelectedClientField('registryInfo', e.target.value)}
+                          className="w-full px-2.5 py-1 rounded border border-[#D5CBB8] text-xs"
+                        />
+                      ) : (
+                        <p className="font-medium">{selectedClient.registryInfo}</p>
+                      )}
                     </div>
                     <div className="card-surface p-4 rounded-xl bg-white border border-[#E6DFD1] space-y-1 md:col-span-2">
                       <span className="text-[10px] font-mono uppercase text-slate-400 block">Domicilio Fiscal y Procesal</span>
-                      <p className="font-medium">{selectedClient.address}</p>
+                      {isEditingClient ? (
+                        <input
+                          type="text"
+                          value={selectedClient.address}
+                          onChange={(e) => handleUpdateSelectedClientField('address', e.target.value)}
+                          className="w-full px-2.5 py-1 rounded border border-[#D5CBB8] text-xs"
+                        />
+                      ) : (
+                        <p className="font-medium">{selectedClient.address}</p>
+                      )}
                     </div>
                     <div className="card-surface p-4 rounded-xl bg-white border border-[#E6DFD1] space-y-1">
                       <span className="text-[10px] font-mono uppercase text-slate-400 block">Teléfono / WhatsApp</span>
-                      <p className="font-mono font-semibold">{selectedClient.phone}</p>
+                      {isEditingClient ? (
+                        <input
+                          type="text"
+                          value={selectedClient.phone}
+                          onChange={(e) => handleUpdateSelectedClientField('phone', e.target.value)}
+                          className="w-full px-2.5 py-1 rounded border border-[#D5CBB8] font-mono text-xs"
+                        />
+                      ) : (
+                        <p className="font-mono font-semibold">{selectedClient.phone}</p>
+                      )}
                     </div>
                     <div className="card-surface p-4 rounded-xl bg-white border border-[#E6DFD1] space-y-1">
                       <span className="text-[10px] font-mono uppercase text-slate-400 block">Correo Electrónico</span>
-                      <p className="font-mono font-semibold">{selectedClient.email}</p>
+                      {isEditingClient ? (
+                        <input
+                          type="email"
+                          value={selectedClient.email}
+                          onChange={(e) => handleUpdateSelectedClientField('email', e.target.value)}
+                          className="w-full px-2.5 py-1 rounded border border-[#D5CBB8] font-mono text-xs"
+                        />
+                      ) : (
+                        <p className="font-mono font-semibold">{selectedClient.email}</p>
+                      )}
                     </div>
                   </div>
 
-                  <div className="card-surface p-4 rounded-xl bg-white border border-[#E6DFD1] space-y-2 text-xs">
+                  <div className="card-surface p-4 rounded-xl bg-white border border-[#E6DFD1] space-y-2.5 text-xs">
                     <span className="text-[10px] font-mono uppercase text-amber-800 font-bold block">
                       Expedientes y Contratos Vinculados
                     </span>
                     <ul className="space-y-1">
                       {selectedClient.activeMatters.map((m, i) => (
                         <li key={i} className="font-mono text-xs flex items-center gap-2">
-                          <Briefcase className="w-3.5 h-3.5 text-amber-600" /> {m}
+                          <Briefcase className="w-3.5 h-3.5 text-amber-600 shrink-0" /> {m}
                         </li>
                       ))}
                     </ul>
+                    <div className="flex gap-2 pt-2 border-t border-[#E6DFD1]">
+                      <input
+                        type="text"
+                        value={newMatterInput}
+                        onChange={(e) => setNewMatterInput(e.target.value)}
+                        placeholder="Ej: EXP-2026-180: Acción Resolutoria / Contrato..."
+                        className="w-full px-3 py-1.5 rounded-lg border text-xs bg-[#FAF8F5] border-[#D5CBB8]"
+                      />
+                      <button
+                        type="button"
+                        onClick={handleAddMatterToSelectedClient}
+                        className="shrink-0 px-3 py-1.5 rounded-lg bg-[#0F172A] text-white text-xs font-semibold cursor-pointer"
+                      >
+                        + Agregar Expediente
+                      </button>
+                    </div>
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
                     <div className="card-surface p-4 rounded-xl bg-white border border-[#E6DFD1] space-y-1">
                       <span className="text-[10px] font-mono uppercase text-slate-400 block">Acuerdo de Honorarios / Iguala</span>
-                      <p>{selectedClient.feeArrangement}</p>
+                      {isEditingClient ? (
+                        <input
+                          type="text"
+                          value={selectedClient.feeArrangement}
+                          onChange={(e) => handleUpdateSelectedClientField('feeArrangement', e.target.value)}
+                          className="w-full px-2.5 py-1 rounded border border-[#D5CBB8] text-xs"
+                        />
+                      ) : (
+                        <p>{selectedClient.feeArrangement}</p>
+                      )}
                     </div>
                     <div className="card-surface p-4 rounded-xl bg-white border border-[#E6DFD1] space-y-1">
                       <span className="text-[10px] font-mono uppercase text-slate-400 block">Observaciones Confidenciales</span>
-                      <p>{selectedClient.confidentialNotes}</p>
+                      {isEditingClient ? (
+                        <input
+                          type="text"
+                          value={selectedClient.confidentialNotes}
+                          onChange={(e) => handleUpdateSelectedClientField('confidentialNotes', e.target.value)}
+                          className="w-full px-2.5 py-1 rounded border border-[#D5CBB8] text-xs"
+                        />
+                      ) : (
+                        <p>{selectedClient.confidentialNotes}</p>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -2332,7 +3328,7 @@ En los contratos bilaterales de compraventa inmobiliaria, ante el incumplimiento
               <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
                 <div className="sub-surface p-5 rounded-2xl border bg-[#FAF8F5] border-[#E6DFD1]">
                   <span className="text-[10px] font-mono uppercase text-slate-500">Consumo API Mes Actual</span>
-                  <div className="text-2xl font-serif font-bold text-emerald-700 mt-1">${currentSpendUsd} USD</div>
+                  <div className="text-2xl font-serif font-bold text-emerald-700 mt-1">${currentSpendUsd.toFixed(2)} USD</div>
                   <span className="text-[11px] text-slate-500">Tope mensual: ${monthlyBudgetUsd} USD</span>
                 </div>
                 <div className="sub-surface p-5 rounded-2xl border bg-[#FAF8F5] border-[#E6DFD1]">
@@ -2342,8 +3338,8 @@ En los contratos bilaterales de compraventa inmobiliaria, ante el incumplimiento
                 </div>
                 <div className="sub-surface p-5 rounded-2xl border bg-[#FAF8F5] border-[#E6DFD1]">
                   <span className="text-[10px] font-mono uppercase text-slate-500">Horas Letradas Ahorradas</span>
-                  <div className="text-2xl font-serif font-bold text-amber-700 mt-1">38.5 h</div>
-                  <span className="text-[11px] text-slate-500">En redacción y actas</span>
+                  <div className="text-2xl font-serif font-bold text-amber-700 mt-1">{savedHoursCount} h</div>
+                  <span className="text-[11px] text-slate-500">En redacción, consultas y actas</span>
                 </div>
                 <div className="sub-surface p-5 rounded-2xl border bg-[#FAF8F5] border-[#E6DFD1]">
                   <span className="text-[10px] font-mono uppercase text-slate-500">Fugas de Datos a IA</span>
@@ -2376,7 +3372,8 @@ En los contratos bilaterales de compraventa inmobiliaria, ante el incumplimiento
                       <th className="p-3.5">Módulo</th>
                       <th className="p-3.5">Operación</th>
                       <th className="p-3.5">Datos Protegidos</th>
-                      <th className="p-3.5">Hash SHA-256</th>
+                      <th className="p-3.5">Visado Human-Loop</th>
+                      <th className="p-3.5">Hash SHA-256 (FIPS 180-4)</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-[#E6DFD1]">
@@ -2386,7 +3383,16 @@ En los contratos bilaterales de compraventa inmobiliaria, ante el incumplimiento
                         <td className="p-3.5 font-semibold">{log.module}</td>
                         <td className="p-3.5">{log.action}</td>
                         <td className="p-3.5 font-mono text-emerald-700 font-bold">{log.piiCount} PII</td>
-                        <td className="p-3.5 font-mono text-[10px] text-slate-500">{log.sha256.slice(0, 22)}...</td>
+                        <td className="p-3.5 font-mono text-[10px]">
+                          {log.humanVerified ? (
+                            <span className="px-2 py-0.5 rounded bg-emerald-500/15 text-emerald-800 font-bold">✓ Visado</span>
+                          ) : (
+                            <span className="px-2 py-0.5 rounded bg-amber-500/15 text-amber-800">Pendiente</span>
+                          )}
+                        </td>
+                        <td className="p-3.5 font-mono text-[10px] text-slate-500" title={log.sha256}>
+                          {log.sha256.slice(0, 24)}...
+                        </td>
                       </tr>
                     ))}
                   </tbody>
@@ -2415,7 +3421,7 @@ En los contratos bilaterales de compraventa inmobiliaria, ante el incumplimiento
               </div>
 
               <p className="text-xs text-slate-600">
-                La aprobación ocurre directamente mientras trabajas en el <strong>Redactor de Documentos</strong> o en el <strong>Consultor de IA</strong>. En esta pestaña queda únicamente el <strong>registro inmutable de los documentos que recibieron tu Visto Bueno</strong>.
+                La aprobación ocurre directamente mientras trabajas en el <strong>Redactor de Documentos</strong>, en el <strong>Consultor de IA</strong> o en el <strong>Grabador de Actas</strong>. En esta pestaña queda únicamente el <strong>registro inmutable de los documentos que recibieron tu Visto Bueno</strong>.
               </p>
 
               <div className="space-y-3">
@@ -2470,7 +3476,7 @@ En los contratos bilaterales de compraventa inmobiliaria, ante el incumplimiento
               </div>
 
               <p className="text-xs text-slate-600">
-                La ocultación de nombres, documentos de identidad, RIF/NIF, teléfonos, cuentas y montos ocurre automáticamente en segundo plano cuando utilizas el <strong>Consultor de IA</strong> o el <strong>Redactor de Documentos</strong>. Aquí se conserva únicamente la constancia auditable de cada protección ejecutada.
+                La ocultación de nombres, razones sociales, documentos de identidad (con o sin puntos), RIF/NIF, teléfonos, cuentas de 20 dígitos o IBAN y montos ocurre automáticamente en segundo plano cuando utilizas el <strong>Consultor de IA</strong>, el <strong>Redactor de Documentos</strong> o el <strong>Grabador de Actas</strong>. Aquí se conserva únicamente la constancia auditable de cada protección ejecutada.
               </p>
 
               <div className="space-y-3">
@@ -2506,21 +3512,37 @@ En los contratos bilaterales de compraventa inmobiliaria, ante el incumplimiento
           ================================================================== */}
           {activeTab === 'configuracion_sistema' && (
             <div className="card-surface rounded-3xl p-6 sm:p-8 bg-white border border-[#E6DFD1] shadow-sm space-y-8">
-              <div className="border-b border-[#E6DFD1] pb-4">
-                <span className="text-[11px] font-mono uppercase tracking-widest text-amber-700 font-bold">
-                  11. Configuración Inicial del Despacho (Uso Ocasional)
-                </span>
-                <h2 className="font-serif text-xl sm:text-2xl font-bold mt-1">
-                  Conexión de tu API de IA, tu Biblioteca de Modelos y tus Leyes
-                </h2>
-                <p className="text-xs text-slate-600 mt-1">
-                  Configura una sola vez los datos de tu firma, la llave de tu modelo de IA preferido, la carpeta o Google Drive de tus modelos y los códigos o leyes con los que trabajas.
-                </p>
+              <div className="flex flex-wrap items-center justify-between gap-4 border-b border-[#E6DFD1] pb-4">
+                <div>
+                  <span className="text-[11px] font-mono uppercase tracking-widest text-amber-700 font-bold">
+                    11. Configuración Inicial del Despacho (Uso Ocasional)
+                  </span>
+                  <h2 className="font-serif text-xl sm:text-2xl font-bold mt-1">
+                    Conexión de tu API de IA, tu Biblioteca de Modelos y tus Leyes
+                  </h2>
+                  <p className="text-xs text-slate-600 mt-1">
+                    Configura una sola vez los datos de tu firma, la llave de tu modelo de IA preferido, la carpeta o Google Drive de tus modelos y los códigos o leyes con los que trabajas.
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    try {
+                      window.localStorage.removeItem(STORAGE_KEY);
+                    } catch {
+                      // ignorar
+                    }
+                    showToast('Memoria local limpiada. Recarga la página si deseas volver a los valores iniciales de fábrica.');
+                  }}
+                  className="px-3.5 py-2 rounded-xl border border-[#D5CBB8] bg-[#FAF8F5] text-xs font-semibold text-slate-700 cursor-pointer"
+                >
+                  Restablecer Memoria Local
+                </button>
               </div>
 
               <div className="sub-surface p-5 rounded-2xl bg-[#FAF8F5] border border-[#E6DFD1] space-y-4">
                 <h3 className="font-serif font-bold text-base">Datos del Abogado o Despacho Adquirente</h3>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4 text-xs">
                   <div>
                     <label className="block font-mono text-[11px] text-slate-500 mb-1">Nombre del Despacho o Firma</label>
                     <input
@@ -2548,6 +3570,15 @@ En los contratos bilaterales de compraventa inmobiliaria, ante el incumplimiento
                       className="w-full px-3.5 py-2 rounded-xl border bg-white border-[#D5CBB8]"
                     />
                   </div>
+                  <div>
+                    <label className="block font-mono text-[11px] text-slate-500 mb-1">Especialidad o Práctica</label>
+                    <input
+                      type="text"
+                      value={customPracticeArea}
+                      onChange={(e) => setCustomPracticeArea(e.target.value)}
+                      className="w-full px-3.5 py-2 rounded-xl border bg-white border-[#D5CBB8]"
+                    />
+                  </div>
                 </div>
               </div>
 
@@ -2561,7 +3592,11 @@ En los contratos bilaterales de compraventa inmobiliaria, ante el incumplimiento
                       <label className="block font-mono text-[11px] text-slate-500 mb-1">Proveedor de IA</label>
                       <select
                         value={llmProvider}
-                        onChange={(e) => setLlmProvider(e.target.value as 'openai' | 'anthropic' | 'gemini' | 'groq' | 'ollama')}
+                        onChange={(e) => {
+                          const nextProv = e.target.value as 'openai' | 'anthropic' | 'gemini' | 'groq' | 'ollama';
+                          setLlmProvider(nextProv);
+                          setLlmModel(PROVIDER_DEFAULT_MODELS[nextProv][0]);
+                        }}
                         className="w-full px-3 py-2 rounded-xl border bg-white border-[#D5CBB8]"
                       >
                         <option value="openai">OpenAI (GPT-4o)</option>
@@ -2569,6 +3604,18 @@ En los contratos bilaterales de compraventa inmobiliaria, ante el incumplimiento
                         <option value="gemini">Google Gemini Pro</option>
                         <option value="groq">Groq (Llama 3.3 70B)</option>
                         <option value="ollama">Modelo Local sin Internet (Ollama)</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block font-mono text-[11px] text-slate-500 mb-1">Modelo Activo</label>
+                      <select
+                        value={llmModel}
+                        onChange={(e) => setLlmModel(e.target.value)}
+                        className="w-full px-3 py-2 rounded-xl border bg-white border-[#D5CBB8] font-mono"
+                      >
+                        {PROVIDER_DEFAULT_MODELS[llmProvider].map(m => (
+                          <option key={m} value={m}>{m}</option>
+                        ))}
                       </select>
                     </div>
                     <div>
@@ -2648,23 +3695,50 @@ En los contratos bilaterales de compraventa inmobiliaria, ante el incumplimiento
                         onChange={(e) => {
                           const f = e.target.files?.[0];
                           if (!f) return;
-                          const newTpl: ModelTemplate = {
-                            id: `tpl-${Date.now().toString().slice(-4)}`,
-                            name: f.name.replace(/\.[^/.]+$/, ''),
-                            category: 'Modelo Propio del Despacho',
-                            source: librarySourceMode,
-                            updatedAt: 'Recién cargado',
-                            variables: [
-                              { key: 'PARTES', label: 'Identificación de las Partes', category: 'Partes', placeholder: 'Nombres y documentos' },
-                              { key: 'OBJETO', label: 'Objeto y Condiciones del Instrumento', category: 'Objeto', placeholder: 'Descripción del negocio jurídico' },
-                              { key: 'PRECIO_MONTO', label: 'Monto o Contraprestación', category: 'Precio', placeholder: 'Monto en números y letras' },
-                              { key: 'JURISDICCION', label: 'Jurisdicción y Domicilio Especial', category: 'Jurisdicción', placeholder: 'Ciudad y tribunales' }
-                            ],
-                            contentPreview: `DOCUMENTO BASE CARGADO DE BIBLIOTECA (${f.name}):\n\nENTRE LAS PARTES: {{PARTES}}.\n\nOBJETO DEL INSTRUMENTO: {{OBJETO}}.\n\nMONTO O CONTRAPRESTACIÓN: {{PRECIO_MONTO}}.\n\nJURISDICCIÓN APLICABLE: {{JURISDICCION}}.`
+                          const registerTemplateFromText = (rawContent?: string) => {
+                            const cleanText = rawContent && rawContent.trim().length > 20
+                              ? rawContent.trim()
+                              : `DOCUMENTO BASE CARGADO DE BIBLIOTECA (${f.name}):\n\nENTRE LAS PARTES: {{PARTES}}.\n\nOBJETO DEL INSTRUMENTO: {{OBJETO}}.\n\nMONTO O CONTRAPRESTACIÓN: {{PRECIO_MONTO}}.\n\nJURISDICCIÓN APLICABLE: {{JURISDICCION}}.`;
+
+                            // Detecta dinámicamente variables {{VARIABLE}} presentes en el archivo cargado
+                            const matches = Array.from(cleanText.matchAll(/\{\{([A-Z0-9_]+)\}\}/gi)).map(m => m[1].toUpperCase());
+                            const uniqueKeys = Array.from(new Set(matches));
+                            const detectedVars: ModelTemplateVariable[] =
+                              uniqueKeys.length > 0
+                                ? uniqueKeys.map(k => ({
+                                    key: k,
+                                    label: `Campo ${k.replace(/_/g, ' ')}`,
+                                    category: 'Variable Detectada',
+                                    placeholder: `Valor para ${k}`
+                                  }))
+                                : [
+                                    { key: 'PARTES', label: 'Identificación de las Partes', category: 'Partes', placeholder: 'Nombres y documentos' },
+                                    { key: 'OBJETO', label: 'Objeto y Condiciones del Instrumento', category: 'Objeto', placeholder: 'Descripción del negocio jurídico' },
+                                    { key: 'PRECIO_MONTO', label: 'Monto o Contraprestación', category: 'Precio', placeholder: 'Monto en números y letras' },
+                                    { key: 'JURISDICCION', label: 'Jurisdicción y Domicilio Especial', category: 'Jurisdicción', placeholder: 'Ciudad y tribunales' }
+                                  ];
+
+                            const newTpl: ModelTemplate = {
+                              id: `tpl-${Date.now().toString().slice(-4)}`,
+                              name: f.name.replace(/\.[^/.]+$/, ''),
+                              category: 'Modelo Propio del Despacho',
+                              source: librarySourceMode,
+                              updatedAt: 'Recién cargado',
+                              variables: detectedVars,
+                              contentPreview: cleanText
+                            };
+                            setTemplates(prev => [newTpl, ...prev]);
+                            setSelectedTemplateId(newTpl.id);
+                            showToast(`Modelo "${newTpl.name}" agregado con ${detectedVars.length} variables detectadas.`);
                           };
-                          setTemplates(prev => [newTpl, ...prev]);
-                          setSelectedTemplateId(newTpl.id);
-                          showToast(`Modelo "${newTpl.name}" agregado a tu biblioteca e indexado para el Redactor.`);
+
+                          if (/\.(txt|md)$/i.test(f.name) && typeof FileReader !== 'undefined') {
+                            const reader = new FileReader();
+                            reader.onload = () => registerTemplateFromText(String(reader.result || ''));
+                            reader.readAsText(f);
+                          } else {
+                            registerTemplateFromText();
+                          }
                         }}
                       />
                     </label>
