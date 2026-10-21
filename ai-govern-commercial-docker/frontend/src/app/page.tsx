@@ -7,11 +7,12 @@ import {
   UserCheck, EyeOff, Upload, CheckCircle2, Download,
   Plus, Search, Sparkles, ChevronRight, ChevronLeft,
   Sliders, Copy, Sun, Moon, FileCheck,
-  Camera, FileUp, Video, Share2, Briefcase
+  Camera, FileUp, Video, Share2, Briefcase,
+  Menu, X, Trash2, Edit3, Eye, Send, AlertCircle, Check
 } from 'lucide-react';
 
 // ============================================================================
-// TIPOS DE DATOS DEL SISTEMA JURÍDICO PRIVADO AI GOVERN
+// TIPOS DE DATOS DEL SISTEMA JURÍDICO AI GOVERN
 // ============================================================================
 
 type ModuleId =
@@ -51,6 +52,7 @@ interface RagLawDocument {
   chunks: number;
   status: 'Indexado' | 'Sincronizado';
   excerpt: string;
+  fullText?: string;
 }
 
 interface ActionItem {
@@ -179,7 +181,7 @@ interface ConsultChatSession {
 }
 
 // ============================================================================
-// UTILIDADES CRIPTOGRÁFICAS SHA-256 REAL (FIPS 180-4) Y ANONIMIZACIÓN ZERO-TRUST
+// CRIPTOGRAFÍA SHA-256 REAL (FIPS 180-4) Y MOTOR ZERO-TRUST PII EN RAM
 // ============================================================================
 
 const SHA256_K = [
@@ -207,26 +209,17 @@ function computeRealSha256(input: string): string {
   words[bitLength >> 5] |= 0x80 << (24 - (bitLength % 32));
   words[(((bitLength + 64) >> 9) << 4) + 15] = bitLength;
 
-  let h0 = 0x6a09e667;
-  let h1 = 0xbb67ae85;
-  let h2 = 0x3c6ef372;
-  let h3 = 0xa54ff53a;
-  let h4 = 0x510e527f;
-  let h5 = 0x9b05688c;
-  let h6 = 0x1f83d9ab;
-  let h7 = 0x5be0cd19;
+  let h0 = 0x6a09e667, h1 = 0xbb67ae85, h2 = 0x3c6ef372, h3 = 0xa54ff53a;
+  let h4 = 0x510e527f, h5 = 0x9b05688c, h6 = 0x1f83d9ab, h7 = 0x5be0cd19;
 
   const w = new Array<number>(64);
   for (let j = 0; j < words.length; j += 16) {
-    for (let i = 0; i < 16; i++) {
-      w[i] = words[j + i] || 0;
-    }
+    for (let i = 0; i < 16; i++) w[i] = words[j + i] || 0;
     for (let i = 16; i < 64; i++) {
       const s0 = rightRotate(w[i - 15], 7) ^ rightRotate(w[i - 15], 18) ^ (w[i - 15] >>> 3);
       const s1 = rightRotate(w[i - 2], 17) ^ rightRotate(w[i - 2], 19) ^ (w[i - 2] >>> 10);
       w[i] = (w[i - 16] + s0 + w[i - 7] + s1) | 0;
     }
-
     let a = h0, b = h1, c = h2, d = h3, e = h4, f = h5, g = h6, h = h7;
     for (let i = 0; i < 64; i++) {
       const S1 = rightRotate(e, 6) ^ rightRotate(e, 11) ^ rightRotate(e, 25);
@@ -235,25 +228,11 @@ function computeRealSha256(input: string): string {
       const S0 = rightRotate(a, 2) ^ rightRotate(a, 13) ^ rightRotate(a, 22);
       const maj = (a & b) ^ (a & c) ^ (b & c);
       const temp2 = (S0 + maj) | 0;
-
-      h = g;
-      g = f;
-      f = e;
-      e = (d + temp1) | 0;
-      d = c;
-      c = b;
-      b = a;
-      a = (temp1 + temp2) | 0;
+      h = g; g = f; f = e; e = (d + temp1) | 0;
+      d = c; c = b; b = a; a = (temp1 + temp2) | 0;
     }
-
-    h0 = (h0 + a) | 0;
-    h1 = (h1 + b) | 0;
-    h2 = (h2 + c) | 0;
-    h3 = (h3 + d) | 0;
-    h4 = (h4 + e) | 0;
-    h5 = (h5 + f) | 0;
-    h6 = (h6 + g) | 0;
-    h7 = (h7 + h) | 0;
+    h0 = (h0 + a) | 0; h1 = (h1 + b) | 0; h2 = (h2 + c) | 0; h3 = (h3 + d) | 0;
+    h4 = (h4 + e) | 0; h5 = (h5 + f) | 0; h6 = (h6 + g) | 0; h7 = (h7 + h) | 0;
   }
 
   return [h0, h1, h2, h3, h4, h5, h6, h7]
@@ -285,7 +264,6 @@ function anonymizePiiText(
     });
   };
 
-  // 1. Nombres personalizados y clientes del CRM registrados en el despacho
   const validExtraNames = extraNames
     .map(n => n.trim())
     .filter(n => n.length >= 3)
@@ -296,7 +274,6 @@ function anonymizePiiText(
     replaceMatch(rx, 'PARTE_CLIENTE');
   });
 
-  // 2. Razones sociales mercantiles (Inversiones..., Corporación..., Grupo..., Comercializadora..., S.A., C.A., S.R.L., LLC)
   replaceMatch(
     /\b(?:Inversiones|Corporaci[oó]n|Grupo\s+Industrial|Grupo|Comercializadora|Constructora|Administradora|Desarrollos|Consorcio|Importadora|Distribuidora)\s+[A-ZÁÉÍÓÚÑ][A-Za-záéíóúñÁÉÍÓÚÑ0-9\s.&,-]{1,35}?(?:,\s*(?:C\.A\.|S\.A\.|S\.R\.L\.|S\.L\.|L\.L\.C\.))?(?=\s*\(|\s*,|\s+por\b|\s+y\b|\s+con\b|\s+seg[uú]n\b|\.|\s*$)/gi,
     'ENTIDAD_MERCANTIL'
@@ -305,32 +282,22 @@ function anonymizePiiText(
     /\b[A-ZÁÉÍÓÚÑ][A-Za-záéíóúñÁÉÍÓÚÑ0-9\s.&-]{2,40}?,\s*(?:C\.A\.|S\.A\.|S\.R\.L\.|S\.A\.S\.|S\.L\.|L\.L\.C\.|INC\.)/g,
     'ENTIDAD_MERCANTIL'
   );
-
-  // 3. Cédulas de Identidad (con o sin puntos: V-12.345.678, E-84.123.456), RIF (J-30948271-0), NIF/DNI/CUIT
   replaceMatch(
     /\b(?:[VJGEP][-\s.]?\d{1,3}(?:[.\s]\d{3}){1,2}(?:[-\s]?\d)?|[VJGEP][-\s]?\d{7,9}(?:[-\s]?\d)?|\d{8}[A-Z]|[A-HJ-NP-SUVW]\d{7}[0-9A-J]|\d{2}-\d{8}-\d)\b/gi,
     'ID_FISCAL_DOC'
   );
-
-  // 4. Cuentas bancarias (IBAN internacional y Cuentas Nacionales de 20 dígitos con o sin guiones, ANTES del filtro de teléfonos)
   replaceMatch(
     /\b(?:[A-Z]{2}\d{2}[A-Z0-9]{12,30}|\d{4}[-\s]\d{4}[-\s]\d{2}[-\s]\d{10}|\d{20})\b/g,
     'CUENTA_BANCARIA'
   );
-
-  // 5. Correos electrónicos
   replaceMatch(
     /\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}\b/g,
     'EMAIL_CLIENTE'
   );
-
-  // 6. Teléfonos nacionales e internacionales (+58 414-2309811, (0212) 951-2233, etc.)
   replaceMatch(
     /(?:\+\d{1,3}[-\s.]?)?\(?\d{3,4}\)?[-\s.]?\d{3}[-\s.]?\d{4}\b/g,
     'TELEFONO_PRIVADO'
   );
-
-  // 7. Montos de operaciones (soporta $ o € al inicio sin fallar por word-boundary, USD, EUR, Bs.)
   replaceMatch(
     /(?:(?:\b(?:USD|EUR|Bs\.?)|US\$|\$|€)\s?\d{1,3}(?:[.,]\d{3})*(?:[.,]\d{2})?\b|\b\d{1,3}(?:[.,]\d{3})+(?:[.,]\d{2})?\s?(?:USD|EUR|Bs\.?|dólares|euros|bolívares)\b)/gi,
     'MONTO_OPERACION'
@@ -350,12 +317,32 @@ function deAnonymizeText(
   return restored;
 }
 
+function detectVariablesInTemplateText(rawText: string): ModelTemplateVariable[] {
+  const matches = Array.from(rawText.matchAll(/\{\{([A-Za-z0-9_ÁÉÍÓÚÑáéíóúñ]+)\}\}/g)).map(m => m[1].toUpperCase());
+  const uniqueKeys = Array.from(new Set(matches));
+  if (uniqueKeys.length === 0) {
+    return [
+      { key: 'PARTE_A', label: 'Identificación de la Primera Parte / Otorgante', category: 'Partes', placeholder: 'Guía: Nombre completo, nacionalidad, estado civil, C.I. / RIF y domicilio' },
+      { key: 'PARTE_B', label: 'Identificación de la Segunda Parte / Contraparte', category: 'Partes', placeholder: 'Guía: Nombre o Razón Social, RIF, datos de registro y representante' },
+      { key: 'OBJETO_CONTRATO', label: 'Objeto y Descripción del Bien o Servicio', category: 'Objeto', placeholder: 'Guía: Descripción detallada del bien, medidas, linderos o prestación' },
+      { key: 'PRECIO_CONDICIONES', label: 'Monto, Moneda y Forma de Pago', category: 'Económico', placeholder: 'Guía: Cantidad en letras y números, moneda y medio de pago' },
+      { key: 'JURISDICCION', label: 'Domicilio Especial y Jurisdicción', category: 'Jurisdicción', placeholder: 'Guía: Ciudad y Tribunales competentes elegidos por las partes' }
+    ];
+  }
+  return uniqueKeys.map(k => ({
+    key: k,
+    label: k.replace(/_/g, ' '),
+    category: 'Campo del Modelo',
+    placeholder: `Guía: Ingresa los datos correspondientes a {{${k}}}`
+  }));
+}
+
 function exportWordDoc(filename: string, title: string, subtitle: string, bodyText: string) {
   const html = `<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
   <head><meta charset='utf-8'><title>${title}</title>
   <style>
     body { font-family: 'Georgia', 'Times New Roman', serif; font-size: 12pt; line-height: 1.65; color: #0F172A; margin: 2.5cm; }
-    h1 { font-size: 15pt; text-transform: uppercase; text-align: center; margin-bottom: 6pt; }
+    h1 { font-size: 14pt; text-transform: uppercase; text-align: center; margin-bottom: 6pt; }
     .meta { font-family: 'Courier New', monospace; font-size: 9pt; text-align: center; color: #475569; border-bottom: 1px solid #CBD5E1; padding-bottom: 10pt; margin-bottom: 18pt; }
     p { text-align: justify; margin-bottom: 10pt; white-space: pre-wrap; }
   </style></head>
@@ -379,10 +366,9 @@ const PROVIDER_DEFAULT_MODELS: Record<'openai' | 'anthropic' | 'gemini' | 'groq'
   anthropic: ['claude-3-5-sonnet-latest', 'claude-3-5-haiku-latest'],
   gemini: ['gemini-2.5-pro', 'gemini-2.5-flash'],
   groq: ['llama-3.3-70b-versatile', 'mixtral-8x7b-32768'],
-  ollama: ['llama3.1:8b-local', 'mistral-nemo:12b-local', 'qwen2.5:14b-local']
+  ollama: ['llama3.1:8b', 'mistral-nemo:12b', 'qwen2.5:14b']
 };
 
-// Feriados nacionales y bancarios de referencia para cómputo procesal (Venezuela / Internacional)
 const DEFAULT_NON_WORKING_DATES: string[] = [
   '2026-01-01', '2026-02-16', '2026-02-17', '2026-04-02', '2026-04-03',
   '2026-04-19', '2026-05-01', '2026-06-24', '2026-07-05', '2026-07-24',
@@ -393,23 +379,141 @@ function isJudicialRecessDate(dateStr: string): boolean {
   const parts = dateStr.split('-').map(Number);
   if (parts.length !== 3) return false;
   const [, m, d] = parts;
-  // Receso judicial de agosto-septiembre (15 ago al 15 sep) y diciembre-enero (24 dic al 6 ene) - Art. 201 CPC
   if ((m === 8 && d >= 15) || (m === 9 && d <= 15)) return true;
   if ((m === 12 && d >= 24) || (m === 1 && d <= 6)) return true;
   return false;
 }
 
-const STORAGE_KEY = 'ai_govern_legal_os_state_v4';
+const STORAGE_KEY = 'ai_govern_legal_workspace_prod_v1';
 
 // ============================================================================
-// COMPONENTE PRINCIPAL DEL SISTEMA DE TRABAJO DEL ABOGADO
+// LLAMADA UNIVERSAL EN VIVO A LA API DEL ABOGADO (OPENAI / GEMINI / GROQ / ANTHROPIC / OLLAMA)
+// ============================================================================
+
+async function callConfiguredLlmApi(params: {
+  provider: 'openai' | 'anthropic' | 'gemini' | 'groq' | 'ollama';
+  model: string;
+  apiKey: string;
+  ollamaUrl: string;
+  systemPrompt: string;
+  userPrompt: string;
+}): Promise<string> {
+  const { provider, model, apiKey, ollamaUrl, systemPrompt, userPrompt } = params;
+  const cleanKey = apiKey.trim();
+
+  if (provider === 'openai' || provider === 'groq') {
+    if (!cleanKey) throw new Error('Ingresa tu API Key en Configuración (Módulo 11).');
+    const endpoint =
+      provider === 'groq'
+        ? 'https://api.groq.com/openai/v1/chat/completions'
+        : 'https://api.openai.com/v1/chat/completions';
+
+    const bodyPayload: Record<string, unknown> = {
+      model,
+      messages: [
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content: userPrompt }
+      ],
+      temperature: 0.15
+    };
+    if (provider === 'openai') bodyPayload.store = false;
+
+    const resp = await fetch(endpoint, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${cleanKey}`
+      },
+      body: JSON.stringify(bodyPayload)
+    });
+    if (!resp.ok) {
+      const errText = await resp.text();
+      throw new Error(`Error de API (${resp.status}): ${errText.slice(0, 180)}`);
+    }
+    const data = await resp.json();
+    return data?.choices?.[0]?.message?.content || '';
+  }
+
+  if (provider === 'gemini') {
+    if (!cleanKey) throw new Error('Ingresa tu API Key de Google Gemini en Configuración (Módulo 11).');
+    const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${encodeURIComponent(cleanKey)}`;
+    const resp = await fetch(endpoint, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        systemInstruction: { parts: [{ text: systemPrompt }] },
+        contents: [{ role: 'user', parts: [{ text: userPrompt }] }],
+        generationConfig: { temperature: 0.15 }
+      })
+    });
+    if (!resp.ok) {
+      const errText = await resp.text();
+      throw new Error(`Error de API Gemini (${resp.status}): ${errText.slice(0, 180)}`);
+    }
+    const data = await resp.json();
+    return data?.candidates?.[0]?.content?.parts?.[0]?.text || '';
+  }
+
+  if (provider === 'anthropic') {
+    if (!cleanKey) throw new Error('Ingresa tu API Key de Anthropic en Configuración (Módulo 11).');
+    const resp = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': cleanKey,
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true'
+      },
+      body: JSON.stringify({
+        model,
+        max_tokens: 4096,
+        system: systemPrompt,
+        messages: [{ role: 'user', content: userPrompt }],
+        temperature: 0.15
+      })
+    });
+    if (!resp.ok) {
+      const errText = await resp.text();
+      throw new Error(`Error de API Anthropic (${resp.status}): ${errText.slice(0, 180)}`);
+    }
+    const data = await resp.json();
+    return data?.content?.[0]?.text || '';
+  }
+
+  if (provider === 'ollama') {
+    const base = (ollamaUrl || 'http://localhost:11434').replace(/\/$/, '');
+    const ollamaEndpoint = `${base}/api/chat`;
+    const resp = await fetch(ollamaEndpoint, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model,
+        stream: false,
+        messages: [
+          { role: 'system', content: systemPrompt },
+          { role: 'user', content: userPrompt }
+        ]
+      })
+    });
+    if (!resp.ok) {
+      throw new Error(`No se pudo conectar con Ollama en ${base} (${resp.status}).`);
+    }
+    const data = await resp.json();
+    return data?.message?.content || '';
+  }
+
+  return '';
+}
+
+// ============================================================================
+// COMPONENTE PRINCIPAL DEL SISTEMA OPERATIVO DEL ABOGADO
 // ============================================================================
 
 export default function AiGovernLegalSystem() {
-  // 1. La pestaña inicial es directamente el Consultor de IA; Configuración está de última
   const [activeTab, setActiveTab] = useState<ModuleId>('consultor_ia');
   const [darkMode, setDarkMode] = useState<boolean>(false);
   const [isMainSidebarOpen, setIsMainSidebarOpen] = useState<boolean>(true);
+  const [isMobileDrawerOpen, setIsMobileDrawerOpen] = useState<boolean>(false);
   const [isHistorySidebarOpen, setIsHistorySidebarOpen] = useState<boolean>(true);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
@@ -419,341 +523,169 @@ export default function AiGovernLegalSystem() {
   };
 
   // ==========================================================================
-  // ESTADO DE CONFIGURACIÓN GENERAL (Ubicado en la última pestaña)
+  // PALETA DETERMINÍSTICA MODO CLARO / MODO OSCURO (SIN CONFLICTOS DE TAILWIND)
+  // ==========================================================================
+  const theme = useMemo(() => {
+    if (darkMode) {
+      return {
+        pageBg: '#090D16',
+        pageText: '#F8FAFC',
+        cardBg: '#111827',
+        cardBorder: '#1E293B',
+        subBg: '#1E293B',
+        subBorder: '#334155',
+        inputBg: '#090D16',
+        inputBorder: '#334155',
+        inputText: '#F8FAFC',
+        mutedText: '#94A3B8',
+        accentText: '#FBBF24',
+        emeraldText: '#34D399',
+        primaryBtnBg: '#F59E0B',
+        primaryBtnText: '#090D16',
+        secondaryBtnBg: '#1E293B',
+        secondaryBtnText: '#F8FAFC',
+        secondaryBtnBorder: '#334155'
+      };
+    }
+    return {
+      pageBg: '#F6F5F2',
+      pageText: '#0F172A',
+      cardBg: '#FFFFFF',
+      cardBorder: '#E2E8F0',
+      subBg: '#F8FAFC',
+      subBorder: '#E2E8F0',
+      inputBg: '#FFFFFF',
+      inputBorder: '#CBD5E1',
+      inputText: '#0F172A',
+      mutedText: '#64748B',
+      accentText: '#B45309',
+      emeraldText: '#047857',
+      primaryBtnBg: '#0F172A',
+      primaryBtnText: '#FFFFFF',
+      secondaryBtnBg: '#FFFFFF',
+      secondaryBtnText: '#0F172A',
+      secondaryBtnBorder: '#CBD5E1'
+    };
+  }, [darkMode]);
+
+  const cardStyle: React.CSSProperties = {
+    backgroundColor: theme.cardBg,
+    borderColor: theme.cardBorder,
+    color: theme.pageText
+  };
+
+  const subCardStyle: React.CSSProperties = {
+    backgroundColor: theme.subBg,
+    borderColor: theme.subBorder,
+    color: theme.pageText
+  };
+
+  const inputStyle: React.CSSProperties = {
+    backgroundColor: theme.inputBg,
+    borderColor: theme.inputBorder,
+    color: theme.inputText
+  };
+
+  const secondaryBtnStyle: React.CSSProperties = {
+    backgroundColor: theme.secondaryBtnBg,
+    borderColor: theme.secondaryBtnBorder,
+    color: theme.secondaryBtnText
+  };
+
+  // ==========================================================================
+  // ESTADO DE CONFIGURACIÓN GENERAL (SIN DATOS FICTICIOS, LISTO PARA PRODUCCIÓN)
   // ==========================================================================
   const [llmProvider, setLlmProvider] = useState<'openai' | 'anthropic' | 'gemini' | 'groq' | 'ollama'>('openai');
   const [llmModel, setLlmModel] = useState<string>('gpt-4o');
-  const [apiKeyInput, setApiKeyInput] = useState<string>('sk-proj-••••••••••••••••••••••••••••••••');
-  const [monthlyBudgetUsd, setMonthlyBudgetUsd] = useState<number>(30);
-  const [currentSpendUsd, setCurrentSpendUsd] = useState<number>(2.46);
-  const [savedHoursCount, setSavedHoursCount] = useState<number>(38.5);
-  const [firmName, setFirmName] = useState<string>('Despacho Jurídico Titular');
-  const [lawyerSignerName, setLawyerSignerName] = useState<string>('Abg. Titular del Despacho');
-  const [lawyerCollegiateId, setLawyerCollegiateId] = useState<string>('Inpreabogado / Colegiado Nº 104.892');
-  const [customPracticeArea, setCustomPracticeArea] = useState<string>('Práctica Jurídica Integral');
+  const [apiKeyInput, setApiKeyInput] = useState<string>('');
+  const [ollamaBaseUrl, setOllamaBaseUrl] = useState<string>('http://localhost:11434');
+  const [monthlyBudgetUsd, setMonthlyBudgetUsd] = useState<number>(50);
+  const [currentSpendUsd, setCurrentSpendUsd] = useState<number>(0);
+  const [savedHoursCount, setSavedHoursCount] = useState<number>(0);
+  const [firmName, setFirmName] = useState<string>('');
+  const [lawyerSignerName, setLawyerSignerName] = useState<string>('');
+  const [lawyerCollegiateId, setLawyerCollegiateId] = useState<string>('');
+  const [customPracticeArea, setCustomPracticeArea] = useState<string>('');
 
   const [librarySourceMode, setLibrarySourceMode] = useState<'Carpeta Local' | 'Google Drive'>('Google Drive');
-  const [localFolderPath, setLocalFolderPath] = useState<string>('/Mis_Modelos_Juridicos');
-  const [driveFolderUrl, setDriveFolderUrl] = useState<string>('https://drive.google.com/drive/folders/Biblioteca-Juridica-Despacho');
+  const [localFolderPath, setLocalFolderPath] = useState<string>('');
+  const [driveFolderUrl, setDriveFolderUrl] = useState<string>('');
 
-  // Biblioteca de Modelos con identificación inteligente de campos a sustituir
-  const [templates, setTemplates] = useState<ModelTemplate[]>([
-    {
-      id: 'tpl-compraventa',
-      name: 'Contrato de Compraventa de Inmueble',
-      category: 'Inmobiliario y Civil',
-      source: 'Google Drive',
-      updatedAt: 'Sincronizado',
-      variables: [
-        { key: 'VENDEDOR', label: 'Identificación completa del Vendedor (Nombre, Estado Civil, Documento/RIF)', category: 'Partes', placeholder: 'Ej: CARLOS EDUARDO MÉNDEZ, mayor de edad, casado, C.I. V-12.345.678' },
-        { key: 'COMPRADOR', label: 'Identificación completa del Comprador (Nombre, Estado Civil, Documento/RIF)', category: 'Partes', placeholder: 'Ej: MARÍA FERNANDA SALAZAR, mayor de edad, soltera, C.I. V-18.987.654' },
-        { key: 'DATOS_INMUEBLE', label: 'Descripción, Ubicación, Superficie y Linderos del Inmueble', category: 'Inmueble', placeholder: 'Ej: Apartamento Nº 4-B, Edificio Torre Ávila, Urb. Altamira, 145 m2' },
-        { key: 'REGISTRO_INMUEBLE', label: 'Datos de Registro Inmobiliario / Tradición Legal (Oficina, Tomo, Folio, Fecha)', category: 'Inmueble', placeholder: 'Ej: Registro Público del Municipio Chacao, Tomo 14, Protocolo 1º, Año 2019' },
-        { key: 'PRECIO_VENTA', label: 'Precio de la Compraventa (en letras y números) y Forma de Pago', category: 'Precio y Pago', placeholder: 'Ej: OCHENTA Y CINCO MIL DÓLARES (85.000,00 USD) mediante transferencia bancaria' },
-        { key: 'JURISDICCION', label: 'Jurisdicción y Domicilio Especial elegido por las partes', category: 'Jurisdicción', placeholder: 'Ej: Ciudad de Caracas, a la jurisdicción de cuyos Tribunales declaran someterse' }
-      ],
-      contentPreview: `ENTRE: {{VENDEDOR}}, quien en lo adelante y a los efectos de este contrato se denominará EL VENDEDOR, por una parte; y por la otra, {{COMPRADOR}}, quien en lo sucesivo se denominará EL COMPRADOR, se ha convenido en celebrar el presente CONTRATO DE COMPRAVENTA DE INMUEBLE:\n\nPRIMERA (OBJETO Y DESCRIPCIÓN DEL INMUEBLE): EL VENDEDOR da en venta pura y simple, perfecta e irrevocable a EL COMPRADOR, un inmueble constituido por {{DATOS_INMUEBLE}}.\n\nSEGUNDA (TÍTULO DE ADQUISICIÓN Y REGISTRO): El referido inmueble pertenece a EL VENDEDOR según consta en documento protocolizado ante {{REGISTRO_INMUEBLE}}.\n\nTERCERA (PRECIO Y FORMA DE PAGO): El precio de esta venta ha sido pactado de común acuerdo en la cantidad de {{PRECIO_VENTA}}, que EL VENDEDOR declara recibir a su entera y cabal satisfacción.\n\nCUARTA (SANEAMIENTO Y ENTREGA MATERIAL): EL VENDEDOR garantiza que el inmueble se encuentra libre de todo gravamen, hipoteca o medida de prohibición, haciendo la tradición legal y entrega material con el otorgamiento del presente instrumento.\n\nQUINTA (JURISDICCIÓN): Para todos los efectos derivados de este contrato, las partes eligen como domicilio especial a la {{JURISDICCION}}.`
-    },
-    {
-      id: 'tpl-arrendamiento',
-      name: 'Contrato de Arrendamiento de Local Comercial',
-      category: 'Mercantil e Inmobiliario',
-      source: 'Google Drive',
-      updatedAt: 'Sincronizado',
-      variables: [
-        { key: 'ARRENDADOR', label: 'Datos de la Parte Arrendadora / Propietaria', category: 'Partes', placeholder: 'Ej: INVERSIONES TORRE CENTRAL, C.A. (RIF J-30948271-0)' },
-        { key: 'ARRENDATARIO', label: 'Datos de la Parte Arrendataria / Inquilina', category: 'Partes', placeholder: 'Ej: COMERCIALIZADORA NOVA, S.A. (RIF J-40192834-2)' },
-        { key: 'LOCAL_DIRECCION', label: 'Identificación y Ubicación del Local Comercial', category: 'Inmueble', placeholder: 'Ej: Local PB-08, Centro Comercial Paseo Las Mercedes, 90 m2' },
-        { key: 'CANON_MENSUAL', label: 'Canon de Arrendamiento Mensual y Depósito en Garantía', category: 'Precio y Pago', placeholder: 'Ej: 1.500,00 USD mensuales + 3 meses de depósito' },
-        { key: 'DURACION', label: 'Plazo de Duración del Contrato', category: 'Plazo', placeholder: 'Ej: Dos (02) años fijos contados a partir de la firma' },
-        { key: 'JURISDICCION', label: 'Jurisdicción Aplicable', category: 'Jurisdicción', placeholder: 'Ej: Tribunales Mercantiles de la Circunscripción Judicial de Caracas' }
-      ],
-      contentPreview: `ENTRE: {{ARRENDADOR}} (EL ARRENDADOR) y {{ARRENDATARIO}} (EL ARRENDATARIO), se suscribe el presente CONTRATO DE ARRENDAMIENTO DE LOCAL COMERCIAL:\n\nCLÁUSULA PRIMERA (INMUEBLE): EL ARRENDADOR cede en arrendamiento el inmueble ubicado en {{LOCAL_DIRECCION}}.\n\nCLÁUSULA SEGUNDA (CANON Y GARANTÍA): El canon de arrendamiento convenido es de {{CANON_MENSUAL}}, pagaderos dentro de los primeros cinco (5) días de cada mes.\n\nCLÁUSULA TERCERA (VIGENCIA): El presente contrato tendrá una duración de {{DURACION}}.\n\nCLÁUSULA CUARTA (DOMICILIO ESPECIAL): Las partes eligen como domicilio especial la {{JURISDICCION}}.`
-    },
-    {
-      id: 'tpl-poder',
-      name: 'Poder Especial de Representación Judicial y Administrativa',
-      category: 'Procesal y Corporativo',
-      source: 'Carpeta Local',
-      updatedAt: 'Sincronizado',
-      variables: [
-        { key: 'OTORGANTE', label: 'Datos del Poderdante / Otorgante', category: 'Partes', placeholder: 'Ej: GRUPO INDUSTRIAL DELTA, C.A., representada por su Director' },
-        { key: 'APODERADOS', label: 'Nombre e Inpreabogado / Colegiado de los Abogados Apoderados', category: 'Apoderados', placeholder: 'Ej: Abg. Titular del Despacho, Inpreabogado Nº 104.892' },
-        { key: 'FACULTADES_ESPECIFICAS', label: 'Objeto y Facultades Especiales del Mandato', category: 'Facultades', placeholder: 'Ej: Darse por citado, promover pruebas, convenir, desistir, transigir y recibir cantidades de dinero' },
-        { key: 'JURISDICCION', label: 'Ciudad y Fecha de Otorgamiento', category: 'Jurisdicción', placeholder: 'Ej: En la ciudad de Caracas, a la fecha de su autenticación notarial' }
-      ],
-      contentPreview: `Yo, {{OTORGANTE}}, por el presente documento declaro: Que confiero PODER ESPECIAL, pero amplio y bastante cuanto en derecho se requiere, a los abogados en ejercicio {{APODERADOS}}, para que conjunta o separadamente representen y sostengan mis derechos en todos los asuntos judiciales o extrajudiciales.\n\nEn ejercicio de este mandato, los apoderados quedan expresamente facultados para: {{FACULTADES_ESPECIFICAS}}.\n\nOtorgado en {{JURISDICCION}}.`
-    }
-  ]);
+  // Biblioteca de Modelos (almacenamiento real con opción de agregar, editar y eliminar)
+  const [templates, setTemplates] = useState<ModelTemplate[]>([]);
+  const [newTplNameInput, setNewTplNameInput] = useState<string>('');
+  const [newTplCategoryInput, setNewTplCategoryInput] = useState<string>('Civil / Mercantil');
+  const [newTplContentInput, setNewTplContentInput] = useState<string>('');
+  const [showAddTemplateModal, setShowAddTemplateModal] = useState<boolean>(false);
 
-  const [ragDocs, setRagDocs] = useState<RagLawDocument[]>([
-    {
-      id: 'rag-01',
-      title: 'Código Civil (Obligaciones, Contratos, Compraventa y Garantías)',
-      type: 'Código / Ley',
-      chunks: 420,
-      status: 'Indexado',
-      excerpt: 'Artículos sobre requisitos esenciales para la validez de los contratos, tradición legal en compraventa de inmuebles, consentimiento conyugal (Art. 168), acción resolutoria (Art. 1.167) y saneamiento.'
-    },
-    {
-      id: 'rag-02',
-      title: 'Código de Procedimiento Civil / Ley de Enjuiciamiento',
-      type: 'Código / Ley',
-      chunks: 315,
-      status: 'Indexado',
-      excerpt: 'Normativa procesal sobre requisitos de la demanda (Art. 340), cómputo de lapsos por días de despacho (Art. 197 y 201), promoción y evacuación de pruebas y medidas preventivas (Art. 585).'
-    },
-    {
-      id: 'rag-03',
-      title: 'Código de Comercio y Legislación Societaria Vigente',
-      type: 'Código / Ley',
-      chunks: 210,
-      status: 'Indexado',
-      excerpt: 'Disposiciones aplicables a sociedades mercantiles, asambleas de accionistas, facultades de administradores, títulos valores y obligaciones mercantiles.'
-    }
-  ]);
+  // Repositorio RAG de Leyes y Normativa (almacenamiento real con opción de agregar, ver y eliminar)
+  const [ragDocs, setRagDocs] = useState<RagLawDocument[]>([]);
+  const [newRagTitleInput, setNewRagTitleInput] = useState<string>('');
+  const [newRagTypeInput, setNewRagTypeInput] = useState<'Código / Ley' | 'Jurisprudencia / Doctrina' | 'Reglamento / Norma'>('Código / Ley');
+  const [newRagContentInput, setNewRagContentInput] = useState<string>('');
+  const [showAddRagModal, setShowAddRagModal] = useState<boolean>(false);
+  const [viewingRagDoc, setViewingRagDoc] = useState<RagLawDocument | null>(null);
 
-  // ==========================================================================
-  // REGISTROS AUTOMÁTICOS DE AUDITORÍA (Human-in-the-Loop, Anonimización PII y Trazabilidad)
-  // ==========================================================================
-  const [approvedDocsRegistry, setApprovedDocsRegistry] = useState<ApprovedDocumentRecord[]>([
-    {
-      id: 'HL-2026-001',
-      timestamp: 'Hoy, 08:15',
-      title: 'Contrato de Compraventa de Inmueble — Torre Ávila',
-      originModule: 'Redactor de Documentos',
-      templateUsed: 'Contrato de Compraventa de Inmueble',
-      approvedBy: 'Abg. Titular del Despacho',
-      collegiateNumber: 'Inpreabogado / Colegiado Nº 104.892',
-      sha256: computeRealSha256('Contrato de Compraventa de Inmueble — Torre Ávila — HL-2026-001'),
-      content: 'Documento revisado, visado por el abogado titular y exportado a formato .DOC para firma y protocolización.'
-    },
-    {
-      id: 'HL-2026-002',
-      timestamp: 'Hoy, 08:40',
-      title: 'Dictamen Preliminar sobre Garantías Hipotecarias',
-      originModule: 'Consultor de IA',
-      templateUsed: 'Dictamen Fundamentado en RAG',
-      approvedBy: 'Abg. Titular del Despacho',
-      collegiateNumber: 'Inpreabogado / Colegiado Nº 104.892',
-      sha256: computeRealSha256('Dictamen Preliminar sobre Garantías Hipotecarias — HL-2026-002'),
-      content: 'Dictamen jurídico visado sobre liberación de hipoteca de primer grado y tradición registral.'
-    }
-  ]);
+  // Bitácoras y Registros Reales (Inician en 0, se alimentan de las operaciones reales del abogado)
+  const [approvedDocsRegistry, setApprovedDocsRegistry] = useState<ApprovedDocumentRecord[]>([]);
+  const [piiAuditRegistry, setPiiAuditRegistry] = useState<PiiAuditEntry[]>([]);
+  const [auditLogs, setAuditLogs] = useState<AuditLogEntry[]>([]);
 
-  const [piiAuditRegistry, setPiiAuditRegistry] = useState<PiiAuditEntry[]>([
-    {
-      id: 'PII-2026-001',
-      timestamp: 'Hoy, 08:12',
-      originModule: 'Consultor de IA',
-      contextSummary: 'Consulta sobre resolución de contrato de compraventa por incumplimiento de entrega',
-      tokensDetected: [
-        { token: '[ENTIDAD_MERCANTIL_01]', type: 'ENTIDAD_MERCANTIL', maskedPreview: 'Inve••••• (Ocultado en RAM)' },
-        { token: '[ID_FISCAL_DOC_02]', type: 'ID_FISCAL_DOC', maskedPreview: 'J-309•••••-0 (Ocultado en RAM)' },
-        { token: '[EMAIL_CLIENTE_03]', type: 'EMAIL_CLIENTE', maskedPreview: 'lega••••• (Ocultado en RAM)' },
-        { token: '[MONTO_OPERACION_04]', type: 'MONTO_OPERACION', maskedPreview: '85.000 USD (Ocultado en RAM)' }
-      ],
-      zeroRetentionVerified: true
-    },
-    {
-      id: 'PII-2026-002',
-      timestamp: 'Hoy, 08:15',
-      originModule: 'Redactor de Documentos',
-      contextSummary: 'Ensamblaje de Contrato de Compraventa de Inmueble',
-      tokensDetected: [
-        { token: '[ID_FISCAL_DOC_01]', type: 'ID_FISCAL_DOC', maskedPreview: 'V-12.••••• (Sustituido localmente)' },
-        { token: '[ID_FISCAL_DOC_02]', type: 'ID_FISCAL_DOC', maskedPreview: 'V-18.••••• (Sustituido localmente)' },
-        { token: '[MONTO_OPERACION_03]', type: 'MONTO_OPERACION', maskedPreview: '95.000,00 USD (Sustituido localmente)' }
-      ],
-      zeroRetentionVerified: true
-    }
-  ]);
+  // CRM de Clientes (Inicia limpio, 100% funcional con alta, edición, expedientes y eliminación)
+  const [crmClients, setCrmClients] = useState<CrmClient[]>([]);
+  const [selectedClientId, setSelectedClientId] = useState<string>('');
+  const [crmSearch, setCrmSearch] = useState<string>('');
+  const [showNewClientForm, setShowNewClientForm] = useState<boolean>(false);
+  const [isEditingClient, setIsEditingClient] = useState<boolean>(false);
+  const [newMatterInput, setNewMatterInput] = useState<string>('');
+  const [newClientForm, setNewClientForm] = useState({
+    name: '',
+    personType: 'Persona Jurídica (Empresa)' as 'Persona Jurídica (Empresa)' | 'Persona Física / Natural',
+    taxId: '',
+    legalRep: '',
+    registryInfo: '',
+    address: '',
+    phone: '',
+    email: '',
+    feeArrangement: '',
+    confidentialNotes: ''
+  });
 
-  const [auditLogs, setAuditLogs] = useState<AuditLogEntry[]>([
-    {
-      id: 'TRZ-2026-001',
-      timestamp: 'Hoy, 08:15',
-      module: 'Redactor de Documentos',
-      action: 'Sustitución inteligente de datos y Visto Bueno en Compraventa',
-      llmUsed: 'openai / gpt-4o (Zero-Training)',
-      piiCount: 3,
-      ragSource: 'Código Civil (Obligaciones, Contratos, Compraventa y Garantías)',
-      sha256: computeRealSha256('TRZ-2026-001-Compraventa'),
-      humanVerified: true
-    }
-  ]);
+  const selectedClient = useMemo(
+    () => crmClients.find(c => c.id === selectedClientId) || crmClients[0] || null,
+    [crmClients, selectedClientId]
+  );
 
-  // ==========================================================================
-  // MÓDULO 6: CRM CON VISTA PREVIA SOLO NOMBRE Y FICHA LEGAL COMPLETA AL SELECCIONAR
-  // ==========================================================================
-  const [crmClients, setCrmClients] = useState<CrmClient[]>([
-    {
-      id: 'cli-01',
-      name: 'Inversiones Torre Central, C.A.',
-      personType: 'Persona Jurídica (Empresa)',
-      taxId: 'J-30948271-0',
-      legalRep: 'Dr. Roberto Alejandro Rojas Pérez (Director Principal — C.I. V-10.456.789)',
-      registryInfo: 'Registro Mercantil Segundo de Caracas, Tomo 84-A, Nº 19, Expediente Nº 221-40912',
-      powerStatus: 'Vigente',
-      address: 'Av. Francisco de Miranda, Torre Parque Cristal, Piso 11, Ofic. 11-04, Los Palos Grandes, Caracas',
-      phone: '+58 414-2309811',
-      email: 'presidencia@torrecentral.com',
-      activeMatters: [
-        'EXP-2026-104: Arrendamiento de Locales Comerciales Torre Central',
-        'EXP-2026-119: Reforma Estatutaria y Aumento de Capital Social'
-      ],
-      feeArrangement: 'Iguala Corporativa Mensual (650 USD/mes) + Honorarios por redacción de contratos especiales',
-      confidentialNotes: 'Cliente prioritario del despacho. Todos los contratos de arrendamiento requieren cláusula de arbitraje comercial y fiador solidario.'
-    },
-    {
-      id: 'cli-02',
-      name: 'María Fernanda Salazar',
-      personType: 'Persona Física / Natural',
-      taxId: 'V-18.987.654',
-      legalRep: 'Actúa en su propio nombre y representación',
-      registryInfo: 'Poder Especial autenticado ante la Notaría Pública Sexta de Chacao bajo el Nº 31, Tomo 42',
-      powerStatus: 'Vigente',
-      address: 'Calle Los Samanes, Edif. Mirador, Piso 5, Apto. 5-B, La Florida, Caracas',
-      phone: '+58 412-9084412',
-      email: 'mfsalazar.inversiones@gmail.com',
-      activeMatters: [
-        'EXP-2026-142: Adquisición de Inmueble Residencias Parque Real (Apto. 8-A)'
-      ],
-      feeArrangement: 'Honorarios profesionales pactados por operación inmobiliaria llave en mano',
-      confidentialNotes: 'Operación de compraventa en fase de protocolo registral programada para el 26 de octubre de 2026.'
-    },
-    {
-      id: 'cli-03',
-      name: 'Grupo Industrial Delta, C.A.',
-      personType: 'Persona Jurídica (Empresa)',
-      taxId: 'J-00192837-4',
-      legalRep: 'Ing. Gustavo Adolfo Mendoza (Presidente — C.I. V-06.812.334)',
-      registryInfo: 'Registro Mercantil Primero, Tomo 12-A, Nº 55. Poder General otorgado el 10/11/2023',
-      powerStatus: 'Por Renovar',
-      address: 'Zona Industrial Norte, Avenida Principal, Galpón Corporativo Delta',
-      phone: '+58 424-1187720',
-      email: 'consultoria.juridica@grupodelta.com',
-      activeMatters: [
-        'EXP-2026-088: Contencioso Mercantil por Incumplimiento de Suministro',
-        'EXP-2026-151: Auditoría Laboral y Contratos de Confidencialidad'
-      ],
-      feeArrangement: 'Iguala Mensual + Cuota Litis del 15% sobre recuperación efectiva en litigio',
-      confidentialNotes: 'Renovar poder judicial de representación antes de finalizar el trimestre.'
-    }
-  ]);
-
-  // Lista dinámica de nombres de clientes del CRM para reforzar la anonimización en RAM
   const crmProtectedNames = useMemo(() => {
     const names: string[] = [];
     crmClients.forEach(c => {
       if (c.name) names.push(c.name);
       const repClean = c.legalRep.split('(')[0]?.replace(/^(?:Dr\.|Dra\.|Ing\.|Lic\.|Abg\.)\s*/i, '').trim();
-      if (repClean && !repClean.toLowerCase().includes('propio nombre')) {
-        names.push(repClean);
-      }
+      if (repClean && repClean.length > 3) names.push(repClean);
     });
     return names;
   }, [crmClients]);
 
   // ==========================================================================
-  // MÓDULO 1: CONSULTOR DE IA (METODOLOGÍA FORENSE DE 4 FASES + HISTORIAL OCULTABLE)
+  // MÓDULO 1: CONSULTOR DE IA (100% FUNCIONAL, CONECTADO A API, RAG Y MODELOS)
   // ==========================================================================
   const [consultQuery, setConsultQuery] = useState<string>('');
   const [consultSelectedLawId, setConsultSelectedLawId] = useState<string>('auto');
   const [consultSelectedTemplateId, setConsultSelectedTemplateId] = useState<string>('auto');
   const [customMaskInput, setCustomMaskInput] = useState<string>('');
-  const [customMaskedTerms, setCustomMaskedTerms] = useState<string[]>([
-    'Carlos Eduardo Méndez',
-    'María Fernanda Salazar'
-  ]);
+  const [customMaskedTerms, setCustomMaskedTerms] = useState<string[]>([]);
   const [consultShowSanitizedPayload, setConsultShowSanitizedPayload] = useState<boolean>(false);
   const [isConsultLoading, setIsConsultLoading] = useState<boolean>(false);
   const [historySearchQuery, setHistorySearchQuery] = useState<string>('');
 
   const [consultAttachments, setConsultAttachments] = useState<ConsultAttachment[]>([]);
   const [showConversationPasteBox, setShowConversationPasteBox] = useState<boolean>(false);
-  const [conversationTitleInput, setConversationTitleInput] = useState<string>('Comunicación / Recaudo del Cliente');
+  const [conversationTitleInput, setConversationTitleInput] = useState<string>('');
   const [conversationTextInput, setConversationTextInput] = useState<string>('');
   const [followUpQuestionInput, setFollowUpQuestionInput] = useState<string>('');
 
-  // Historial de Consultas estructurado bajo la Metodología Forense de 4 Fases
-  const [consultSessions, setConsultSessions] = useState<ConsultChatSession[]>([
-    {
-      id: 'sess-01',
-      title: 'Incumplimiento de entrega de inmueble — Inversiones Alfa',
-      updatedAt: 'Hoy, 09:15',
-      matterTag: 'Civil / Procesal',
-      turns: [
-        {
-          id: 'turn-init-1',
-          timestamp: '09:15',
-          lawyerQuestion: 'Necesito evaluar las acciones legales por incumplimiento en la entrega de un inmueble vendido por 85.000 USD por parte de Inversiones Alfa (ID J-30948271-0), correo legal@alfa.com. ¿Procede resolución de contrato con daños y perjuicios o cumplimiento forzoso?',
-          sanitizedSentToAi: 'Necesito evaluar las acciones legales por incumplimiento en la entrega de un inmueble vendido por [MONTO_OPERACION_04] por parte de [ENTIDAD_MERCANTIL_01] (ID [ID_FISCAL_DOC_02]), correo [EMAIL_CLIENTE_03]. ¿Procede resolución de contrato con daños y perjuicios o cumplimiento forzoso?',
-          dictamen: `I. BASE LEGAL Y ANÁLISIS DE LOS ARTÍCULOS INVOLUCRADOS POR CADA LEY (RAG):
-
-1. Código Civil (Obligaciones, Contratos, Compraventa y Garantías):
-   • Artículo 1.159 y Artículo 1.160: Establecen el principio de fuerza de ley del contrato entre las partes (pacta sunt servanda) y el deber de ejecución de buena fe, obligando no solo a lo expresado en el texto, sino a todas las consecuencias que se derivan de la equidad, el uso o la ley.
-   • Artículo 1.167: Regula la acción en los contratos bilaterales sinalagmáticos. Ante el incumplimiento de una de las partes respecto de su obligación principal, el contratante cumplidor tiene la facultad legal de reclamar judicialmente la ejecución del contrato o la resolución del mismo, con los daños y perjuicios en ambos casos si hubiere lugar a ello.
-   • Artículo 1.486 y Artículo 1.487: Regulan la obligación esencial del vendedor de hacer la tradición de la cosa vendida. En materia de inmuebles, la tradición se verifica con el otorgamiento del instrumento de propiedad ante el Registro Público competente y la puesta en posesión material del bien libre de ocupantes.
-   • Artículo 1.264 y Artículo 1.271: Disponen que las obligaciones deben cumplirse exactamente como han sido contraídas, siendo el deudor moroso responsable de los daños y perjuicios (daño emergente y lucro cesante) salvo que pruebe causa extraña no imputable.
-   • Artículo 168: En caso de que en la cadena de titularidad o comparecencia intervengan personas naturales casadas, exige el consentimiento expreso de ambos cónyuges para enajenar o gravar bienes inmuebles.
-
-2. Código de Procedimiento Civil / Ley de Enjuiciamiento:
-   • Artículo 340: Determina los requisitos formales de admisibilidad del libelo de la demanda, exigiendo acompañar el instrumento fundamental del cual se derive inmediatamente el derecho deducido (ordinal 6º).
-   • Artículo 585 y Artículo 588 (Ordinal 3º): Regulan el decreto de la Medida Preventiva de Prohibición de Enajenar y Gravar sobre bienes inmuebles, exigiendo la concurrencia de presunción grave del derecho que se reclama (fumus boni iuris) y riesgo manifiesto de que quede ilusoria la ejecución del fallo (periculum in mora).
-
-II. OPCIONES JURÍDICAS DISPONIBLES:
-
-Conforme al marco normativo analizado, el patrocinado dispone de tres (03) opciones jurídicas:
-• Opción Primera: Ejercer la Acción de Cumplimiento Forzoso de Contrato acumulada con Indemnización de Daños y Perjuicios Moratorios y solicitud de Medida Cautelar de Prohibición de Enajenar y Gravar.
-• Opción Segunda: Ejercer la Acción Resolutoria de Contrato acumulada con Restitución Indexada del Precio Pagado (85.000,00 USD) más Daños y Perjuicios Compensatorios.
-• Opción Tercera: Practicar Intimación Notarial Extrajudicial Previa otorgando plazo perentorio de cumplimiento antes de la interposición del libelo, a fin de preconstituir la prueba fehaciente de la mora y activar el pacto comisorio o cláusula penal si estuviere pactada.
-
-III. ANÁLISIS DE ESCENARIOS Y CONSECUENCIAS DE CADA ESCENARIO:
-
-• Escenario 1 (Interposición de Demanda de Cumplimiento Forzoso con Prohibición de Enajenar y Gravar):
-  - Supuesto: El inmueble se encuentra inscrito en el Registro Inmobiliario a nombre de Inversiones Alfa, libre de gravámenes preferentes, y el interés primordial del cliente es incorporar el inmueble a su patrimonio.
-  - Consecuencias Jurídicas y Patrimoniales: Al decretarse la Prohibición de Enajenar y Gravar (Art. 588 CPC) y oficiarse al Registrador Público, el inmueble queda inmovilizado registralmente frente a terceros. La sentencia definitivamente firme declarará con lugar la acción y suplirá el título de propiedad para su protocolización forzosa, condenando además a la demandada en costas procesales (hasta el 30% del valor litigado conforme al Art. 286 CPC) y a los daños derivados del retardo en la entrega material.
-
-• Escenario 2 (Interposición de Demanda de Resolución de Contrato y Restitución del Precio):
-  - Supuesto: El cliente ya no desea recibir el inmueble por pérdida de utilidad económica del negocio, o se detecta que el bien presenta gravámenes ocultos, vicios registrales o imposibilidad material de entrega.
-  - Consecuencias Jurídicas y Patrimoniales: La sentencia extinguirá con efecto retroactivo (ex tunc) el vínculo contractual, ordenando la devolución íntegra de los 85.000,00 USD más la corrección monetaria / indexación e indemnización de daños y perjuicios. Riesgo a prever: la efectividad del cobro dependerá de la solvencia patrimonial de Inversiones Alfa, por lo que resulta indispensable solicitar simultáneamente Medida Preventiva de Embargo sobre bienes muebles o cuentas bancarias.
-
-• Escenario 3 (Ejecución de Intimación Notarial Previa antes de la Vía Jurisdiccional):
-  - Supuesto: El contrato no contiene renuncia expresa al requerimiento de mora o tiene fecha de entrega abierta/prorrogable.
-  - Consecuencias Jurídicas y Patrimoniales: Elimina cualquier defensa dilatoria de la contraparte basada en la excepción de contrato no cumplido (exceptio non adimpleti contractus - Art. 1.168 CC) o en la falta de vencimiento del plazo, blindando el fumus boni iuris para que el Tribunal decrete la medida cautelar inaudita altera parte en el primer despacho tras la admisión.
-
-IV. DECISIÓN DE EJECUCIÓN, MODO DE ACCIONAR Y REDACCIÓN FORENSE:
-
-• Decisión Técnica de Ejecución:
-  Siendo que el cliente ya desembolsó la totalidad del precio (85.000,00 USD), la vía de mayor resguardo patrimonial es ejecutar el Escenario 3 seguido de inmediato por el Escenario 1 (Acción de Cumplimiento Forzoso con Prohibición de Enajenar y Gravar), ya que garantiza el aseguramiento real sobre el inmueble desde el inicio del proceso.
-
-• Manera de Accionar (Paso a Paso):
-  1) Solicitar nota simple o certificación de gravámenes actualizada en el Registro Público correspondiente para confirmar que la titularidad registral permanece en cabeza de Inversiones Alfa.
-  2) Practicar hoy mismo notificación / intimación formal dejando constancia de los comprobantes de pago de los 85.000,00 USD y otorgando setenta y dos (72) horas para concurrir al otorgamiento y entrega material.
-  3) Vencido dicho término, presentar el libelo de demanda por Cumplimiento de Contrato y Daños y Perjuicios conforme al Art. 340 CPC, pidiendo en cuaderno separado el decreto de Prohibición de Enajenar y Gravar (Arts. 585 y 588 CPC).
-
-• Redacción Forense Propuesta (Adecuada sobre el Modelo «Contrato de Compraventa de Inmueble» de la Biblioteca del Despacho):
-"ACTA DE INTIMACIÓN Y CONSTITUCIÓN EN MORA / CLÁUSULA DE EJECUCIÓN: De conformidad con lo previsto en los Artículos 1.167, 1.264 y 1.486 del Código Civil vigente, habiendo la parte compradora satisfecho íntegramente el precio convenido de OCHENTA Y CINCO MIL DÓLARES DE LOS ESTADOS UNIDOS DE AMÉRICA (85.000,00 USD), se intima formalmente a la sociedad mercantil INVERSIONES ALFA (RIF J-30948271-0) para que dentro del término perentorio de tres (03) días hábiles siguientes a la presente notificación concurra ante el Registro Público competente a otorgar el instrumento definitivo de compraventa y efectuar la entrega material del inmueble libre de bienes y personas; advirtiéndosele que, en su defecto, se procederá de inmediato a demandar judicialmente el cumplimiento forzoso o la resolución contractual con resarcimiento de daños y perjuicios, costos, costas procesales y solicitud de Medida Preventiva de Prohibición de Enajenar y Gravar conforme a los Artículos 585 y 588 del Código de Procedimiento Civil."`,
-          clientReadyReply: 'Estimado cliente: Concluido el análisis jurídico de los artículos 1.167 y 1.486 del Código Civil y 585 del Código de Procedimiento Civil, la decisión técnica más segura para proteger los 85.000 USD pagados es intimar formalmente en mora a Inversiones Alfa y, de forma inmediata, interponer demanda de Cumplimiento Forzoso solicitando al Tribunal una Medida de Prohibición de Enajenar y Gravar que bloquee el inmueble en el Registro Público.',
-          recommendedTemplateId: 'tpl-compraventa',
-          recommendedTemplateName: 'Contrato de Compraventa de Inmueble',
-          suggestedClauseText: 'De conformidad con los Artículos 1.167, 1.264 y 1.486 del Código Civil vigente, el incumplimiento de EL VENDEDOR en el otorgamiento registral y entrega material del inmueble facultará a EL COMPRADOR para demandar el cumplimiento forzoso o la resolución del contrato con daños y perjuicios y Prohibición de Enajenar y Gravar (Arts. 585 y 588 CPC).',
-          citations: [
-            'Código Civil (Obligaciones, Contratos, Compraventa y Garantías)',
-            'Código de Procedimiento Civil / Ley de Enjuiciamiento'
-          ],
-          attachmentsUsed: [],
-          tokensProtected: 4,
-          hash: computeRealSha256('sess-01-turn-init-1-v4'),
-          auditLogId: 'TRZ-2026-001',
-          approvedInHumanLoop: false
-        }
-      ]
-    }
-  ]);
-
-  const [activeSessionId, setActiveSessionId] = useState<string>('sess-01');
+  const [consultSessions, setConsultSessions] = useState<ConsultChatSession[]>([]);
+  const [activeSessionId, setActiveSessionId] = useState<string>('');
 
   const activeSession = useMemo(
     () => consultSessions.find(s => s.id === activeSessionId) || null,
@@ -765,20 +697,7 @@ IV. DECISIÓN DE EJECUCIÓN, MODO DE ACCIONAR Y REDACCIÓN FORENSE:
     [activeSession]
   );
 
-  const [consultResponse, setConsultResponse] = useState<{
-    dictamen: string;
-    clientReadyReply?: string;
-    recommendedTemplateId?: string;
-    recommendedTemplateName?: string;
-    suggestedClauseText?: string;
-    sanitizedSentToAi: string;
-    citations: string[];
-    attachmentsUsed?: string[];
-    tokensProtected: number;
-    hash: string;
-    auditLogId: string;
-    approvedInHumanLoop: boolean;
-  } | null>(consultSessions[0].turns[0]);
+  const [consultResponse, setConsultResponse] = useState<ConsultTurn | null>(null);
 
   const allProtectedNames = useMemo(
     () => [...crmProtectedNames, ...customMaskedTerms],
@@ -786,7 +705,7 @@ IV. DECISIÓN DE EJECUCIÓN, MODO DE ACCIONAR Y REDACCIÓN FORENSE:
   );
 
   const combinedConsultRawInput = useMemo(() => {
-    const baseText = consultQuery || followUpQuestionInput || 'Consulta jurídica en curso';
+    const baseText = consultQuery || followUpQuestionInput || '';
     const attText = consultAttachments
       .map(a => `[RECAUDO ADJUNTO - ${a.kind}: "${a.name}"]: ${a.rawContent}`)
       .join('\n');
@@ -803,8 +722,8 @@ IV. DECISIÓN DE EJECUCIÓN, MODO DE ACCIONAR Y REDACCIÓN FORENSE:
     const blankSession: ConsultChatSession = {
       id: newId,
       title: 'Nueva Consulta Jurídica',
-      updatedAt: 'Ahora',
-      matterTag: 'Análisis Forense',
+      updatedAt: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      matterTag: 'Expediente Activo',
       turns: []
     };
     setConsultSessions(prev => [blankSession, ...prev]);
@@ -812,7 +731,6 @@ IV. DECISIÓN DE EJECUCIÓN, MODO DE ACCIONAR Y REDACCIÓN FORENSE:
     setConsultQuery('');
     setConsultAttachments([]);
     setConsultResponse(null);
-    showToast('Nuevo expediente de consulta abierto.');
   };
 
   const handleSelectConsultSession = (sess: ConsultChatSession) => {
@@ -829,10 +747,11 @@ IV. DECISIÓN DE EJECUCIÓN, MODO DE ACCIONAR Y REDACCIÓN FORENSE:
         setActiveSessionId(remaining[0].id);
         setConsultResponse(remaining[0].turns[remaining[0].turns.length - 1] || null);
       } else {
-        handleStartNewConsultSession();
+        setActiveSessionId('');
+        setConsultResponse(null);
       }
     }
-    showToast('Consulta eliminada del historial.');
+    showToast('Conversación eliminada del historial.');
   };
 
   const handleAddCustomMaskTerm = () => {
@@ -842,14 +761,14 @@ IV. DECISIÓN DE EJECUCIÓN, MODO DE ACCIONAR Y REDACCIÓN FORENSE:
       setCustomMaskedTerms(prev => [...prev, term]);
     }
     setCustomMaskInput('');
-    showToast(`Término "${term}" añadido al diccionario de anonimización en memoria RAM.`);
+    showToast(`Término "${term}" agregado al filtro de anonimización en RAM.`);
   };
 
   const handleAddConsultFileAttachment = (
     file: File,
     kind: 'Imagen / Captura' | 'Documento (.DOC / .DOCX)' | 'Archivo .PDF'
   ) => {
-    const processExtractedText = (rawExtracted: string) => {
+    const registerAttachment = (rawExtracted: string) => {
       const { sanitized, tokens } = anonymizePiiText(rawExtracted, allProtectedNames);
       const newAtt: ConsultAttachment = {
         id: `att-${Date.now().toString().slice(-5)}`,
@@ -861,39 +780,29 @@ IV. DECISIÓN DE EJECUCIÓN, MODO DE ACCIONAR Y REDACCIÓN FORENSE:
         addedAt: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
       };
       setConsultAttachments(prev => [...prev, newAtt]);
-      showToast(`${kind} "${file.name}" incorporado al análisis (${tokens.length} datos sensibles protegidos en RAM).`);
+      showToast(`"${file.name}" adjuntado (${tokens.length} datos PII protegidos en RAM).`);
     };
 
-    if (kind === 'Imagen / Captura') {
-      const simulatedOcr = `Recaudo fotográfico / digital ("${file.name}", ${(file.size / 1024).toFixed(1)} KB): Documento aportado como soporte probatorio de las partes y de los hechos controvertidos.`;
-      processExtractedText(simulatedOcr);
-      return;
-    }
-
-    if (typeof FileReader !== 'undefined') {
+    if (typeof FileReader !== 'undefined' && kind !== 'Imagen / Captura') {
       const reader = new FileReader();
       reader.onload = () => {
-        const rawBytesOrText = String(reader.result || '');
-        const printableMatches = rawBytesOrText.match(/[A-Za-záéíóúñÁÉÍÓÚÑ0-9.,;:()¿?¡!$€%@#/_\-\s]{12,}/g);
-        const cleaned =
-          /\.(txt|md|csv|json|html)$/i.test(file.name)
-            ? rawBytesOrText.slice(0, 3500).trim()
-            : printableMatches
-            ? printableMatches.join(' ').replace(/\s+/g, ' ').slice(0, 2000).trim()
-            : '';
-
-        const finalContent =
-          cleaned && cleaned.length > 40
-            ? `Extracto documental de "${file.name}": ${cleaned}`
-            : `Instrumento documental ("${file.name}", ${(file.size / 1024).toFixed(1)} KB) incorporado para examen normativo y contractual.`;
-        processExtractedText(finalContent);
+        const rawText = String(reader.result || '');
+        const printable = rawText.match(/[A-Za-záéíóúñÁÉÍÓÚÑ0-9.,;:()¿?¡!$€%@#/_\\\-\s]{10,}/g);
+        const extracted = /\.(txt|md|csv|json|html)$/i.test(file.name)
+          ? rawText.slice(0, 8000).trim()
+          : printable
+          ? printable.join(' ').replace(/\s+/g, ' ').slice(0, 6000).trim()
+          : '';
+        registerAttachment(
+          extracted.length > 20
+            ? extracted
+            : `[Archivo adjunto: ${file.name} (${(file.size / 1024).toFixed(1)} KB)]`
+        );
       };
-      reader.onerror = () => {
-        processExtractedText(`Instrumento documental ("${file.name}") incorporado para examen jurídico.`);
-      };
+      reader.onerror = () => registerAttachment(`[Archivo adjunto: ${file.name}]`);
       reader.readAsText(file);
     } else {
-      processExtractedText(`Instrumento documental ("${file.name}") incorporado para examen jurídico.`);
+      registerAttachment(`[Imagen / documento adjunto: ${file.name} (${(file.size / 1024).toFixed(1)} KB)]`);
     }
   };
 
@@ -903,7 +812,7 @@ IV. DECISIÓN DE EJECUCIÓN, MODO DE ACCIONAR Y REDACCIÓN FORENSE:
     const { sanitized, tokens } = anonymizePiiText(raw, allProtectedNames);
     const newAtt: ConsultAttachment = {
       id: `att-${Date.now().toString().slice(-5)}`,
-      name: conversationTitleInput.trim() || 'Comunicación / Recaudo del Cliente',
+      name: conversationTitleInput.trim() || 'Comunicación del Cliente',
       kind: 'Conversación de Cliente (WhatsApp / Email)',
       rawContent: raw,
       sanitizedContent: sanitized,
@@ -912,299 +821,73 @@ IV. DECISIÓN DE EJECUCIÓN, MODO DE ACCIONAR Y REDACCIÓN FORENSE:
     };
     setConsultAttachments(prev => [...prev, newAtt]);
     setConversationTextInput('');
+    setConversationTitleInput('');
     setShowConversationPasteBox(false);
-    showToast(`Comunicación adjuntada al expediente (${tokens.length} datos PII ocultados en RAM).`);
+    showToast(`Comunicación adjuntada (${tokens.length} datos PII ocultados en RAM).`);
   };
 
   const handleRemoveConsultAttachment = (attId: string) => {
     setConsultAttachments(prev => prev.filter(a => a.id !== attId));
-    showToast('Recaudo removido de la consulta.');
   };
 
-  // Motor de Razonamiento Jurídico Forense estructurado en las 4 Fases del Ejercicio Profesional:
-  // I. Base Legal y Análisis de los Artículos Involucrados por cada Ley
-  // II. Opciones Jurídicas Disponibles
-  // III. Análisis de Escenarios y Consecuencias de cada Escenario
-  // IV. Decisión de Ejecución, Manera de Accionar y Redacción sobre el Modelo de Biblioteca
-  const generateExpertLawyerAnalysis = (
+  // Análisis forense estructurado en las 4 fases exigidas cuando no hay API externa o como respaldo determinístico basado en el RAG real cargado
+  const buildStructuredForensicFallback = (
     questionText: string,
-    sanitizedPayload: string,
-    tokensCount: number,
-    attachments: ConsultAttachment[],
-    selectedLawIdParam: string,
-    selectedTplIdParam: string
-  ): {
-    dictamen: string;
-    clientReadyReply: string;
-    recommendedTemplate: ModelTemplate;
-    suggestedClauseText: string;
-    citations: string[];
-    primaryLawTitle: string;
-    matterTag: string;
-  } => {
-    const fullContext = `${questionText} ${attachments.map(a => a.rawContent).join(' ')}`.toLowerCase();
+    activeLaws: RagLawDocument[],
+    selectedTpl: ModelTemplate | undefined,
+    attachments: ConsultAttachment[]
+  ): string => {
+    const lawsBlock =
+      activeLaws.length > 0
+        ? activeLaws
+            .map(
+              (l, idx) =>
+                `${idx + 1}. ${l.title} (${l.type}):\n   • Contenido / Articulado en RAG: "${(l.fullText || l.excerpt).slice(0, 600)}${(l.fullText || l.excerpt).length > 600 ? '...' : ''}"\n   • Subsunción al caso: Los hechos planteados («${questionText.slice(0, 140)}») deben contrastarse directamente con los supuestos normativos contenidos en este cuerpo legal.`
+            )
+            .join('\n\n')
+        : '• Aún no has cargado textos legales en el módulo 11 (Configuración -> Tus Leyes y Normativa RAG). Carga tus códigos o leyes en formato .PDF/.TXT o pega su articulado para que el análisis cite tus textos exactos.';
 
-    let matchedLaws: RagLawDocument[] = [];
-    if (selectedLawIdParam !== 'auto') {
-      const explicitLaw = ragDocs.find(d => d.id === selectedLawIdParam);
-      if (explicitLaw) matchedLaws.push(explicitLaw);
-    }
+    const tplBlock = selectedTpl
+      ? `Instrumento de referencia en tu Biblioteca: «${selectedTpl.name}» (Variables detectadas: ${selectedTpl.variables.map(v => `{{${v.key}}}`).join(', ')}).\n\nTexto base del modelo para estructurar la actuación:\n"${selectedTpl.contentPreview.slice(0, 500)}${selectedTpl.contentPreview.length > 500 ? '...' : ''}"`
+      : 'No hay modelos cargados aún en tu Biblioteca. Puedes agregar tus propios contratos o escritos en la pestaña 11 (Configuración -> Tu Biblioteca de Modelos).';
 
-    ragDocs.forEach(doc => {
-      if (matchedLaws.some(m => m.id === doc.id)) return;
-      const t = `${doc.title} ${doc.excerpt}`.toLowerCase();
-      if (
-        (fullContext.includes('inmueble') || fullContext.includes('contrato') || fullContext.includes('compraventa') || fullContext.includes('daño') || fullContext.includes('incumplimiento') || fullContext.includes('cónyuge') || fullContext.includes('casad') || fullContext.includes('sucesi') || fullContext.includes('herencia') || fullContext.includes('arrendamiento')) &&
-        (t.includes('civil') || t.includes('obligaciones') || t.includes('contrato'))
-      ) {
-        matchedLaws.push(doc);
-      } else if (
-        (fullContext.includes('demanda') || fullContext.includes('lapso') || fullContext.includes('prueba') || fullContext.includes('cautelar') || fullContext.includes('embargo') || fullContext.includes('prohibici') || fullContext.includes('tribunal') || fullContext.includes('poder') || fullContext.includes('citaci') || fullContext.includes('apelaci')) &&
-        (t.includes('procedimiento') || t.includes('procesal') || t.includes('enjuiciamiento'))
-      ) {
-        matchedLaws.push(doc);
-      } else if (
-        (fullContext.includes('empresa') || fullContext.includes('sociedad') || fullContext.includes('accionista') || fullContext.includes('asamblea') || fullContext.includes('mercantil') || fullContext.includes('comercio') || fullContext.includes('junta')) &&
-        (t.includes('comercio') || t.includes('societaria') || t.includes('mercantil'))
-      ) {
-        matchedLaws.push(doc);
-      }
-    });
-
-    if (matchedLaws.length === 0) {
-      matchedLaws = [...ragDocs];
-    } else {
-      ragDocs.forEach(d => {
-        if (!matchedLaws.some(m => m.id === d.id)) matchedLaws.push(d);
-      });
-    }
-
-    const primaryLaw = matchedLaws[0] || ragDocs[0] || { id: 'rag-gen', title: 'Normativa Vigente', type: 'Código / Ley', chunks: 100, status: 'Indexado', excerpt: '' }; // id: 'att-init-1' id: 'sess-02' id: 'turn-init-2'
-
-    let matchedTemplate = templates[0];
-    if (selectedTplIdParam !== 'auto') {
-      matchedTemplate = templates.find(t => t.id === selectedTplIdParam) || templates[0];
-    } else if (fullContext.includes('arrendamiento') || fullContext.includes('alquiler') || fullContext.includes('inquilin') || fullContext.includes('canon') || fullContext.includes('local')) {
-      matchedTemplate = templates.find(t => t.id === 'tpl-arrendamiento') || templates[0];
-    } else if (fullContext.includes('poder') || fullContext.includes('mandato') || fullContext.includes('representaci') || fullContext.includes('demanda') || fullContext.includes('juicio') || fullContext.includes('tribunal') || fullContext.includes('laboral') || fullContext.includes('penal') || fullContext.includes('sucesi') || fullContext.includes('asamblea') || fullContext.includes('accionista')) {
-      matchedTemplate = templates.find(t => t.id === 'tpl-poder') || templates[0];
-    } else {
-      const customMatch = templates.find(t => {
-        const words = t.name.toLowerCase().split(/\s+/).filter(w => w.length > 4);
-        return words.some(w => fullContext.includes(w));
-      });
-      matchedTemplate = customMatch || templates[0];
-    }
-
-    const attSection =
+    const attBlock =
       attachments.length > 0
-        ? `RECAUDOS Y PIEZAS DOCUMENTALES EXAMINADAS (${attachments.length}):\n` +
-          attachments.map((a, i) => `   ${i + 1}. [${a.kind}] "${a.name}": ${a.rawContent.slice(0, 180)}${a.rawContent.length > 180 ? '...' : ''}`).join('\n') +
+        ? `RECAUDOS EXAMINADOS EN ESTA CONSULTA (${attachments.length}):\n` +
+          attachments.map((a, i) => `${i + 1}) [${a.kind}] ${a.name}: ${a.rawContent.slice(0, 220)}`).join('\n') +
           '\n\n'
         : '';
 
-    let matterTag = 'Civil / Procesal';
-    let fase1BaseLegal = '';
-    let fase2Opciones = '';
-    let fase3Escenarios = '';
-    let fase4Ejecucion = '';
-    let redaccionForense = '';
-    let respuestaCliente = '';
+    return `${attBlock}I. BASE LEGAL Y ANÁLISIS DE LOS ARTÍCULOS INVOLUCRADOS POR CADA LEY (RAG):
 
-    if (fullContext.includes('arrendamiento') || fullContext.includes('alquiler') || fullContext.includes('inquilin') || fullContext.includes('canon') || fullContext.includes('local') || fullContext.includes('desalojo')) {
-      matterTag = 'Arrendamiento Comercial';
-      fase1BaseLegal = `1. ${primaryLaw.title}:
-   • Artículos 1.159, 1.160 y 1.167 (Código Civil): Consagran la fuerza obligatoria de las estipulaciones contractuales entre arrendador y arrendatario y la facultad de resolver el vínculo bilateral por incumplimiento culposo de las obligaciones principales.
-   • Artículos 1.579, 1.592 y 1.594 (Código Civil): Determinan las dos obligaciones esenciales del arrendatario: servirse de la cosa como un buen padre de familia para el uso determinado en el contrato, y pagar la pensión de arrendamiento en los términos convenidos.
-   • Artículos 1.804 y 1.813 (Código Civil): Regulan la naturaleza de la fianza solidaria; cuando el fiador se obliga como principal pagador, responde solidariamente frente al acreedor sin gozar de los beneficios de excusión ni de división.
-2. ${ragDocs.find(d => d.id === 'rag-02')?.title || 'Código de Procedimiento Civil'}:
-   • Artículo 599 (Ordinal 7º) y Artículo 585: Regulan la procedencia de la Medida Preventiva de Secuestro sobre la cosa arrendada cuando el demandado adeude pensiones de arrendamiento o haya vencido el término contractual, así como las medidas asegurativas sobre el patrimonio del deudor y su fiador.`;
-
-      fase2Opciones = `• Opción Primera: Intimación Extrajudicial Fehaciente de Pago y Constitución en Mora dirigida simultáneamente al arrendatario y a su fiador solidario, previo al ejercicio de la acción judicial.
-• Opción Segunda: Demanda de Resolución de Contrato de Arrendamiento por falta de pago y/o incumplimiento de cláusulas contractuales, acumulada con cobro de cánones insolutos, cláusula penal y solicitud de Medida Preventiva de Secuestro del inmueble.
-• Opción Tercera: Acción de Ejecución contra el Fiador Solidario y Principal Pagador con solicitud de Medida de Embargo Preventivo sobre bienes muebles y cuentas mercantiles.`;
-
-      fase3Escenarios = `• Escenario A (Ejecución de la Opción Primera — Intimación Previa y Ejecución de Garantía/Fianza):
-  - Supuesto: El contrato cuenta con depósito en garantía o fiador solidario solvente (personas jurídicas o naturales con activos identificables).
-  - Consecuencias Jurídicas y Patrimoniales: La intimación al fiador solidario traslada la presión financiera de forma inmediata sin esperar toda la articulación probatoria del juicio. Si la arrendataria ofrece pagos parciales, estos deben recibirse bajo expresa reserva de imputación a intereses moratorios y gastos de cobranza (Art. 1.303 CC), evitando que opere novación o purga de la mora.
-
-• Escenario B (Ejecución de la Opción Segunda — Litigio de Resolución y Secuestro del Local):
-  - Supuesto: Negativa absoluta de pago o abandono/subarrendamiento no autorizado del inmueble comercial.
-  - Consecuencias Jurídicas y Patrimoniales: La interposición del libelo (Art. 340 CPC) acompañado del Contrato de Arrendamiento y los recibos insolutos habilita solicitar el Secuestro Cautelar (Art. 599 CPC) para recuperar la tenencia material del local comercial y detener el lucro cesante del propietario, mientras continúa el proceso de cobro de los cánones vencidos y costas procesales.
-
-• Escenario C (Inacción o Recepción Simple de Abonos Parciales sin Reserva):
-  - Supuesto: El propietario recibe abonos parciales emitiendo recibos ordinarios sin salvedad jurídica.
-  - Consecuencias Jurídicas y Patrimoniales: La contraparte opondrá en juicio la extinción de la causal de mora o la prórroga tácita, dilatando la restitución del inmueble y causando mayor deterioro patrimonial.`;
-
-      redaccionForense = `"CLÁUSULA DE INCUMPLIMIENTO, VENCIMIENTO ANTICIPADO Y EJECUCIÓN SOLIDARIA (ESTRUCTURADA SOBRE EL MODELO «${matchedTemplate.name.toUpperCase()}»):
-La falta de pago oportuno de dos (02) mensualidades consecutivas del canon de arrendamiento dentro de los primeros cinco (05) días de cada mes, así como la cesión, subarrendamiento total o parcial no autorizado por escrito o la insolvencia en las cuotas de condominio y servicios públicos, constituirá a EL ARRENDATARIO en mora de pleno derecho sin necesidad de requerimiento previo, produciendo la resolución del presente contrato y facultando a EL ARRENDADOR para exigir la desocupación y entrega material inmediata del inmueble con solicitud de Medida de Secuestro (Art. 599 CPC), así como para ejecutar solidariamente al Fiador y Principal Pagador (Arts. 1.804 y 1.813 del Código Civil) por la totalidad de las pensiones insolutas, intereses moratorios y penalidades contractuales."`;
-
-      fase4Ejecucion = `• Decisión Técnica de Ejecución:
-  Se decide accionar de forma combinada bajo el Escenario A y el Escenario B: practicar hoy mismo la intimación formal con plazo perentorio de cuarenta y ocho (48) horas contra arrendatario y fiador, y dejar preparado el libelo de resolución con medida de secuestro y embargo preventivo al vencimiento de dicho término.
-
-• Manera de Accionar (Secuencia de Ejecución):
-  1) Emitir y notificar el requerimiento formal de pago e intimación en mora prohibiendo la recepción de abonos parciales sin reserva escrita.
-  2) Auditar el instrumento de arrendamiento y la solvencia patrimonial del fiador solidario en el expediente del cliente.
-  3) Al vencer las 48 horas sin pago íntegro, consignar la demanda de Resolución de Contrato y Cobro de Bolívares / Divisas solicitando en el Capítulo de Medidas Cautelares el Secuestro del inmueble y el Embargo Preventivo sobre cuentas del fiador.
-
-• Instrumento Redactado sobre la Matriz de tu Biblioteca («${matchedTemplate.name}»):
-${redaccionForense}`;
-
-      respuestaCliente = `Estimado cliente: Analizada la normativa aplicable (Artículos 1.167, 1.592 y 1.813 del Código Civil y 599 del Código de Procedimiento Civil) y evaluados los escenarios procesales, el modo de accionar inmediato consiste en practicar hoy la intimación formal tanto al inquilino como a su fiador solidario por un plazo perentorio de 48 horas y, vencido este, interponer la demanda de resolución con medida de secuestro sobre el local y embargo contra el fiador.`;
-    } else if (fullContext.includes('empresa') || fullContext.includes('sociedad') || fullContext.includes('accionista') || fullContext.includes('asamblea') || fullContext.includes('mercantil') || fullContext.includes('comercio') || fullContext.includes('junta directiva') || fullContext.includes('estatuto')) {
-      matterTag = 'Societario / Mercantil';
-      const mercLaw = ragDocs.find(d => d.id === 'rag-03') || primaryLaw;
-      fase1BaseLegal = `1. ${mercLaw.title}:
-   • Artículos 277, 279 y 280 (Código de Comercio): Regulan las formalidades esenciales de convocatoria de las Asambleas Ordinarias y Extraordinarias de Accionistas, así como los quórums calificados de presencia y votación para reformas estatutarias, aumentos o reducciones de capital, cambio de objeto y designación de administradores. Toda deliberación tomada sin convocatoria válida es nula, salvo que concurra la totalidad (100%) del capital social (Asamblea Totalitaria).
-   • Artículo 290 y Artículo 291 (Código de Comercio): Establecen el derecho de todo accionista a formular oposición ante el Juez de Comercio contra las decisiones manifiestamente contrarias a los estatutos o a la ley, facultando al Tribunal para suspender la ejecución de las decisiones impugnadas previa audiencia de los administradores.
-   • Artículo 296 (Código de Comercio): Determina que la propiedad de las acciones nominativas se prueba con su inscripción en el Libro de Accionistas, y su cesión requiere declaración firmada en dicho libro por el cedente y el cesionario o sus apoderados.
-2. ${ragDocs.find(d => d.id === 'rag-02')?.title || 'Código de Procedimiento Civil'}:
-   • Artículo 154 y Artículos 585 / 588: Exigen facultad expresa en el mandato judicial para ejercer recursos extraordinarios y habilitan medidas cautelares innominadas de suspensión de efectos registrales.`;
-
-      fase2Opciones = `• Opción Primera: Ejercicio de la Acción de Oposición e Impugnación Societaria (Art. 290 del Código de Comercio) ante el Tribunal con competencia Mercantil, solicitando la suspensión cautelar inmediata de los acuerdos de la Asamblea viciada.
-• Opción Segunda: Escrito de Oposición Preventiva y Alerta Registral presentado ante el Registro Mercantil donde cursa el expediente de la compañía, advirtiendo los vicios de convocatoria, quórum o ausencia de Informe del Comisario para impedir u observar la inscripción del acta.
-• Opción Tercera: Solicitud Judicial de Inspección / Exhibición de los Libros Sociales (Libro de Accionistas, Libro de Actas de Asamblea y Libro de Junta Directiva) e intervención de Comisario ad-hoc (Art. 291 C.Com.).`;
-
-      fase3Escenarios = `• Escenario A (Interposición de Oposición del Art. 290 C.Com. con Medida de Suspensión de Efectos):
-  - Supuesto: El acta de asamblea irregular ya fue suscrita o presentada al Registro Mercantil sin cumplir los plazos y medios de convocatoria estatutarios.
-  - Consecuencias Jurídicas y Patrimoniales: El Juez Mercantil puede decretar la suspensión provisional del acuerdo impugnado, paralizando cualquier enajenación de activos sociales, dilución accionaria o movilización de cuentas bancarias por parte de la junta directiva cuestionada.
-
-• Escenario B (Actuación Preventiva en Sede de Registro Mercantil y Exhibición de Libros):
-  - Supuesto: La asamblea aún no ha sido inscrita ni publicada en el Registro Mercantil.
-  - Consecuencias Jurídicas y Patrimoniales: Conforme al Art. 215 y 221 del Código de Comercio, los actos societarios no registrados ni publicados carecen de eficacia frente a terceros; al consignar la oposición documentada en el expediente mercantil, se frena el otorgamiento mientras se sustancia la vía jurisdiccional.
-
-• Escenario C (Convalidación Tácita por Falta de Impugnación Oportuna):
-  - Supuesto: El socio afectado no ejerce la oposición dentro de los lapsos legales ni deja constancia de su voto salvado o inasistencia por falta de convocatoria.
-  - Consecuencias Jurídicas y Patrimoniales: El acta adquiere apariencia de legitimidad registral frente a bancos y terceros adquirentes de buena fe, dificultando la reversión de los actos de disposición ejecutados.`;
-
-      redaccionForense = `"ESCRITO / CLÁUSULA DE OPOSICIÓN SOCIETARIA Y FACULTADES ESPECIALES (SOBRE EL MODELO «${matchedTemplate.name.toUpperCase()}» DE LA BIBLIOTECA):
-Yo, {{OTORGANTE}}, procediendo en mi carácter de accionista titular según consta en el Libro de Accionistas y en el expediente mercantil de la sociedad, confiero PODER ESPECIAL a los abogados {{APODERADOS}} (${lawyerSignerName} — ${lawyerCollegiateId}), para que de conformidad con los Artículos 277, 280, 290 y 291 del Código de Comercio y 154 y 588 del Código de Procedimiento Civil, formulen formal oposición y demanda de nulidad contra las deliberaciones de Asamblea celebradas en contravención de los estatutos sociales y la ley, soliciten la suspensión cautelar inmediata de sus efectos, requieran la exhibición judicial de los Libros de Accionistas y de Actas, y presenten las participaciones preventivas ante el Registro Mercantil competente."`;
-
-      fase4Ejecucion = `• Decisión Técnica de Ejecución:
-  Se decide ejecutar simultáneamente el Escenario B (bloqueo preventivo en el expediente del Registro Mercantil) y el Escenario A (recurso de oposición y suspensión de efectos del Art. 290 del Código de Comercio ante el Tribunal Mercantil).
-
-• Manera de Accionar (Secuencia de Ejecución):
-  1) Otorgar de inmediato el "${matchedTemplate.name}" con las facultades especiales mercantiles y procesales redactadas abajo.
-  2) Consignar escrito preventivo en el Registro Mercantil acompañando copia certificada de la titularidad accionaria y de los estatutos que regulan la convocatoria.
-  3) Interponer ante el Tribunal Mercantil el escrito de Oposición Societaria (Art. 290 C.Com.) solicitando medida cautelar de suspensión del acta y prohibición de modificar la composición accionaria o directiva.
-
-• Instrumento Redactado sobre la Matriz de tu Biblioteca («${matchedTemplate.name}»):
-${redaccionForense}`;
-
-      respuestaCliente = `Estimado cliente: Analizados los Artículos 277, 280 y 290 del Código de Comercio y evaluados los escenarios procesales, accionaremos en dos frentes simultáneos: consignar hoy mismo una oposición preventiva en el expediente del Registro Mercantil e introducir ante el Tribunal de Comercio la impugnación del artículo 290 con medida cautelar de suspensión de efectos para dejar sin validez cualquier decisión tomada sin convocatoria legal.`;
-    } else if (fullContext.includes('sucesi') || fullContext.includes('herencia') || fullContext.includes('heredero') || fullContext.includes('legítima') || fullContext.includes('causante') || fullContext.includes('viuda') || fullContext.includes('testamento') || fullContext.includes('comunidad conyugal')) {
-      matterTag = 'Sucesoral / Familia';
-      fase1BaseLegal = `1. ${primaryLaw.title}:
-   • Artículos 148, 151 y 168 (Código Civil): Regulan la comunidad limitada de gananciales entre marido y mujer. Al disolverse el matrimonio por causa de muerte, el cincuenta por ciento (50%) de los bienes adquiridos a título oneroso durante la unión pertenece en plena propiedad al cónyuge sobreviviente por derecho propio de comunidad conyugal y no forma parte de la masa hereditaria del causante.
-   • Artículos 807, 822 y 825 (Código Civil): Determinan la apertura de la sucesión en el momento de la muerte y el orden de suceder ab intestato a favor de los descendientes y del cónyuge sobreviviente (quien concurre con los hijos tomando una parte igual a la de un hijo en el 50% restante).
-   • Artículo 883 y Artículo 884 (Código Civil): Instauran la Cuota Legítima como una porción de orden público que se debe en plena propiedad a los descendientes, ascendientes y cónyuge sobreviviente, sin que el testador ni los coherederos puedan someterla a gravamen, condición ni menoscabo alguno.
-   • Artículos 765, 768 y 1.067 (Código Civil): Mientras la herencia permanece indivisa, ningún coheredero puede enajenar la totalidad de un bien determinado de la comunidad sucesoral sin el consentimiento unánime de los demás copartícipes; a nadie puede obligarse a permanecer en comunidad y siempre puede demandarse la partición.
-2. Normativa sobre Impuesto sobre Sucesiones y Registro Público:
-   • Exige la presentación de la Declaración Sucesoral dentro de los ciento ochenta (180) días hábiles siguientes a la apertura de la sucesión y prohíbe a Registradores y Notarios protocolizar o autenticar enajenaciones de bienes relictos sin el Certificado de Solvencia o Liberación Sucesoral.`;
-
-      fase2Opciones = `• Opción Primera: Bloqueo Registral Preventivo, Levantamiento de Inventario de Activos y Presentación de la Declaración Sucesoral Administrativa para obtener el Certificado de Solvencia Sucesoral.
-• Opción Segunda: Celebración de Convenio de Liquidación de Comunidad Conyugal y Partición Amistosa de Herencia otorgado ante Registro Público con adjudicación de cuotas y respeto a la legítima (Art. 883 CC).
-• Opción Tercera: Ejercicio de la Acción Judicial de Partición de Comunidad Hereditaria y/o Reducción de Disposiciones Lesivas a la Legítima (Arts. 888 y 1.067 CC) con solicitud de Prohibición de Enajenar y Gravar sobre los inmuebles y secuestro o bloqueo de acciones societarias.`;
-
-      fase3Escenarios = `• Escenario A (Actuación Administrativa y Partición Amistosa Documentada):
-  - Supuesto: Todos los herederos y la viuda se avienen a suscribir la declaración sucesoral y a adjudicarse los activos de común acuerdo tras ser advertidos de la imposibilidad registral de vender por separado.
-  - Consecuencias Jurídicas y Patrimoniales: Se evita el litigio de partición, se aprovechan las rebajas y desgravámenes fiscales (como la vivienda principal) dentro del lapso de 180 días hábiles y se obtiene título registral limpio para vender a terceros al valor real de mercado.
-
-• Escenario B (Intento de Venta Unilateral o Exclusión de Coherederos — Vía Contenciosa de Partición y Cautelar):
-  - Supuesto: Uno de los coherederos pretende celebrar contratos privados de opción de compra, ocultar bienes o percibir en solitario los frutos/alquileres de la masa hereditaria.
-  - Consecuencias Jurídicas y Patrimoniales: Cualquier venta de la totalidad del inmueble por un solo comunero es inoponible a los demás coherederos (Art. 765 y 1.483 CC). Al interponer la Demanda de Partición y Rendición de Cuentas con Prohibición de Enajenar y Gravar (Art. 588 CPC), se paraliza toda operación frente a terceros y se obliga a colacionar y dividir judicialmente el acervo.
-
-• Escenario C (Vencimiento del Lapso de 180 Días Hábiles sin Declaración Sucesoral):
-  - Supuesto: El conflicto entre herederos impide declarar ante la Administración Tributaria dentro del plazo legal.
-  - Consecuencias Jurídicas y Patrimoniales: Se generan multas e intereses moratorios tributarios que gravan solidariamente los activos de la herencia y mantienen bloqueada la tradición registral de los inmuebles y acciones.`;
-
-      redaccionForense = `"DECLARACIÓN DE LIQUIDACIÓN DE COMUNIDAD CONYUGAL, RESPETO A LA LEGÍTIMA Y MANDATO SUCESORAL (SOBRE MODELO «${matchedTemplate.name.toUpperCase()}»):
-En cumplimiento estricto de los Artículos 148, 168, 822, 883 y 1.067 del Código Civil vigente, se deja expresa constancia de que sobre la totalidad de los activos adquiridos durante el matrimonio corresponde en primer término el cincuenta por ciento (50%) en plena propiedad al cónyuge sobreviviente por concepto de liquidación de la comunidad de gananciales, y sobre el cincuenta por ciento (50%) restante que integra el caudal relicto del causante concurren en partes iguales los herederos forzosos con pleno resguardo de su cuota legítima de orden público, quedando prohibido todo acto de disposición o gravamen individual sin el consentimiento unánime de los comuneros y la previa emisión del Certificado de Solvencia Sucesoral."`;
-
-      fase4Ejecucion = `• Decisión Técnica de Ejecución:
-  Se decide ejecutar de inmediato el aseguramiento documental y registral (Escenario A para la declaración fiscal oportuna, combinado con notificación formal a los coherederos bajo advertencia de activar el Escenario B si intentan contratos privados unilaterales).
-
-• Manera de Accionar (Secuencia de Ejecución):
-  1) Recabar de inmediato acta de defunción, acta de matrimonio, partidas de nacimiento de todos los hijos, RIF sucesoral y títulos de propiedad de los inmuebles y acciones.
-  2) Notificar por escrito al coheredero que pretende vender que todo acto sin el consentimiento de la viuda (titular del 50% de gananciales + cuota hereditaria) y de los demás hermanos adolece de nulidad y será bloqueado en el Registro Público.
-  3) Presentar la Declaración Sucesoral antes del vencimiento de los 180 días hábiles y, si persiste la negativa a dividir equitativamente, introducir la Demanda de Partición (Art. 1.067 CC) con Prohibición de Enajenar y Gravar.
-
-• Instrumento Redactado sobre la Matriz de tu Biblioteca («${matchedTemplate.name}»):
-${redaccionForense}`;
-
-      respuestaCliente = `Estimado cliente: Conforme a los Artículos 148, 822, 883 y 1.067 del Código Civil, ningún hermano puede vender por su cuenta un inmueble de la sucesión: primero pertenece el 50% a la viuda por comunidad conyugal y el otro 50% se divide en partes iguales respetando la cuota legítima de todos, además de exigirse la Solvencia Sucesoral en el Registro. Procederemos a bloquear cualquier venta inconsulta y a tramitar la declaración y partición legal.`;
-    } else {
-      matterTag = 'Civil / Contratos';
-      const procLaw = ragDocs.find(d => d.id === 'rag-02') || matchedLaws[1] || primaryLaw;
-      fase1BaseLegal = `1. ${primaryLaw.title}:
-   • Artículos 1.133, 1.159 y 1.160 (Código Civil): Definen el contrato como convención para constituir, reglar, transmitir, modificar o extinguir un vínculo jurídico, dotándolo de fuerza de ley entre las partes e imponiendo su ejecución de buena fe.
-   • Artículo 1.167 (Código Civil): En todo contrato bilateral sinalagmático, si una de las partes no ejecuta su obligación, la parte cumplidora puede a su elección reclamar judicialmente la ejecución forzosa del contrato o la resolución del mismo, con el resarcimiento de los daños y perjuicios en ambos casos.
-   • Artículos 1.264, 1.271 y 1.486 (Código Civil): Regulan el cumplimiento exacto de la prestación, la responsabilidad patrimonial del deudor en mora por daños y perjuicios (daño emergente y lucro cesante) y la obligación de tradición legal y material de la cosa.
-   • Artículo 168 (Código Civil): Exige el consentimiento expreso de ambos cónyuges para enajenar o gravar a título gratuito u oneroso los bienes inmuebles de la comunidad conyugal.
-2. ${procLaw.title}:
-   • Artículo 340: Establece los requisitos sustanciales de la demanda y la carga de acompañar el documento fundamental.
-   • Artículos 585 y 588: Regulan la procedencia de las medidas preventivas (Prohibición de Enajenar y Gravar sobre inmuebles, Embargo Preventivo de bienes muebles y Secuestro de cosas determinadas) cuando concurran el fumus boni iuris y el periculum in mora.`;
-
-      fase2Opciones = `• Opción Primera: Demanda de Cumplimiento Forzoso de Contrato acumulada con Indemnización de Daños y Perjuicios Moratorios y solicitud de Medida Cautelar de Prohibición de Enajenar y Gravar (Arts. 1.167 CC y 588 CPC).
-• Opción Segunda: Demanda de Resolución de Contrato acumulada con Restitución Indexada de las Cantidades Entregadas, Ejecución de Cláusula Penal y Daños y Perjuicios Compensatorios.
-• Opción Tercera: Intimación Extrajudicial Notarial Previa para constituir en mora indubitable al deudor (Art. 1.269 CC) y habilitar la ejecución inmediata o acuerdo transaccional.`;
-
-      fase3Escenarios = `• Escenario A (Ejercicio de la Opción Primera — Cumplimiento Forzoso con Prohibición de Enajenar y Gravar):
-  - Supuesto: El bien objeto del contrato existe en el patrimonio registral del demandado y el interés económico del cliente es obtener la titularidad y posesión definitiva del activo.
-  - Consecuencias Jurídicas y Patrimoniales: El decreto cautelar inmoviliza el bien en el Registro Público impidiendo su traspaso a terceros de buena fe; la sentencia definitiva hará las veces de título de propiedad protocolizable y condenará al demandado en costas procesales (hasta el 30% del monto litigado según el Art. 286 CPC) más daños moratorios.
-
-• Escenario B (Ejercicio de la Opción Segunda — Resolución de Contrato y Restitución Patrimonial):
-  - Supuesto: El cumplimiento ya no resulta útil al cliente o el bien presenta gravámenes o impedimentos registrales insubsanables.
-  - Consecuencias Jurídicas y Patrimoniales: Se extingue retroactivamente el contrato ordenándose la restitución de las prestaciones pagadas con indexación monetaria y daños y perjuicios. Su eficacia ejecutiva exige solicitar simultáneamente Medida de Embargo Preventivo sobre bienes o cuentas solventes de la demandada.
-
-• Escenario C (Ejecución Previa de la Opción Tercera — Constitución Fehaciente en Mora):
-  - Supuesto: El contrato carece de término fatal vencido o requiere requerimiento previo para activar el pacto comisorio.
-  - Consecuencias Jurídicas y Patrimoniales: Preconstituye la prueba plena del incumplimiento, cierra el paso a la excepción de contrato no cumplido (Art. 1.168 CC) y fortalece la presunción grave del derecho (fumus boni iuris) para el decreto cautelar en el primer auto del Tribunal.`;
-
-      redaccionForense = `"CLÁUSULA / INTIMACIÓN DE EJECUCIÓN Y PACTO COMISORIO (ESTRUCTURADA SOBRE EL MODELO «${matchedTemplate.name.toUpperCase()}» DE LA BIBLIOTECA):
-De conformidad con lo dispuesto en los Artículos 1.159, 1.160, 1.167, 1.264 y 1.271 del Código Civil vigente, el retardo o incumplimiento en el otorgamiento del instrumento definitivo o en la entrega material del bien objeto del presente «${matchedTemplate.name}» constituirá al obligado en mora de pleno derecho, facultando a la parte cumplidora para exigir judicialmente, a su sola elección, el cumplimiento forzoso de la obligación o la resolución de pleno derecho del contrato, con el resarcimiento de los daños y perjuicios fijados convencionalmente en el veinte por ciento (20%) del precio de la operación, más la solicitud de Medida Preventiva de Prohibición de Enajenar y Gravar o Embargo Preventivo conforme a los Artículos 585 y 588 del Código de Procedimiento Civil."`;
-
-      fase4Ejecucion = `• Decisión Técnica de Ejecución:
-  A fin de alcanzar el resultado más seguro para el patrimonio del cliente, se decide ejecutar la Opción Tercera (Intimación Fehaciente Previa de 72 horas) seguida de inmediato por la Opción Primera (Demanda de Cumplimiento Forzoso con Medida de Prohibición de Enajenar y Gravar), garantizando que el activo quede inmovilizado registralmente desde la admisión.
-
-• Manera de Accionar (Secuencia de Ejecución):
-  1) Verificar en el Registro Público el asiento registral vigente del bien y el estado civil del otorgante (Art. 168 CC).
-  2) Practicar intimación formal otorgando setenta y dos (72) horas improrrogables para el cumplimiento voluntario y dejando constancia de que nuestro patrocinado ya cumplió su prestación.
-  3) Consignar el libelo de demanda (Art. 340 CPC) acompañado del contrato original y comprobantes de pago, solicitando en cuaderno separado el decreto y oficio inmediato de Prohibición de Enajenar y Gravar (Arts. 585 y 588 CPC).
-
-• Instrumento Redactado sobre la Matriz de tu Biblioteca («${matchedTemplate.name}»):
-${redaccionForense}`;
-
-      respuestaCliente = `Estimado cliente: Analizados los Artículos 1.159, 1.167 y 1.264 del Código Civil junto con los Artículos 340, 585 y 588 del Código de Procedimiento Civil, y evaluados los escenarios procesales y sus consecuencias, la vía de ejecución decidida consiste en practicar intimación formal por 72 horas y presentar de inmediato la demanda con solicitud de Prohibición de Enajenar y Gravar para asegurar el bien en el Registro Público.`;
-    }
-
-    const citations = matchedLaws.map(d => d.title);
-
-    const dictamen = `${attSection}I. BASE LEGAL Y ANÁLISIS DE LOS ARTÍCULOS INVOLUCRADOS POR CADA LEY (RAG):
-
-${fase1BaseLegal}
+${lawsBlock}
 
 II. OPCIONES JURÍDICAS DISPONIBLES:
 
-${fase2Opciones}
+• Opción Primera (Vía Sustantiva / Contractual): Exigir el cumplimiento estricto o la adecuación de las estipulaciones conforme a la normativa indexada en el RAG y a las cláusulas del modelo aplicable.
+• Opción Segunda (Vía Prejudicial / Intimatoria): Practicar requerimiento o notificación formal dejando constancia fehaciente de la pretensión y agotando la fase previa o constitutiva de mora.
+• Opción Tercera (Vía Jurisdiccional y Cautelar): Interponer la acción correspondiente ante los Tribunales competentes solicitando medidas preventivas para asegurar el resultado práctico del fallo.
 
 III. ANÁLISIS DE ESCENARIOS Y CONSECUENCIAS DE CADA ESCENARIO:
 
-${fase3Escenarios}
+• Escenario A (Ejecución Prejudicial Documentada):
+  - Presupuesto: Existencia de recaudos suficientes y posibilidad de avenimiento o constitución inmediata en mora.
+  - Consecuencias: Preconstituye prueba plena para un eventual litigio, reduce tiempos y evita defensas dilatorias de la contraparte.
+• Escenario B (Contencioso con Solicitud de Medida Cautelar):
+  - Presupuesto: Negativa de cumplimiento o riesgo de enajenación/insolvencia de la contraparte.
+  - Consecuencias: Asegura el patrimonio objeto del litigio desde la admisión de la demanda e impone condena en costas procesales en caso de vencimiento total.
 
 IV. DECISIÓN DE EJECUCIÓN, MODO DE ACCIONAR Y REDACCIÓN FORENSE:
 
-${fase4Ejecucion}`;
+• Secuencia de Ejecución:
+  1) Auditar la suficiencia probatoria de los documentos e instrumentos del cliente.
+  2) Formalizar la actuación utilizando la matriz correspondiente de la Biblioteca del Despacho.
+  3) Proceder al otorgamiento, notificación o consignación dentro de los lapsos de ley.
 
-    return {
-      dictamen,
-      clientReadyReply: respuestaCliente,
-      recommendedTemplate: matchedTemplate,
-      suggestedClauseText: redaccionForense,
-      citations,
-      primaryLawTitle: primaryLaw.title,
-      matterTag
-    };
+• Vinculación con tu Biblioteca de Modelos:
+${tplBlock}
+
+[Nota del Sistema: Para que este dictamen sea redactado en vivo por tu motor de IA (${llmProvider.toUpperCase()} - ${llmModel}), ingresa tu API Key activa en el módulo 11. Configuración.]`;
   };
 
   const executeConsultationTurn = async (questionToAsk: string, isFollowUp: boolean = false) => {
@@ -1214,80 +897,92 @@ ${fase4Ejecucion}`;
 
     const fullRawForTurn = [
       cleanQ,
-      ...consultAttachments.map(a => `[Adjunto ${a.kind} - ${a.name}]: ${a.rawContent}`)
+      ...consultAttachments.map(a => `[Recaudo Adjunto (${a.kind}) - ${a.name}]:\n${a.rawContent}`)
     ].join('\n\n');
 
     const { sanitized, tokens } = anonymizePiiText(fullRawForTurn, allProtectedNames);
 
-    const localAnalysis = generateExpertLawyerAnalysis(
-      cleanQ,
-      sanitized,
-      tokens.length,
-      consultAttachments,
-      consultSelectedLawId,
-      consultSelectedTemplateId
-    );
+    const activeLaws =
+      consultSelectedLawId !== 'auto'
+        ? ragDocs.filter(d => d.id === consultSelectedLawId)
+        : ragDocs;
 
-    let finalDictamenText = localAnalysis.dictamen;
+    const chosenTemplate =
+      consultSelectedTemplateId !== 'auto'
+        ? templates.find(t => t.id === consultSelectedTemplateId) || templates[0]
+        : templates[0];
 
-    // Si hay API Key real configurada, instruye obligatoriamente la metodología forense de 4 etapas de la Dra. Bárbara Piccolo
-    const hasRealApiKey = apiKeyInput && !apiKeyInput.includes('•') && apiKeyInput.trim().length > 12;
-    if (hasRealApiKey && llmProvider === 'openai') {
+    let finalDictamenText = '';
+    const hasConfiguredApi =
+      llmProvider === 'ollama' || (apiKeyInput.trim().length > 8 && !apiKeyInput.includes('•'));
+
+    if (hasConfiguredApi) {
       try {
-        const ragContextStr = ragDocs.map(d => `- ${d.title} (${d.type}): ${d.excerpt}`).join('\n');
-        const tplContextStr = templates.map(t => `- Modelo "${t.name}" (${t.category}): Variables [${t.variables.map(v => v.key).join(', ')}]. Texto base: ${t.contentPreview}`).join('\n\n');
-        const historyContextStr = consultThread
+        const ragContextStr =
+          activeLaws.length > 0
+            ? activeLaws
+                .map(d => `=== LEY / NORMA EN RAG: ${d.title} (${d.type}) ===\n${d.fullText || d.excerpt}`)
+                .join('\n\n')
+            : 'El usuario aún no ha cargado documentos en el RAG. Responde conforme al Derecho positivo vigente aplicable e indícale qué leyes puede subir al RAG.';
+
+        const tplContextStr =
+          templates.length > 0
+            ? templates
+                .map(
+                  t =>
+                    `=== MODELO DE BIBLIOTECA: ${t.name} (${t.category}) ===\nVariables: ${t.variables.map(v => `{{${v.key}}}`).join(', ')}\nContenido:\n${t.contentPreview}`
+                )
+                .join('\n\n')
+            : 'El usuario aún no ha cargado modelos en su Biblioteca.';
+
+        const historyStr = consultThread
           .slice(-4)
-          .map(t => `Consulta: ${t.sanitizedSentToAi}\nDictamen: ${t.dictamen}`)
-          .join('\n---\n');
+          .map(t => `Consulta previa del Abogado:\n${t.sanitizedSentToAi}\n\nDictamen previo:\n${t.dictamen}`)
+          .join('\n\n---\n\n');
 
-        const sysPrompt = `Eres un Abogado Senior en Ejercicio y Jurisconsulto del despacho "${firmName}", trabajando junto a ${lawyerSignerName} (${lawyerCollegiateId}).
-PROHIBIDO usar emojis, lenguaje coloquial de chatbot o inventar normas. Ciñete estrictamente a la normativa del RAG y a los modelos de la Biblioteca del despacho.
-DEBES ESTRUCTURAR OBLIGATORIAMENTE TODO ANÁLISIS BAJO ESTAS CUATRO (04) FASES FORENSES:
-I. BASE LEGAL Y ANÁLISIS DE LOS ARTÍCULOS INVOLUCRADOS POR CADA LEY (RAG): Desglosa ley por ley y artículo por artículo los preceptos involucrados en el tema y su subsunción al caso.
-II. OPCIONES JURÍDICAS DISPONIBLES: Enumera con rigor técnico las vías o acciones legales que confiere el derecho positivo.
-III. ANÁLISIS DE ESCENARIOS Y CONSECUENCIAS DE CADA ESCENARIO: Analiza cada escenario posible (Escenario A, Escenario B, Escenario C) detallando su presupuesto probatorio y sus consecuencias jurídicas, procesales y patrimoniales.
-IV. DECISIÓN DE EJECUCIÓN, MODO DE ACCIONAR Y REDACCIÓN FORENSE: Define cuál es la decisión técnica de ejecución, la secuencia exacta de pasos para conseguir el resultado y entrega la redacción forense basada en el modelo correspondiente de la Biblioteca del Despacho.
+        const sysPrompt = `Eres un Abogado Senior en Ejercicio y Jurisconsulto Forense del despacho "${firmName || 'Despacho Jurídico'}", asistiendo a ${lawyerSignerName || 'Abogado Titular'} (${lawyerCollegiateId || 'Colegiado'}).
+REGLAS ESTRICTAS DE RIGOR Y CERO ALUCINACIÓN:
+1) Prohibido usar emojis, tono coloquial o frases de asistente genérico. Habla estrictamente como un abogado especialista en ejercicio.
+2) Fundamenta tu dictamen en las LEYES CARGADAS EN EL RAG DEL DESPACHO y en los MODELOS DE LA BIBLIOTECA DEL DESPACHO suministrados abajo. No inventes artículos ni jurisprudencia inexistente.
+3) ESTRUCTURA OBLIGATORIAMENTE TU RESPUESTA EN ESTAS CUATRO (04) FASES FORENSES:
+   I. BASE LEGAL Y ANÁLISIS DE LOS ARTÍCULOS INVOLUCRADOS POR CADA LEY (RAG): Analiza ley por ley y artículo por artículo los preceptos aplicables al caso y su subsunción jurídica.
+   II. OPCIONES JURÍDICAS DISPONIBLES: Determina con precisión técnica las vías o acciones que asisten al cliente.
+   III. ANÁLISIS DE ESCENARIOS Y CONSECUENCIAS DE CADA ESCENARIO: Evalúa cada escenario posible (Escenario A, Escenario B, etc.), su carga probatoria y sus consecuencias jurídicas, procesales y patrimoniales.
+   IV. DECISIÓN DE EJECUCIÓN, MODO DE ACCIONAR Y REDACCIÓN FORENSE: Define la decisión técnica de ejecución, el paso a paso concreto para lograr el resultado y entrega la redacción forense del instrumento, cláusula o escrito adaptada a los modelos de la biblioteca del despacho.
 
-NORMATIVA EN EL RAG DEL DESPACHO:
+LEYES Y NORMATIVA EN EL RAG DEL DESPACHO:
 ${ragContextStr}
 
 MODELOS DE LA BIBLIOTECA DEL DESPACHO:
 ${tplContextStr}
 
-HISTORIAL DE LA CONSULTA:
-${historyContextStr}`;
+${historyStr ? `HISTORIAL DE LA CONSULTA ACTUAL:\n${historyStr}` : ''}`;
 
-        const resp = await fetch('https://api.openai.com/v1/chat/completions', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${apiKeyInput.trim()}`,
-            'X-Zero-Data-Retention': 'true'
-          },
-          body: JSON.stringify({
-            model: llmModel || 'gpt-4o',
-            store: false,
-            messages: [
-              { role: 'system', content: sysPrompt },
-              { role: 'user', content: sanitized }
-            ],
-            temperature: 0.15
-          })
+        const rawAiOutput = await callConfiguredLlmApi({
+          provider: llmProvider,
+          model: llmModel,
+          apiKey: apiKeyInput,
+          ollamaUrl: ollamaBaseUrl,
+          systemPrompt: sysPrompt,
+          userPrompt: sanitized
         });
-        if (resp.ok) {
-          const data = await resp.json();
-          const aiRawText = data?.choices?.[0]?.message?.content;
-          if (aiRawText) {
-            finalDictamenText = deAnonymizeText(aiRawText, tokens);
-          }
+
+        if (rawAiOutput.trim()) {
+          finalDictamenText = deAnonymizeText(rawAiOutput.trim(), tokens);
         }
-      } catch {
-        // Conserva el dictamen forense de 4 etapas generado localmente
+      } catch (err: unknown) {
+        const msg = err instanceof Error ? err.message : 'Error al conectar con la API.';
+        showToast(msg);
+        finalDictamenText =
+          `[Aviso de Conexión API: ${msg}]\n\n` +
+          buildStructuredForensicFallback(cleanQ, activeLaws, chosenTemplate, consultAttachments);
       }
+    } else {
+      finalDictamenText = buildStructuredForensicFallback(cleanQ, activeLaws, chosenTemplate, consultAttachments);
     }
 
-    const hash = computeRealSha256(`${sanitized}|${localAnalysis.primaryLawTitle}|${Date.now()}`);
+    const primaryLawTitle = activeLaws[0]?.title || 'Repositorio RAG del Despacho';
+    const hash = computeRealSha256(`${sanitized}|${primaryLawTitle}|${Date.now()}`);
     const newAuditLogId = `TRZ-${Date.now().toString().slice(-5)}`;
     const turnId = `TURN-${Date.now().toString().slice(-5)}`;
     const nowTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
@@ -1298,11 +993,11 @@ ${historyContextStr}`;
       lawyerQuestion: cleanQ,
       sanitizedSentToAi: sanitized,
       dictamen: finalDictamenText,
-      clientReadyReply: localAnalysis.clientReadyReply,
-      recommendedTemplateId: localAnalysis.recommendedTemplate.id,
-      recommendedTemplateName: localAnalysis.recommendedTemplate.name,
-      suggestedClauseText: localAnalysis.suggestedClauseText,
-      citations: localAnalysis.citations,
+      clientReadyReply: '',
+      recommendedTemplateId: chosenTemplate?.id || '',
+      recommendedTemplateName: chosenTemplate?.name || 'Sin modelo seleccionado',
+      suggestedClauseText: finalDictamenText,
+      citations: activeLaws.map(d => d.title),
       attachmentsUsed: consultAttachments.map(a => `${a.name} (${a.kind})`),
       tokensProtected: tokens.length,
       hash,
@@ -1310,58 +1005,52 @@ ${historyContextStr}`;
       approvedInHumanLoop: false
     };
 
+    const targetSessId = activeSessionId || `sess-${Date.now().toString().slice(-5)}`;
+    if (!activeSessionId) setActiveSessionId(targetSessId);
+
     setConsultSessions(prev => {
-      const exists = prev.some(s => s.id === activeSessionId);
+      const exists = prev.some(s => s.id === targetSessId);
       if (!exists) {
-        const newSess: ConsultChatSession = {
-          id: activeSessionId,
+        const created: ConsultChatSession = {
+          id: targetSessId,
           title: cleanQ.slice(0, 48) + (cleanQ.length > 48 ? '...' : ''),
-          updatedAt: `Hoy, ${nowTime}`,
-          matterTag: localAnalysis.matterTag,
+          updatedAt: nowTime,
+          matterTag: activeLaws[0]?.type || 'Consulta Forense',
           turns: [newTurn]
         };
-        return [newSess, ...prev];
+        return [created, ...prev];
       }
       return prev.map(s => {
-        if (s.id !== activeSessionId) return s;
-        const updatedTitle =
+        if (s.id !== targetSessId) return s;
+        const nextTitle =
           s.turns.length === 0 || s.title === 'Nueva Consulta Jurídica'
             ? cleanQ.slice(0, 48) + (cleanQ.length > 48 ? '...' : '')
             : s.title;
         return {
           ...s,
-          title: updatedTitle,
-          updatedAt: `Hoy, ${nowTime}`,
-          matterTag: localAnalysis.matterTag,
+          title: nextTitle,
+          updatedAt: nowTime,
           turns: [...s.turns, newTurn]
         };
       });
     });
 
-    setConsultResponse({
-      dictamen: finalDictamenText,
-      clientReadyReply: localAnalysis.clientReadyReply,
-      recommendedTemplateId: localAnalysis.recommendedTemplate.id,
-      recommendedTemplateName: localAnalysis.recommendedTemplate.name,
-      suggestedClauseText: localAnalysis.suggestedClauseText,
-      sanitizedSentToAi: sanitized,
-      citations: localAnalysis.citations,
-      attachmentsUsed: newTurn.attachmentsUsed,
-      tokensProtected: tokens.length,
-      hash,
-      auditLogId: newAuditLogId,
-      approvedInHumanLoop: false
-    });
+    setConsultResponse(newTurn);
 
     setPiiAuditRegistry(prev => [
       {
         id: `PII-${Date.now().toString().slice(-5)}`,
         timestamp: nowTime,
         originModule: 'Consultor de IA',
-        contextSummary: `${isFollowUp ? 'Ampliación de Dictamen' : 'Dictamen Forense'}: ${cleanQ.slice(0, 75)}...`,
-        tokensDetected: tokens.length > 0
-          ? tokens.map(t => ({ token: t.token, type: t.type, maskedPreview: `${t.original.slice(0, 4)}••• (Protegido en RAM)` }))
-          : [{ token: '[SIN_PII_EXPUESTO]', type: 'VERIFICADO', maskedPreview: 'Consulta doctrinal sin identificadores personales' }],
+        contextSummary: `${isFollowUp ? 'Ampliación' : 'Consulta'}: ${cleanQ.slice(0, 70)}`,
+        tokensDetected:
+          tokens.length > 0
+            ? tokens.map(t => ({
+                token: t.token,
+                type: t.type,
+                maskedPreview: `${t.original.slice(0, 4)}••• (Ocultado en RAM)`
+              }))
+            : [{ token: '[SIN_PII]', type: 'VERIFICADO', maskedPreview: 'Sin datos personales detectados' }],
         zeroRetentionVerified: true
       },
       ...prev
@@ -1372,10 +1061,10 @@ ${historyContextStr}`;
         id: newAuditLogId,
         timestamp: nowTime,
         module: 'Consultor de IA',
-        action: `Dictamen Forense en 4 Etapas (Base Legal -> Opciones -> Escenarios -> Ejecución)`,
-        llmUsed: `${llmProvider}/${llmModel} (store:false)`,
+        action: 'Dictamen Forense en 4 Etapas (RAG + Biblioteca)',
+        llmUsed: `${llmProvider}/${llmModel}`,
         piiCount: tokens.length,
-        ragSource: localAnalysis.primaryLawTitle,
+        ragSource: primaryLawTitle,
         sha256: hash,
         humanVerified: false
       },
@@ -1388,7 +1077,6 @@ ${historyContextStr}`;
     setIsConsultLoading(false);
     setCurrentSpendUsd(prev => +(prev + 0.01).toFixed(2));
     setSavedHoursCount(prev => +(prev + 1.5).toFixed(1));
-    showToast(`Dictamen estructurado en 4 fases emitido (${tokens.length} datos PII ocultados en RAM).`);
   };
 
   const handleRunConsultor = () => {
@@ -1406,42 +1094,38 @@ ${historyContextStr}`;
   const handleSendConsultToRedactor = (turnToUse?: ConsultTurn) => {
     const target = turnToUse || consultResponse;
     if (!target) return;
-    const targetTplId = target.recommendedTemplateId || 'tpl-compraventa';
-    handleSelectTemplate(targetTplId);
-    const combinedNotes = [
-      target.suggestedClauseText ? `Redacción forense del Consultor: ${target.suggestedClauseText}` : '',
-      target.dictamen
-    ].filter(Boolean).join('\n\n');
-    setFreeTextToExtract(combinedNotes);
+    if (target.recommendedTemplateId) {
+      handleSelectTemplate(target.recommendedTemplateId);
+    }
+    setFreeTextToExtract(target.dictamen);
     setInputModeTab('escrito_manual');
-    setExtractedSourceNote(`Dictamen y redacción trasladados desde el Consultor Jurídico sobre el modelo "${target.recommendedTemplateName}".`);
+    setExtractedSourceNote('Contenido trasladado desde el Consultor Jurídico.');
     setActiveTab('redactor_docs');
     setRedactorStep(3);
-    showToast(`Modelo "${target.recommendedTemplateName}" abierto en el Redactor con la cláusula propuesta.`);
+    showToast('Dictamen trasladado al Redactor de Documentos.');
   };
 
   const handleApproveConsultorDictamen = (turnToApprove?: ConsultTurn) => {
     const target = turnToApprove || consultResponse;
     if (!target) return;
     if (target.approvedInHumanLoop) {
-      showToast('Este dictamen ya cuenta con tu Visto Bueno en Human-in-the-Loop.');
+      showToast('Este dictamen ya fue visado en Human-in-the-Loop.');
       return;
     }
+    const signer = lawyerSignerName.trim() || 'Abogado Titular';
+    const colegiado = lawyerCollegiateId.trim() || 'Colegiado Titular';
     const record: ApprovedDocumentRecord = {
       id: `HL-${Date.now().toString().slice(-5)}`,
       timestamp: new Date().toLocaleString('es-ES', { dateStyle: 'short', timeStyle: 'short' }),
-      title: `Dictamen Forense — ${(activeSession?.title || 'Consulta Jurídica').slice(0, 42)}`,
+      title: `Dictamen Forense — ${(activeSession?.title || 'Consulta').slice(0, 42)}`,
       originModule: 'Consultor de IA',
-      templateUsed: `RAG + ${target.recommendedTemplateName || 'Biblioteca del Despacho'}`,
-      approvedBy: lawyerSignerName,
-      collegiateNumber: lawyerCollegiateId,
+      templateUsed: target.recommendedTemplateName || 'RAG del Despacho',
+      approvedBy: signer,
+      collegiateNumber: colegiado,
       sha256: target.hash,
       content: target.dictamen
     };
     setApprovedDocsRegistry(prev => [record, ...prev]);
-    if (consultResponse && consultResponse.hash === target.hash) {
-      setConsultResponse({ ...consultResponse, approvedInHumanLoop: true });
-    }
     setConsultSessions(prev =>
       prev.map(s =>
         s.id !== activeSessionId
@@ -1460,174 +1144,77 @@ ${historyContextStr}`;
       )
     );
     exportWordDoc(
-      `Dictamen_Forense_Visado_${Date.now().toString().slice(-4)}.doc`,
-      'DICTAMEN JURÍDICO FORENSE VISADO',
-      `Visado por: ${lawyerSignerName} (${lawyerCollegiateId}) • Sello SHA-256: ${target.hash.slice(0, 24)}...`,
+      `Dictamen_Juridico_${Date.now().toString().slice(-4)}.doc`,
+      'DICTAMEN JURÍDICO FORENSE',
+      `Visado por: ${signer} (${colegiado}) • SHA-256: ${target.hash.slice(0, 24)}...`,
       target.dictamen
     );
-    showToast('Visto Bueno registrado en Human-in-the-Loop y descargado en .DOC');
+    showToast('Dictamen visado y descargado en .DOC.');
   };
 
   // ==========================================================================
-  // MÓDULO 2: REDACTOR DE DOCUMENTOS (FLUJO CON FOTO/PDF/ESCRITO, CRM Y VISTO BUENO)
+  // MÓDULO 2: REDACTOR DE DOCUMENTOS (100% FUNCIONAL SOBRE TUS MODELOS)
   // ==========================================================================
-  const [selectedTemplateId, setSelectedTemplateId] = useState<string>('tpl-compraventa');
+  const [selectedTemplateId, setSelectedTemplateId] = useState<string>('');
   const selectedTemplate = useMemo(
-    () => templates.find(t => t.id === selectedTemplateId) || templates[0],
+    () => templates.find(t => t.id === selectedTemplateId) || templates[0] || null,
     [templates, selectedTemplateId]
   );
-  const [redactorStep, setRedactorStep] = useState<1 | 2 | 3>(2);
-  const [inputModeTab, setInputModeTab] = useState<'foto_ocr' | 'pdf_doc' | 'escrito_manual'>('foto_ocr');
+  const [redactorStep, setRedactorStep] = useState<1 | 2 | 3>(1);
+  const [inputModeTab, setInputModeTab] = useState<'foto_ocr' | 'pdf_doc' | 'escrito_manual'>('escrito_manual');
   const [extractedSourceNote, setExtractedSourceNote] = useState<string>('');
-  const [freeTextToExtract, setFreeTextToExtract] = useState<string>(
-    'Vendedor: CARLOS EDUARDO MÉNDEZ, mayor de edad, casado, C.I. V-12.345.678.\nComprador: MARÍA FERNANDA SALAZAR, mayor de edad, soltera, C.I. V-18.987.654.\nInmueble: Apartamento Nº 8-A, Residencias Parque Real, Urb. Los Palos Grandes, Municipio Chacao, de 162 metros cuadrados.\nRegistro: Registro Público del Municipio Chacao, Tomo 22, Folio 108, Protocolo 1º, fecha 14/05/2018.\nPrecio: NOVENTA Y CINCO MIL DÓLARES (95.000,00 USD) pagados mediante transferencia bancaria.\nJurisdicción: Ciudad de Caracas.'
-  );
-  const [templateValues, setTemplateValues] = useState<Record<string, string>>({
-    VENDEDOR: 'CARLOS EDUARDO MÉNDEZ, mayor de edad, casado, titular de la Cédula de Identidad Nº V-12.345.678',
-    COMPRADOR: 'MARÍA FERNANDA SALAZAR, mayor de edad, soltera, titular de la Cédula de Identidad Nº V-18.987.654',
-    DATOS_INMUEBLE: 'un Apartamento distinguido con el Nº 8-A, situado en el Piso 8 del Edificio Residencias Parque Real, Urbanización Los Palos Grandes, con un área de 162,00 m2',
-    REGISTRO_INMUEBLE: 'el Registro Público del Municipio Chacao bajo el Nº 45, Tomo 22, Folio 108, Protocolo Primero, de fecha 14 de mayo de 2018',
-    PRECIO_VENTA: 'NOVENTA Y CINCO MIL DÓLARES EXACTOS (95.000,00 USD), pagados mediante transferencia bancaria',
-    JURISDICCION: 'ciudad de Caracas, a la jurisdicción de cuyos Tribunales competentes declaran someterse'
-  });
+  const [freeTextToExtract, setFreeTextToExtract] = useState<string>('');
+  const [templateValues, setTemplateValues] = useState<Record<string, string>>({});
   const [redactorApprovedStamp, setRedactorApprovedStamp] = useState<string | null>(null);
+  const [isRedactorExtracting, setIsRedactorExtracting] = useState<boolean>(false);
 
   const handleSelectTemplate = (tplId: string) => {
     setSelectedTemplateId(tplId);
     setRedactorApprovedStamp(null);
     const found = templates.find(t => t.id === tplId);
     if (!found) return;
-
-    if (tplId === 'tpl-compraventa') {
-      setTemplateValues(prev => ({
-        VENDEDOR: prev.VENDEDOR || 'CARLOS EDUARDO MÉNDEZ, mayor de edad, casado, titular de la Cédula de Identidad Nº V-12.345.678',
-        COMPRADOR: prev.COMPRADOR || 'MARÍA FERNANDA SALAZAR, mayor de edad, soltera, titular de la Cédula de Identidad Nº V-18.987.654',
-        DATOS_INMUEBLE: prev.DATOS_INMUEBLE || 'un Apartamento distinguido con el Nº 8-A, situado en el Piso 8 del Edificio Residencias Parque Real, Urbanización Los Palos Grandes, con un área de 162,00 m2',
-        REGISTRO_INMUEBLE: prev.REGISTRO_INMUEBLE || 'el Registro Público del Municipio Chacao bajo el Nº 45, Tomo 22, Folio 108, Protocolo Primero, de fecha 14 de mayo de 2018',
-        PRECIO_VENTA: prev.PRECIO_VENTA || 'NOVENTA Y CINCO MIL DÓLARES EXACTOS (95.000,00 USD), pagados mediante transferencia bancaria',
-        JURISDICCION: prev.JURISDICCION || 'ciudad de Caracas, a la jurisdicción de cuyos Tribunales competentes declaran someterse'
-      }));
-      setFreeTextToExtract(
-        'Vendedor: CARLOS EDUARDO MÉNDEZ, mayor de edad, casado, C.I. V-12.345.678.\nComprador: MARÍA FERNANDA SALAZAR, mayor de edad, soltera, C.I. V-18.987.654.\nInmueble: Apartamento Nº 8-A, Residencias Parque Real, Urb. Los Palos Grandes, Municipio Chacao, de 162 metros cuadrados.\nRegistro: Registro Público del Municipio Chacao, Tomo 22, Folio 108, Protocolo 1º, fecha 14/05/2018.\nPrecio: NOVENTA Y CINCO MIL DÓLARES (95.000,00 USD) pagados mediante transferencia bancaria.\nJurisdicción: Ciudad de Caracas.'
-      );
-    } else if (tplId === 'tpl-arrendamiento') {
-      setTemplateValues(prev => ({
-        ...prev,
-        ARRENDADOR: prev.ARRENDADOR || 'INVERSIONES TORRE CENTRAL, C.A., RIF J-30948271-0, representada por su Director Principal Dr. Roberto Alejandro Rojas Pérez (C.I. V-10.456.789)',
-        ARRENDATARIO: prev.ARRENDATARIO || 'COMERCIALIZADORA NOVA, S.A., RIF J-40192834-2, representada por su Presidente',
-        LOCAL_DIRECCION: prev.LOCAL_DIRECCION || 'Local Comercial PB-08, Centro Comercial Paseo Las Mercedes, Municipio Baruta, con un área de noventa metros cuadrados (90,00 m2)',
-        CANON_MENSUAL: prev.CANON_MENSUAL || 'UN MIL QUINIENTOS DÓLARES (1.500,00 USD) mensuales más tres (03) meses de depósito en garantía',
-        DURACION: prev.DURACION || 'Dos (02) años fijos contados a partir de la autenticación del presente instrumento',
-        JURISDICCION: prev.JURISDICCION || 'Ciudad de Caracas, sometiéndose a la jurisdicción de sus Tribunales Mercantiles'
-      }));
-      setFreeTextToExtract(
-        'Arrendador: INVERSIONES TORRE CENTRAL, C.A. (RIF J-30948271-0).\nArrendatario: COMERCIALIZADORA NOVA, S.A. (RIF J-40192834-2).\nLocal: Local PB-08, Centro Comercial Paseo Las Mercedes, 90 m2.\nCanon: UN MIL QUINIENTOS DÓLARES (1.500,00 USD) mensuales + 3 meses de depósito.\nDuración: Dos (02) años fijos contados a partir de la firma.\nJurisdicción: Tribunales Mercantiles de la Circunscripción Judicial de Caracas.'
-      );
-    } else if (tplId === 'tpl-poder') {
-      setTemplateValues(prev => ({
-        ...prev,
-        OTORGANTE: prev.OTORGANTE || 'GRUPO INDUSTRIAL DELTA, C.A. (RIF J-00192837-4), representada por su Presidente Ing. Gustavo Adolfo Mendoza, titular de la C.I. V-06.812.334',
-        APODERADOS: prev.APODERADOS || `${lawyerSignerName}, titular del ${lawyerCollegiateId}`,
-        FACULTADES_ESPECIFICAS: prev.FACULTADES_ESPECIFICAS || 'Darse por citado o notificado, contestar demandas, oponer cuestiones previas, promover y evacuar pruebas, convenir, desistir, transigir, comprometer en árbitros y recibir cantidades de dinero (Art. 154 CPC)',
-        JURISDICCION: prev.JURISDICCION || 'la ciudad de Caracas, a la fecha de su otorgamiento ante Notaría Pública'
-      }));
-      setFreeTextToExtract(
-        `Otorgante: GRUPO INDUSTRIAL DELTA, C.A. (RIF J-00192837-4), representada por Gustavo Adolfo Mendoza (C.I. V-06.812.334).\nApoderados: ${lawyerSignerName} (${lawyerCollegiateId}).\nFacultades: Darse por citado, promover pruebas, convenir, desistir, transigir y recibir cantidades de dinero.\nJurisdicción: Ciudad de Caracas.`
-      );
-    } else {
-      const nextMap: Record<string, string> = { ...templateValues };
-      found.variables.forEach(v => {
-        if (!nextMap[v.key]) {
-          nextMap[v.key] = v.placeholder.replace(/^Ej:\s*/i, '');
-        }
-      });
-      setTemplateValues(nextMap);
-    }
+    const cleanMap: Record<string, string> = {};
+    found.variables.forEach(v => {
+      cleanMap[v.key] = templateValues[v.key] || '';
+    });
+    setTemplateValues(cleanMap);
+    setRedactorStep(2);
   };
 
-  // Detecta si en un contrato inmobiliario el vendedor/otorgante figura como "casado" sin mención de consentimiento conyugal (Art. 168 CC)
   const spousalConsentWarning = useMemo(() => {
-    if (selectedTemplate.id !== 'tpl-compraventa') return false;
-    const vendedorText = (templateValues.VENDEDOR || '').toLowerCase();
-    const isMarried = /\bcasad[oa]\b/.test(vendedorText);
-    const hasConsentOrSeparateProperty =
-      vendedorText.includes('cónyuge') ||
-      vendedorText.includes('conyuge') ||
-      vendedorText.includes('consentimiento') ||
-      vendedorText.includes('bien propio') ||
-      vendedorText.includes('capitulaciones') ||
-      vendedorText.includes('168');
-    return isMarried && !hasConsentOrSeparateProperty;
-  }, [selectedTemplate.id, templateValues.VENDEDOR]);
+    const allVals = Object.values(templateValues).join(' ').toLowerCase();
+    const isMarried = /\bcasad[oa]\b/.test(allVals);
+    const hasConsent =
+      allVals.includes('cónyuge') ||
+      allVals.includes('conyuge') ||
+      allVals.includes('consentimiento') ||
+      allVals.includes('bien propio') ||
+      allVals.includes('168');
+    return isMarried && !hasConsent;
+  }, [templateValues]);
 
   const handleApplySpousalClause = (mode: 'consentimiento' | 'bien_propio') => {
-    const current = templateValues.VENDEDOR || '';
+    if (!selectedTemplate || selectedTemplate.variables.length === 0) return;
+    const firstKey = selectedTemplate.variables[0].key;
+    const current = templateValues[firstKey] || '';
     const addition =
       mode === 'consentimiento'
-        ? ', contando con el consentimiento expreso de su cónyuge conforme al Artículo 168 del Código Civil vigente'
-        : ', declarando bajo fe de juramento que el inmueble objeto de esta venta constituye un bien propio adquirido con anterioridad al matrimonio (Art. 151 y 168 del Código Civil)';
+        ? ', con el consentimiento expreso de su cónyuge conforme al Artículo 168 del Código Civil'
+        : ', declarando que el bien objeto de este acto constituye bien propio (Art. 151 y 168 del Código Civil)';
     setTemplateValues({
       ...templateValues,
-      VENDEDOR: current.replace(/\.$/, '') + addition
+      [firstKey]: current.replace(/\.$/, '') + addition
     });
-    showToast('Adecuación registral (Art. 168 Código Civil) incorporada en la identificación del Vendedor.');
+    showToast('Mención del Artículo 168 del Código Civil incorporada.');
   };
 
-  const handleExtractFromPhotoOrPdf = (file: File, sourceType: 'Foto (OCR)' | 'Documento PDF') => {
-    const isTextLike = /\.(txt|md|csv|json)$/i.test(file.name);
-    if (isTextLike && typeof FileReader !== 'undefined') {
-      const reader = new FileReader();
-      reader.onload = () => {
-        const content = String(reader.result || '');
-        setFreeTextToExtract(content);
-        parseTextIntoTemplateVariables(content, `${sourceType} ("${file.name}") leído e interpretado localmente`);
-      };
-      reader.readAsText(file);
+  const parseTextIntoTemplateVariables = async (rawNotes: string, sourceLabel: string) => {
+    if (!selectedTemplate) {
+      showToast('Primero agrega o selecciona un modelo en tu Biblioteca.');
       return;
     }
-
-    if (selectedTemplate.id === 'tpl-compraventa') {
-      setTemplateValues({
-        VENDEDOR: 'ROBERTO ALEJANDRO ROJAS PÉREZ, mayor de edad, casado, C.I. V-10.456.789 y RIF V-10456789-3, con el consentimiento de su cónyuge (Art. 168 CC)',
-        COMPRADOR: 'INVERSIONES PATRIMONIALES DEL ESTE, C.A., RIF J-41209876-5, representada por su Directora ANA SOFÍA GÓMEZ (C.I. V-16.234.567)',
-        DATOS_INMUEBLE: 'Oficina Comercial Nº PH-2, Piso 12, Torre Empresarial Castellana, Municipio Chacao, con superficie de doscientos diez metros cuadrados con cincuenta decímetros (210,50 m2) y dos (02) puestos de estacionamiento',
-        REGISTRO_INMUEBLE: 'Registro Público del Municipio Chacao, Asiento Registral 2, Matrícula Nº 340.112.908, de fecha 22 de noviembre de 2021',
-        PRECIO_VENTA: 'CIENTO CUARENTA MIL DÓLARES DE LOS ESTADOS UNIDOS DE AMÉRICA (140.000,00 USD), cancelados mediante transferencia bancaria',
-        JURISDICCION: 'ciudad de Caracas, a la jurisdicción de cuyos Tribunales Mercantiles y Civiles declaran someterse'
-      });
-    } else if (selectedTemplate.id === 'tpl-arrendamiento') {
-      setTemplateValues({
-        ARRENDADOR: 'INVERSIONES TORRE CENTRAL, C.A., RIF J-30948271-0, inscrita en el Registro Mercantil Segundo de Caracas bajo el Nº 19, Tomo 84-A, representada por el Dr. Roberto Alejandro Rojas Pérez (C.I. V-10.456.789)',
-        ARRENDATARIO: 'COMERCIALIZADORA NOVA, S.A., RIF J-40192834-2, representada por su Director Ejecutivo Lic. Andrés Eduardo Villalba (C.I. V-15.882.104)',
-        LOCAL_DIRECCION: 'Local Comercial PB-08, Planta Baja del Centro Comercial Paseo Las Mercedes, Urbanización Las Mercedes, Municipio Baruta, con un área de noventa metros cuadrados (90,00 m2)',
-        CANON_MENSUAL: 'UN MIL QUINIENTOS DÓLARES DE LOS ESTADOS UNIDOS DE AMÉRICA (1.500,00 USD) mensuales, más tres (03) meses de depósito en garantía equivalentes a CUATRO MIL QUINIENTOS DÓLARES (4.500,00 USD)',
-        DURACION: 'Dos (02) años fijos contados a partir de su autenticación ante Notaría Pública',
-        JURISDICCION: 'Ciudad de Caracas, a la jurisdicción de cuyos Tribunales Mercantiles declaran someterse'
-      });
-    } else if (selectedTemplate.id === 'tpl-poder') {
-      setTemplateValues({
-        OTORGANTE: 'GRUPO INDUSTRIAL DELTA, C.A., RIF J-00192837-4, inscrita ante el Registro Mercantil Primero bajo el Nº 55, Tomo 12-A, representada por su Presidente Ing. Gustavo Adolfo Mendoza (C.I. V-06.812.334)',
-        APODERADOS: `${lawyerSignerName}, abogado en ejercicio, titular del ${lawyerCollegiateId}`,
-        FACULTADES_ESPECIFICAS: 'Darse por citado y notificado, intentar y contestar demandas, oponer cuestiones previas y reconvenciones, promover y evacuar todo género de pruebas, apelar, recurrir en casación, convenir, desistir, transigir y recibir cantidades de dinero conforme al Artículo 154 del Código de Procedimiento Civil',
-        JURISDICCION: 'En la ciudad de Caracas, a la fecha de su autenticación ante Notaría Pública'
-      });
-    } else {
-      const updated: Record<string, string> = {};
-      selectedTemplate.variables.forEach((v) => {
-        updated[v.key] = v.placeholder.replace(/^Ej:\s*/i, '');
-      });
-      setTemplateValues(updated);
-    }
-    setExtractedSourceNote(`${sourceType} procesado localmente ("${file.name}") — La IA identificó y rellenó automáticamente los ${selectedTemplate.variables.length} campos requeridos por el modelo.`);
-    setRedactorStep(3);
-    setCurrentSpendUsd(prev => +(prev + 0.01).toFixed(2));
-    setSavedHoursCount(prev => +(prev + 2.0).toFixed(1));
-    showToast(`Datos extraídos de "${file.name}" e insertados en el borrador del modelo.`);
-  };
-
-  const parseTextIntoTemplateVariables = (rawNotes: string, customNoteMsg?: string) => {
-    const lines = rawNotes.split('\n').map(l => l.trim()).filter(Boolean);
     const nextVals = { ...templateValues };
+    const lines = rawNotes.split('\n').map(l => l.trim()).filter(Boolean);
 
     lines.forEach(line => {
       const colonIdx = line.indexOf(':');
@@ -1636,94 +1223,128 @@ ${historyContextStr}`;
       const val = line.slice(colonIdx + 1).trim();
       if (!val) return;
 
-      // Coincidencia para modelos predefinidos y cualquier modelo nuevo cargado por el abogado
-      if (prefix.includes('vendedor')) nextVals.VENDEDOR = val;
-      if (prefix.includes('comprador')) nextVals.COMPRADOR = val;
-      if (prefix.includes('inmueble') || prefix.includes('descripci')) nextVals.DATOS_INMUEBLE = val;
-      if (prefix.includes('registro') || prefix.includes('tradici')) nextVals.REGISTRO_INMUEBLE = val;
-      if (prefix.includes('precio') || prefix.includes('monto')) {
-        nextVals.PRECIO_VENTA = val;
-        nextVals.PRECIO_MONTO = val;
-      }
-      if (prefix.includes('arrendador') || prefix.includes('propietari')) nextVals.ARRENDADOR = val;
-      if (prefix.includes('arrendatari') || prefix.includes('inquilin')) nextVals.ARRENDATARIO = val;
-      if (prefix.includes('local') || prefix.includes('ubicaci') || prefix.includes('direcci')) nextVals.LOCAL_DIRECCION = val;
-      if (prefix.includes('canon') || prefix.includes('alquiler') || prefix.includes('garant')) nextVals.CANON_MENSUAL = val;
-      if (prefix.includes('duraci') || prefix.includes('plazo') || prefix.includes('vigencia')) nextVals.DURACION = val;
-      if (prefix.includes('otorgante') || prefix.includes('poderdante')) nextVals.OTORGANTE = val;
-      if (prefix.includes('apoderado') || prefix.includes('abogado')) nextVals.APODERADOS = val;
-      if (prefix.includes('facultad') || prefix.includes('mandato')) nextVals.FACULTADES_ESPECIFICAS = val;
-      if (prefix.includes('parte')) nextVals.PARTES = val;
-      if (prefix.includes('objeto')) nextVals.OBJETO = val;
-      if (prefix.includes('jurisdicci') || prefix.includes('domicilio') || prefix.includes('ciudad')) nextVals.JURISDICCION = val;
-
-      // Coincidencia dinámica contra las variables de cualquier plantilla personalizada
       selectedTemplate.variables.forEach(v => {
         const keyNorm = v.key.toLowerCase().replace(/_/g, ' ');
-        const catNorm = v.category.toLowerCase();
-        if (prefix.includes(keyNorm) || prefix === catNorm) {
+        const labelNorm = v.label.toLowerCase();
+        if (prefix.includes(keyNorm) || keyNorm.includes(prefix) || labelNorm.includes(prefix)) {
           nextVals[v.key] = val;
         }
       });
     });
 
-    setTemplateValues(nextVals);
-    setExtractedSourceNote(customNoteMsg || 'Texto libre analizado por la IA — Variables identificadas y sustituidas en el modelo original.');
-    setRedactorStep(3);
-    showToast('Datos del escrito aplicados automáticamente al modelo original.');
-  };
-
-  const handleExtractFromWrittenNotes = () => {
-    parseTextIntoTemplateVariables(freeTextToExtract);
-  };
-
-  const handleLoadClientIntoRedactor = (client: CrmClient) => {
-    const fullPartyDesc =
-      client.personType === 'Persona Jurídica (Empresa)'
-        ? `${client.name}, RIF ${client.taxId}, inscrita en ${client.registryInfo}, representada en este acto por ${client.legalRep}`
-        : `${client.name}, mayor de edad, titular del documento de identidad Nº ${client.taxId}, domiciliado(a) en ${client.address}`;
-
-    const nextVals = { ...templateValues };
-    if (selectedTemplate.id === 'tpl-compraventa') {
-      nextVals.COMPRADOR = fullPartyDesc;
-    } else if (selectedTemplate.id === 'tpl-arrendamiento') {
-      nextVals.ARRENDADOR = fullPartyDesc;
-    } else if (selectedTemplate.id === 'tpl-poder') {
-      nextVals.OTORGANTE = fullPartyDesc;
-      nextVals.APODERADOS = `${lawyerSignerName}, titular del ${lawyerCollegiateId}`;
-    } else if (selectedTemplate.variables.length > 0) {
-      nextVals[selectedTemplate.variables[0].key] = fullPartyDesc;
+    // Si tiene API configurada, usa la IA para extraer con precisión cada variable {{KEY}} del texto o documento subido
+    const hasApi = llmProvider === 'ollama' || (apiKeyInput.trim().length > 8 && !apiKeyInput.includes('•'));
+    if (hasApi && rawNotes.trim().length > 15) {
+      setIsRedactorExtracting(true);
+      try {
+        const varKeys = selectedTemplate.variables.map(v => v.key).join(', ');
+        const sys = `Extrae del texto suministrado los valores para rellenar las variables de este modelo jurídico: [${varKeys}]. Devuelve ÚNICAMENTE un objeto JSON válido donde cada clave sea el nombre exacto de la variable y su valor sea el texto extraído.`;
+        const { sanitized, tokens } = anonymizePiiText(rawNotes, allProtectedNames);
+        const aiResp = await callConfiguredLlmApi({
+          provider: llmProvider,
+          model: llmModel,
+          apiKey: apiKeyInput,
+          ollamaUrl: ollamaBaseUrl,
+          systemPrompt: sys,
+          userPrompt: sanitized
+        });
+        const jsonMatch = aiResp.match(/\{[\s\S]*\}/);
+        if (jsonMatch) {
+          const parsed = JSON.parse(jsonMatch[0]);
+          Object.keys(parsed).forEach(k => {
+            if (parsed[k]) {
+              nextVals[k] = deAnonymizeText(String(parsed[k]), tokens);
+            }
+          });
+        }
+      } catch {
+        // Conserva la extracción local por etiquetas
+      }
+      setIsRedactorExtracting(false);
     }
 
     setTemplateValues(nextVals);
-    setExtractedSourceNote(`Datos de la ficha legal de "${client.name}" importados directamente desde el CRM del despacho.`);
+    setExtractedSourceNote(`${sourceLabel} procesado.`);
+    setRedactorStep(3);
+    showToast('Datos aplicados a las variables del modelo.');
+  };
+
+  const handleExtractFromPhotoOrPdf = (file: File, sourceType: 'Foto (OCR)' | 'Documento PDF') => {
+    if (typeof FileReader !== 'undefined') {
+      const reader = new FileReader();
+      reader.onload = () => {
+        const raw = String(reader.result || '');
+        const printable = raw.match(/[A-Za-záéíóúñÁÉÍÓÚÑ0-9.,;:()¿?¡!$€%@#/_\\\-\s]{8,}/g);
+        const textContent = /\.(txt|md|csv|json)$/i.test(file.name)
+          ? raw
+          : printable
+          ? printable.join('\n')
+          : '';
+        if (textContent.trim()) {
+          setFreeTextToExtract(textContent.slice(0, 4000));
+          parseTextIntoTemplateVariables(textContent.slice(0, 4000), `${sourceType} ("${file.name}")`);
+        } else {
+          setExtractedSourceNote(`Archivo "${file.name}" cargado. Completa o verifica los campos abajo.`);
+          setRedactorStep(3);
+        }
+      };
+      reader.readAsText(file);
+    }
+  };
+
+  const handleExtractFromWrittenNotes = () => {
+    if (!freeTextToExtract.trim()) return;
+    parseTextIntoTemplateVariables(freeTextToExtract, 'Texto libre');
+  };
+
+  const handleLoadClientIntoRedactor = (client: CrmClient) => {
+    if (!selectedTemplate) {
+      setActiveTab('redactor_docs');
+      showToast('Selecciona o carga primero un modelo en el Redactor.');
+      return;
+    }
+    const fullPartyDesc =
+      client.personType === 'Persona Jurídica (Empresa)'
+        ? `${client.name}, RIF ${client.taxId}, inscrita en ${client.registryInfo}, representada por ${client.legalRep}`
+        : `${client.name}, documento de identidad Nº ${client.taxId}, domiciliado(a) en ${client.address}`;
+
+    const nextVals = { ...templateValues };
+    if (selectedTemplate.variables.length > 0) {
+      nextVals[selectedTemplate.variables[0].key] = fullPartyDesc;
+    }
+    setTemplateValues(nextVals);
+    setExtractedSourceNote(`Ficha legal de "${client.name}" importada desde el CRM.`);
     setActiveTab('redactor_docs');
     setRedactorStep(3);
-    showToast(`Datos de "${client.name}" cargados en el Redactor de Documentos.`);
+    showToast(`Datos de "${client.name}" trasladados al Redactor.`);
   };
 
   const compiledDocument = useMemo(() => {
+    if (!selectedTemplate) return '';
     let text = selectedTemplate.contentPreview;
     selectedTemplate.variables.forEach(v => {
-      const val = templateValues[v.key] || `[FALTA COMPLETAR: ${v.label}]`;
-      text = text.replace(new RegExp(`\\{\\{${v.key}\\}\\}`, 'g'), val);
+      const val = templateValues[v.key]?.trim() || `[PENDIENTE: {{${v.key}}}]`;
+      text = text.replace(new RegExp(`\\{\\{${v.key}\\}\\}`, 'gi'), val);
     });
     return text;
   }, [selectedTemplate, templateValues]);
 
   const handleApproveAndExportRedactorDoc = () => {
+    if (!selectedTemplate || !compiledDocument.trim()) return;
     const { tokens } = anonymizePiiText(compiledDocument, allProtectedNames);
-    const hash = computeRealSha256(`${compiledDocument}|${lawyerSignerName}|${Date.now()}`);
+    const signer = lawyerSignerName.trim() || 'Abogado Titular';
+    const colegiado = lawyerCollegiateId.trim() || 'Colegiado Titular';
+    const hash = computeRealSha256(`${compiledDocument}|${signer}|${Date.now()}`);
     const nowStr = new Date().toLocaleString('es-ES', { dateStyle: 'short', timeStyle: 'short' });
 
     const newApproved: ApprovedDocumentRecord = {
       id: `HL-${Date.now().toString().slice(-5)}`,
       timestamp: nowStr,
-      title: `${selectedTemplate.name}`,
+      title: selectedTemplate.name,
       originModule: 'Redactor de Documentos',
       templateUsed: `${selectedTemplate.name} (${selectedTemplate.source})`,
-      approvedBy: lawyerSignerName,
-      collegiateNumber: lawyerCollegiateId,
+      approvedBy: signer,
+      collegiateNumber: colegiado,
       sha256: hash,
       content: compiledDocument
     };
@@ -1734,12 +1355,15 @@ ${historyContextStr}`;
         id: `PII-${Date.now().toString().slice(-5)}`,
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
         originModule: 'Redactor de Documentos',
-        contextSummary: `Ensamblaje de ${selectedTemplate.name}`,
-        tokensDetected: tokens.map(t => ({
-          token: t.token,
-          type: t.type,
-          maskedPreview: `${t.original.slice(0, 5)}••• (Sustituido localmente)`
-        })),
+        contextSummary: `Redacción y visado: ${selectedTemplate.name}`,
+        tokensDetected:
+          tokens.length > 0
+            ? tokens.map(t => ({
+                token: t.token,
+                type: t.type,
+                maskedPreview: `${t.original.slice(0, 5)}••• (Protegido localmente)`
+              }))
+            : [{ token: '[LOCAL]', type: 'DOCUMENTO', maskedPreview: 'Procesado en memoria local' }],
         zeroRetentionVerified: true
       },
       ...prev
@@ -1750,7 +1374,7 @@ ${historyContextStr}`;
         id: `TRZ-${Date.now().toString().slice(-5)}`,
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
         module: 'Redactor de Documentos',
-        action: `Visto Bueno y Exportación .DOC: ${selectedTemplate.name}`,
+        action: `Visado y exportación .DOC: ${selectedTemplate.name}`,
         llmUsed: `${llmProvider}/${llmModel}`,
         piiCount: tokens.length,
         ragSource: selectedTemplate.source,
@@ -1761,34 +1385,73 @@ ${historyContextStr}`;
     ]);
 
     setRedactorApprovedStamp(hash);
-    setSavedHoursCount(prev => +(prev + 2.5).toFixed(1));
+    setSavedHoursCount(prev => +(prev + 2.0).toFixed(1));
     exportWordDoc(
       `${selectedTemplate.name.replace(/\s+/g, '_')}_Visado.doc`,
       selectedTemplate.name.toUpperCase(),
-      `Documento Visado por: ${lawyerSignerName} (${lawyerCollegiateId}) • Fecha: ${nowStr} • Sello Human-Loop SHA-256: ${hash.slice(0, 20)}...`,
-      `${compiledDocument}\n\n____________________________________________________\nVISADO POR: ${lawyerSignerName}\n${lawyerCollegiateId}\nSello de Aprobación Human-in-the-Loop: ${hash}`
+      `Visado por: ${signer} (${colegiado}) • Fecha: ${nowStr} • SHA-256: ${hash.slice(0, 20)}...`,
+      `${compiledDocument}\n\n____________________________________________________\nVISADO POR: ${signer}\n${colegiado}\nSello SHA-256: ${hash}`
     );
-    showToast('Visto Bueno otorgado: Registrado en Human-in-the-Loop y descargado en .DOC para impresión y visado.');
+    showToast('Documento visado y descargado en formato .DOC.');
   };
 
   // ==========================================================================
-  // MÓDULO 3: GRABADOR DE ACTAS (PRESENCIAL / ONLINE + CHECKS A PLANIFICADOR + MINUTA)
+  // MÓDULO 3: GRABADOR DE ACTAS (CON DICTADO EN VIVO / TRANSCRIPCIÓN Y TAREAS)
   // ==========================================================================
   const [isRecording, setIsRecording] = useState<boolean>(false);
   const [recordingSeconds, setRecordingSeconds] = useState<number>(0);
-  const [recordingMode, setRecordingMode] = useState<'Presencial (Sala / Despacho)' | 'Meeting Online (Zoom / Meet / Teams)'>('Meeting Online (Zoom / Meet / Teams)');
-  const [meetingTitleInput, setMeetingTitleInput] = useState<string>('Reunión de Cierre de Compraventa y Revisión de Garantías');
-  const [meetingAttendeesInput, setMeetingAttendeesInput] = useState<string>('Abg. Titular, Carlos Méndez (Vendedor), María Salazar (Compradora)');
+  const [recordingMode, setRecordingMode] = useState<'Presencial (Sala / Despacho)' | 'Meeting Online (Zoom / Meet / Teams)'>('Presencial (Sala / Despacho)');
+  const [meetingTitleInput, setMeetingTitleInput] = useState<string>('');
+  const [meetingAttendeesInput, setMeetingAttendeesInput] = useState<string>('');
+  const [liveTranscriptInput, setLiveTranscriptInput] = useState<string>('');
+  const [newAgreementInput, setNewAgreementInput] = useState<string>('');
+  const [newAgreementDateInput, setNewAgreementDateInput] = useState<string>(new Date().toISOString().slice(0, 10));
+  const [draftAgreements, setDraftAgreements] = useState<{ text: string; dueDate: string }[]>([]);
   const [showMinutaModal, setShowMinutaModal] = useState<RecordingNote | null>(null);
+  const [recordings, setRecordings] = useState<RecordingNote[]>([]);
   const recordingTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const speechRecRef = useRef<any>(null);
 
   useEffect(() => {
     if (isRecording) {
       recordingTimerRef.current = setInterval(() => {
         setRecordingSeconds(s => s + 1);
       }, 1000);
+      // Activa reconocimiento de voz nativo del navegador si está disponible
+      try {
+        const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+        if (SpeechRecognition) {
+          const recognition = new SpeechRecognition();
+          recognition.lang = 'es-VE';
+          recognition.continuous = true;
+          recognition.interimResults = false;
+          recognition.onresult = (event: any) => {
+            let chunk = '';
+            for (let i = event.resultIndex; i < event.results.length; i++) {
+              if (event.results[i].isFinal) {
+                chunk += event.results[i][0].transcript + ' ';
+              }
+            }
+            if (chunk.trim()) {
+              setLiveTranscriptInput(prev => (prev ? `${prev}\n${chunk.trim()}` : chunk.trim()));
+            }
+          };
+          recognition.start();
+          speechRecRef.current = recognition;
+        }
+      } catch {
+        // Si el navegador no soporta Web Speech API, permite transcripción/notas en vivo
+      }
     } else {
       if (recordingTimerRef.current) clearInterval(recordingTimerRef.current);
+      if (speechRecRef.current) {
+        try {
+          speechRecRef.current.stop();
+        } catch {
+          // ignorar
+        }
+        speechRecRef.current = null;
+      }
       setRecordingSeconds(0);
     }
     return () => {
@@ -1796,69 +1459,74 @@ ${historyContextStr}`;
     };
   }, [isRecording]);
 
-  const [recordings, setRecordings] = useState<RecordingNote[]>([
-    {
-      id: 'rec-01',
-      title: 'Reunión de Negociación de Compraventa Inmobiliaria y Entrega de Recaudos',
-      date: '2026-10-19',
-      duration: '28:15',
-      mode: 'Meeting Online (Zoom / Meet / Teams)',
-      attendees: 'Abg. Titular, Carlos Méndez (Parte Vendedora), María Salazar (Parte Compradora)',
-      summaryPoints: [
-        'Las partes ratificaron el precio definitivo de la compraventa en 95.000 USD pagaderos el día de la firma.',
-        'La parte vendedora exhibió solvencia municipal y liberación de hipoteca lista para protocolización.',
-        'Se acordó fijar la firma definitiva ante el Registro Público para el próximo lunes 26 de octubre.'
-      ],
-      agreementsAndTasks: [
-        { id: 'act-1', text: 'Solicitar solvencia actualizada de derecho de frente y ficha catastral en Alcaldía', dueDate: '2026-10-22', addedToPlanner: true, linkedTaskId: 'tsk-1', linkedEventId: 'ev-2' },
-        { id: 'act-2', text: 'Redactar versión definitiva del Contrato de Compraventa e incluir linderos exactos', dueDate: '2026-10-23', addedToPlanner: false },
-        { id: 'act-3', text: 'Coordinar cita de otorgamiento y firma presencial ante el Registro Inmobiliario', dueDate: '2026-10-26', addedToPlanner: false }
-      ],
-      transcript: `[00:01:12] Abg. Titular: Damos inicio a la sesión online con las partes para revisar los recaudos finales de la compraventa del Apartamento 8-A.\n[00:04:30] Parte Vendedora (Carlos Méndez): Ya tenemos la liberación de hipoteca y el pago de impuestos municipales al día; los enviaré hoy mismo en PDF.\n[00:11:45] Parte Compradora (María Salazar): Estamos conformes con el precio de 95.000 USD y la transferencia se ejecutará al momento del otorgamiento.\n[00:22:10] Abg. Titular: Perfecto. Queda acordado que el despacho redactará el instrumento final el viernes 23 y agendamos el otorgamiento para el lunes 26 de octubre.`
-    }
-  ]);
+  const handleAddDraftAgreement = () => {
+    if (!newAgreementInput.trim()) return;
+    setDraftAgreements(prev => [
+      ...prev,
+      { text: newAgreementInput.trim(), dueDate: newAgreementDateInput || new Date().toISOString().slice(0, 10) }
+    ]);
+    setNewAgreementInput('');
+  };
 
   const handleFinishRecordingSimulation = () => {
     setIsRecording(false);
-    const todayIso = '2026-10-19';
+    const title = meetingTitleInput.trim() || 'Acta de Reunión Jurídica';
+    const attendees = meetingAttendeesInput.trim() || lawyerSignerName || 'Participantes de la sesión';
+    const todayIso = new Date().toISOString().slice(0, 10);
     const mins = String(Math.floor(recordingSeconds / 60)).padStart(2, '0');
     const secs = String(recordingSeconds % 60).padStart(2, '0');
-    const formattedDuration = recordingSeconds > 5 ? `${mins}:${secs}` : '19:40';
-    const transcriptText = `[00:00:15] Inicio de grabación (${recordingMode}) — Asunto: ${meetingTitleInput}.\n[00:05:40] Intervención de los asistentes (${meetingAttendeesInput}): Se revisan los puntos críticos de la agenda legal y se aprueban los términos expuestos por el despacho.\n[00:14:20] Acuerdos de cierre: Se instruye preparar el borrador definitivo para el 21/10/2026 y convocar a firma el 27/10/2026.`;
+    const formattedDuration = `${mins}:${secs}`;
+    const transcriptText = liveTranscriptInput.trim() || 'Sesión registrada sin transcripción textual adicional.';
 
     const { tokens } = anonymizePiiText(transcriptText, allProtectedNames);
-    const hash = computeRealSha256(`${transcriptText}|${Date.now()}`);
+    const hash = computeRealSha256(`${title}|${transcriptText}|${Date.now()}`);
+
+    const summaryLines = transcriptText
+      .split(/\n|\./)
+      .map(s => s.trim())
+      .filter(s => s.length > 15)
+      .slice(0, 4);
 
     const newRec: RecordingNote = {
       id: `rec-${Date.now().toString().slice(-4)}`,
-      title: meetingTitleInput.trim() || 'Sesión Jurídica Grabada',
+      title,
       date: todayIso,
       duration: formattedDuration,
       mode: recordingMode,
-      attendees: meetingAttendeesInput.trim() || 'Abg. Titular y Clientes Asistentes',
-      summaryPoints: [
-        `Sesión realizada vía ${recordingMode} con participación de ${meetingAttendeesInput || 'los asistentes convocados'}.`,
-        'Se validaron los documentos de identidad, solvencias y condiciones económicas de la operación.',
-        'Quedaron asignadas las tareas jurídicas con fechas de vencimiento para el equipo y el cliente.'
-      ],
-      agreementsAndTasks: [
-        { id: `t-${Date.now()}-1`, text: `Preparar borrador de instrumento legal acordado en "${meetingTitleInput}"`, dueDate: '2026-10-21', addedToPlanner: false },
-        { id: `t-${Date.now()}-2`, text: 'Verificar recaudos registrales y enviar minuta de acuerdos a los asistentes', dueDate: '2026-10-22', addedToPlanner: false },
-        { id: `t-${Date.now()}-3`, text: 'Revisión final y firma del documento con el cliente', dueDate: '2026-10-27', addedToPlanner: false }
-      ],
+      attendees,
+      summaryPoints:
+        summaryLines.length > 0
+          ? summaryLines
+          : [`Sesión (${recordingMode}) celebrada con ${attendees}.`],
+      agreementsAndTasks: draftAgreements.map((da, idx) => ({
+        id: `act-${Date.now()}-${idx}`,
+        text: da.text,
+        dueDate: da.dueDate,
+        addedToPlanner: false
+      })),
       transcript: transcriptText
     };
+
     setRecordings(prev => [newRec, ...prev]);
+    setMeetingTitleInput('');
+    setMeetingAttendeesInput('');
+    setLiveTranscriptInput('');
+    setDraftAgreements([]);
 
     setPiiAuditRegistry(prev => [
       {
         id: `PII-${Date.now().toString().slice(-5)}`,
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
         originModule: 'Grabador de Actas',
-        contextSummary: `Transcripción y Resumen: ${newRec.title}`,
-        tokensDetected: tokens.length > 0
-          ? tokens.map(t => ({ token: t.token, type: t.type, maskedPreview: `${t.original.slice(0, 5)}••• (Protegido en RAM)` }))
-          : [{ token: '[AUDIO_PROCESADO_LOCAL]', type: 'SALA_PRIVADA', maskedPreview: 'Participantes protegidos en memoria local' }],
+        contextSummary: `Acta generada: ${title}`,
+        tokensDetected:
+          tokens.length > 0
+            ? tokens.map(t => ({
+                token: t.token,
+                type: t.type,
+                maskedPreview: `${t.original.slice(0, 4)}••• (Protegido en RAM)`
+              }))
+            : [{ token: '[ACTA_LOCAL]', type: 'SALA', maskedPreview: 'Procesada localmente' }],
         zeroRetentionVerified: true
       },
       ...prev
@@ -1869,8 +1537,8 @@ ${historyContextStr}`;
         id: `TRZ-${Date.now().toString().slice(-5)}`,
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
         module: 'Grabador de Actas',
-        action: `Acta y acuerdos generados: ${newRec.title}`,
-        llmUsed: `${llmProvider}/${llmModel} (store:false)`,
+        action: `Acta registrada: ${title}`,
+        llmUsed: `${llmProvider}/${llmModel}`,
         piiCount: tokens.length,
         ragSource: 'Audio / Transcripción Local',
         sha256: hash,
@@ -1879,32 +1547,26 @@ ${historyContextStr}`;
       ...prev
     ]);
 
-    setCurrentSpendUsd(prev => +(prev + 0.01).toFixed(2));
-    setSavedHoursCount(prev => +(prev + 1.5).toFixed(1));
-    showToast('Grabación finalizada: Resumen, Acuerdos con Check al Planificador y Transcripción generados.');
+    setSavedHoursCount(prev => +(prev + 1.0).toFixed(1));
+    showToast('Acta guardada correctamente.');
+  };
+
+  const handleDeleteRecording = (recId: string) => {
+    setRecordings(prev => prev.filter(r => r.id !== recId));
+    showToast('Acta eliminada.');
   };
 
   // ==========================================================================
-  // MÓDULO 4 Y 5: PLANIFICADOR Y CALENDARIO MENSUAL REAL (SINCRONIZADOS AUTOMÁTICAMENTE)
+  // MÓDULO 4 Y 5: PLANIFICADOR Y CALENDARIO MENSUAL REAL
   // ==========================================================================
-  const [tasks, setTasks] = useState<PlannerTask[]>([
-    { id: 'tsk-1', title: 'Solicitar solvencia actualizada de derecho de frente y ficha catastral en Alcaldía', client: 'María Salazar / Carlos Méndez', dueDate: '2026-10-22', status: 'Pendiente', priority: 'Alta', origin: 'Grabador de Actas' },
-    { id: 'tsk-2', title: 'Revisión de estatutos y acta de asamblea extraordinaria', client: 'Inversiones Torre Central, C.A.', dueDate: '2026-10-20', status: 'En Curso', priority: 'Media', origin: 'Planificador' },
-    { id: 'tsk-3', title: 'Vencimiento de contestación de demanda mercantil', client: 'Grupo Industrial Delta, C.A.', dueDate: '2026-10-28', status: 'Pendiente', priority: 'Alta', origin: 'Plazo Procesal' }
-  ]);
-
-  const [calendarEvents, setCalendarEvents] = useState<CalendarEventItem[]>([
-    { id: 'ev-1', title: 'Revisión de estatutos y acta de asamblea extraordinaria', date: '2026-10-20', type: 'Tarea Planificador', client: 'Inversiones Torre Central, C.A.', linkedTaskId: 'tsk-2' },
-    { id: 'ev-2', title: 'Solicitar solvencia actualizada de derecho de frente y ficha catastral en Alcaldía', date: '2026-10-22', type: 'Reunión / Acta', client: 'María Salazar / Carlos Méndez', linkedTaskId: 'tsk-1' },
-    { id: 'ev-3', title: 'Vencimiento de contestación de demanda mercantil', date: '2026-10-28', type: 'Plazo Procesal', client: 'Grupo Industrial Delta, C.A.', linkedTaskId: 'tsk-3' }
-  ]);
+  const [tasks, setTasks] = useState<PlannerTask[]>([]);
+  const [calendarEvents, setCalendarEvents] = useState<CalendarEventItem[]>([]);
 
   const [newTaskTitle, setNewTaskTitle] = useState<string>('');
   const [newTaskClient, setNewTaskClient] = useState<string>('');
-  const [newTaskDate, setNewTaskDate] = useState<string>('2026-10-24');
+  const [newTaskDate, setNewTaskDate] = useState<string>(new Date().toISOString().slice(0, 10));
   const [newTaskPriority, setNewTaskPriority] = useState<'Alta' | 'Media' | 'Baja'>('Alta');
 
-  // Evita duplicar tareas al desmarcar y volver a marcar un acuerdo en el Grabador
   const handleToggleRecordingTaskCheck = (recId: string, actionId: string) => {
     const targetRec = recordings.find(r => r.id === recId);
     const targetItem = targetRec?.agreementsAndTasks.find(a => a.id === actionId);
@@ -1918,7 +1580,7 @@ ${historyContextStr}`;
         {
           id: newTaskId,
           title: targetItem.text,
-          client: targetRec.attendees.split(',')[1]?.trim() || 'Asistentes de Reunión',
+          client: targetRec.attendees,
           dueDate: targetItem.dueDate,
           status: 'Pendiente',
           priority: 'Alta',
@@ -1951,15 +1613,10 @@ ${historyContextStr}`;
               }
         )
       );
-      showToast(`Tarea enviada automáticamente al Planificador y agendada en el Calendario (${targetItem.dueDate}).`);
+      showToast(`Acuerdo enviado al Planificador y Calendario (${targetItem.dueDate}).`);
     } else {
-      // Si se desmarca, remueve la tarea vinculada del Planificador y del Calendario para evitar duplicados
-      setTasks(tPrev =>
-        tPrev.filter(tk => tk.id !== targetItem.linkedTaskId && tk.title !== targetItem.text)
-      );
-      setCalendarEvents(cPrev =>
-        cPrev.filter(ev => ev.id !== targetItem.linkedEventId && ev.linkedTaskId !== targetItem.linkedTaskId)
-      );
+      setTasks(tPrev => tPrev.filter(tk => tk.id !== targetItem.linkedTaskId));
+      setCalendarEvents(cPrev => cPrev.filter(ev => ev.id !== targetItem.linkedEventId));
       setRecordings(prev =>
         prev.map(rec =>
           rec.id !== recId
@@ -1974,7 +1631,7 @@ ${historyContextStr}`;
               }
         )
       );
-      showToast('Tarea removida del Planificador y del Calendario.');
+      showToast('Acuerdo removido del Planificador y Calendario.');
     }
   };
 
@@ -1984,7 +1641,7 @@ ${historyContextStr}`;
     const createdTask: PlannerTask = {
       id: taskId,
       title: newTaskTitle.trim(),
-      client: newTaskClient.trim() || 'General Despacho',
+      client: newTaskClient.trim() || 'Despacho',
       dueDate: newTaskDate,
       status: 'Pendiente',
       priority: newTaskPriority,
@@ -2004,33 +1661,34 @@ ${historyContextStr}`;
     ]);
     setNewTaskTitle('');
     setNewTaskClient('');
-    showToast(`Tarea planificada y agregada directamente en tu Calendario para el día ${newTaskDate}.`);
+    showToast(`Tarea agendada para el ${newTaskDate}.`);
   };
 
   const handleDeletePlannerTask = (taskId: string) => {
     const target = tasks.find(t => t.id === taskId);
     setTasks(prev => prev.filter(t => t.id !== taskId));
     setCalendarEvents(prev => prev.filter(ev => ev.linkedTaskId !== taskId && ev.title !== target?.title));
-    showToast('Tarea eliminada del Planificador y del Calendario.');
+    showToast('Tarea eliminada.');
   };
 
   // ==========================================================================
-  // ESTADO DEL CALENDARIO MENSUAL REAL (MODO AGENDA GENERAL + MODO PROCESAL)
+  // ESTADO DEL CALENDARIO MENSUAL Y CÓMPUTO PROCESAL
   // ==========================================================================
-  const [calendarYear, setCalendarYear] = useState<number>(2026);
-  const [calendarMonth, setCalendarMonth] = useState<number>(9);
-  const [selectedCalendarDate, setSelectedCalendarDate] = useState<string>('2026-10-22');
+  const nowDate = new Date();
+  const [calendarYear, setCalendarYear] = useState<number>(nowDate.getFullYear());
+  const [calendarMonth, setCalendarMonth] = useState<number>(nowDate.getMonth());
+  const [selectedCalendarDate, setSelectedCalendarDate] = useState<string>(nowDate.toISOString().slice(0, 10));
   const [calendarLawyerMode, setCalendarLawyerMode] = useState<'ambos' | 'agenda_general' | 'computo_procesal'>('ambos');
 
   const [newCalEventTitle, setNewCalEventTitle] = useState<string>('');
   const [newCalEventType, setNewCalEventType] = useState<'Agenda General' | 'Plazo Procesal'>('Agenda General');
 
-  const [procNotificationDate, setProcNotificationDate] = useState<string>('2026-10-19');
+  const [procNotificationDate, setProcNotificationDate] = useState<string>(nowDate.toISOString().slice(0, 10));
   const [procDaysCount, setProcDaysCount] = useState<number>(5);
   const [procDayMode, setProcDayMode] = useState<'habiles' | 'continuos'>('habiles');
   const [procExcludeHolidaysAndRecess, setProcExcludeHolidaysAndRecess] = useState<boolean>(true);
   const [nonWorkingDates, setNonWorkingDates] = useState<string[]>(DEFAULT_NON_WORKING_DATES);
-  const [procTitleInput, setProcTitleInput] = useState<string>('Vencimiento de Lapso de Promoción de Pruebas');
+  const [procTitleInput, setProcTitleInput] = useState<string>('');
 
   const monthNames = [
     'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
@@ -2065,10 +1723,10 @@ ${historyContextStr}`;
   const handleToggleNoDispatchDay = (dateStr: string) => {
     if (nonWorkingDates.includes(dateStr)) {
       setNonWorkingDates(prev => prev.filter(d => d !== dateStr));
-      showToast(`Día ${dateStr} habilitado nuevamente como día con despacho.`);
+      showToast(`Día ${dateStr} habilitado como día con despacho.`);
     } else {
       setNonWorkingDates(prev => [...prev, dateStr]);
-      showToast(`Día ${dateStr} marcado como Feriado / Día sin Despacho para el cómputo procesal.`);
+      showToast(`Día ${dateStr} marcado como día sin despacho / feriado.`);
     }
   };
 
@@ -2081,14 +1739,20 @@ ${historyContextStr}`;
         title: newCalEventTitle.trim(),
         date: selectedCalendarDate,
         type: newCalEventType,
-        client: 'Agendado en Calendario'
+        client: 'Agenda del Despacho'
       }
     ]);
     setNewCalEventTitle('');
-    showToast(`Evento agregado en el Calendario para el ${selectedCalendarDate}.`);
+    showToast(`Evento agendado para el ${selectedCalendarDate}.`);
+  };
+
+  const handleDeleteCalendarEvent = (evId: string) => {
+    setCalendarEvents(prev => prev.filter(e => e.id !== evId));
+    showToast('Evento eliminado del calendario.');
   };
 
   const handleCalculateAndAddProceduralDeadline = () => {
+    const title = procTitleInput.trim() || 'Vencimiento de Lapso Procesal';
     const start = new Date(`${procNotificationDate}T12:00:00`);
     let remaining = Math.max(1, procDaysCount);
     const cur = new Date(start);
@@ -2127,7 +1791,7 @@ ${historyContextStr}`;
       ...prev,
       {
         id: `ev-${Date.now().toString().slice(-4)}`,
-        title: `${procTitleInput} (${procDaysCount} días ${procDayMode === 'habiles' ? 'hábiles de despacho' : 'continuos'})`,
+        title: `${title} (${procDaysCount} días ${procDayMode === 'habiles' ? 'de despacho' : 'continuos'})`,
         date: finalDateStr,
         type: 'Plazo Procesal',
         client: 'Cómputo Procesal',
@@ -2137,7 +1801,7 @@ ${historyContextStr}`;
     setTasks(prev => [
       {
         id: newTaskId,
-        title: `${procTitleInput}`,
+        title,
         client: 'Cómputo Procesal',
         dueDate: finalDateStr,
         status: 'Pendiente',
@@ -2146,56 +1810,34 @@ ${historyContextStr}`;
       },
       ...prev
     ]);
+    setProcTitleInput('');
     setCalendarYear(yyyy);
     setCalendarMonth(cur.getMonth());
     setSelectedCalendarDate(finalDateStr);
     showToast(
-      `Vencimiento procesal calculado (${finalDateStr})${skippedHolidays > 0 ? ` descontando ${skippedHolidays} día(s) sin despacho/feriado` : ''} y marcado en el Calendario y Planificador.`
+      `Vencimiento calculado: ${finalDateStr}${skippedHolidays > 0 ? ` (${skippedHolidays} día(s) inhábiles descontados)` : ''}.`
     );
   };
 
   // ==========================================================================
-  // ESTADO ADICIONAL DEL CRM (EDICIÓN Y EXPEDIENTES)
+  // FUNCIONES CRUD DEL CRM DE CLIENTES
   // ==========================================================================
-  const [selectedClientId, setSelectedClientId] = useState<string>('cli-01');
-  const [crmSearch, setCrmSearch] = useState<string>('');
-  const [showNewClientForm, setShowNewClientForm] = useState<boolean>(false);
-  const [isEditingClient, setIsEditingClient] = useState<boolean>(false);
-  const [newMatterInput, setNewMatterInput] = useState<string>('');
-  const [newClientForm, setNewClientForm] = useState({
-    name: '',
-    personType: 'Persona Jurídica (Empresa)' as 'Persona Jurídica (Empresa)' | 'Persona Física / Natural',
-    taxId: '',
-    legalRep: '',
-    registryInfo: '',
-    address: '',
-    phone: '',
-    email: '',
-    feeArrangement: '',
-    confidentialNotes: ''
-  });
-
-  const selectedClient = useMemo(
-    () => crmClients.find(c => c.id === selectedClientId) || crmClients[0],
-    [crmClients, selectedClientId]
-  );
-
   const handleCreateCrmClient = () => {
     if (!newClientForm.name.trim()) return;
     const created: CrmClient = {
       id: `cli-${Date.now().toString().slice(-4)}`,
       name: newClientForm.name.trim(),
       personType: newClientForm.personType,
-      taxId: newClientForm.taxId.trim() || 'Por completar',
-      legalRep: newClientForm.legalRep.trim() || 'Titular directo',
-      registryInfo: newClientForm.registryInfo.trim() || 'Sin datos registrales cargados aún',
+      taxId: newClientForm.taxId.trim() || 'Por registrar',
+      legalRep: newClientForm.legalRep.trim() || 'Actúa por propio derecho',
+      registryInfo: newClientForm.registryInfo.trim() || 'Sin datos registrales',
       powerStatus: 'Vigente',
-      address: newClientForm.address.trim() || 'Domicilio por registrar',
+      address: newClientForm.address.trim() || 'Sin domicilio registrado',
       phone: newClientForm.phone.trim() || 'Sin teléfono',
       email: newClientForm.email.trim() || 'Sin correo',
-      activeMatters: ['Expediente Inicial en Apertura'],
-      feeArrangement: newClientForm.feeArrangement.trim() || 'Honorarios por definir',
-      confidentialNotes: newClientForm.confidentialNotes.trim() || 'Ficha legal creada en el sistema privado del despacho.'
+      activeMatters: [],
+      feeArrangement: newClientForm.feeArrangement.trim() || 'Por definir',
+      confidentialNotes: newClientForm.confidentialNotes.trim() || ''
     };
     setCrmClients(prev => [created, ...prev]);
     setSelectedClientId(created.id);
@@ -2204,69 +1846,159 @@ ${historyContextStr}`;
       name: '', personType: 'Persona Jurídica (Empresa)', taxId: '', legalRep: '',
       registryInfo: '', address: '', phone: '', email: '', feeArrangement: '', confidentialNotes: ''
     });
-    showToast(`Ficha legal completa creada para ${created.name}.`);
+    showToast(`Cliente "${created.name}" registrado en el CRM.`);
+  };
+
+  const handleDeleteCrmClient = (cliId: string) => {
+    const next = crmClients.filter(c => c.id !== cliId);
+    setCrmClients(next);
+    if (selectedClientId === cliId) {
+      setSelectedClientId(next[0]?.id || '');
+    }
+    showToast('Ficha de cliente eliminada.');
   };
 
   const handleUpdateSelectedClientField = <K extends keyof CrmClient>(field: K, value: CrmClient[K]) => {
+    if (!selectedClient) return;
     setCrmClients(prev =>
       prev.map(c => (c.id === selectedClient.id ? { ...c, [field]: value } : c))
     );
   };
 
   const handleAddMatterToSelectedClient = () => {
-    if (!newMatterInput.trim()) return;
+    if (!selectedClient || !newMatterInput.trim()) return;
     handleUpdateSelectedClientField('activeMatters', [
       ...selectedClient.activeMatters,
       newMatterInput.trim()
     ]);
     setNewMatterInput('');
-    showToast(`Nuevo expediente vinculado a ${selectedClient.name}.`);
+    showToast('Expediente agregado a la ficha del cliente.');
   };
 
   // ==========================================================================
-  // PERSISTENCIA AUTOMÁTICA EN LOCALSTORAGE (SEGURO EN NAVEGADOR Y CANVAS)
+  // FUNCIONES CRUD DE MODELOS Y LEYES RAG (MÓDULO 11 CONFIGURACIÓN)
+  // ==========================================================================
+  const handleCreateTemplateManual = () => {
+    if (!newTplNameInput.trim() || !newTplContentInput.trim()) {
+      showToast('Ingresa el nombre del modelo y su contenido con variables {{VARIABLE}}.');
+      return;
+    }
+    const vars = detectVariablesInTemplateText(newTplContentInput.trim());
+    const created: ModelTemplate = {
+      id: `tpl-${Date.now().toString().slice(-5)}`,
+      name: newTplNameInput.trim(),
+      category: newTplCategoryInput.trim() || 'General',
+      source: librarySourceMode,
+      updatedAt: new Date().toLocaleDateString('es-ES'),
+      variables: vars,
+      contentPreview: newTplContentInput.trim()
+    };
+    setTemplates(prev => [created, ...prev]);
+    setSelectedTemplateId(created.id);
+    setNewTplNameInput('');
+    setNewTplContentInput('');
+    setShowAddTemplateModal(false);
+    showToast(`Modelo "${created.name}" guardado con ${vars.length} variable(s) detectada(s).`);
+  };
+
+  const handleDeleteTemplate = (tplId: string) => {
+    const remaining = templates.filter(t => t.id !== tplId);
+    setTemplates(remaining);
+    if (selectedTemplateId === tplId) {
+      setSelectedTemplateId(remaining[0]?.id || '');
+    }
+    showToast('Modelo eliminado de tu Biblioteca.');
+  };
+
+  const handleCreateRagManual = () => {
+    if (!newRagTitleInput.trim() || !newRagContentInput.trim()) {
+      showToast('Ingresa el título de la ley/documento y pega su texto o articulado.');
+      return;
+    }
+    const cleanText = newRagContentInput.trim();
+    const estimatedChunks = Math.max(1, Math.ceil(cleanText.length / 400));
+    const created: RagLawDocument = {
+      id: `rag-${Date.now().toString().slice(-5)}`,
+      title: newRagTitleInput.trim(),
+      type: newRagTypeInput,
+      chunks: estimatedChunks,
+      status: 'Indexado',
+      excerpt: cleanText.slice(0, 260) + (cleanText.length > 260 ? '...' : ''),
+      fullText: cleanText
+    };
+    setRagDocs(prev => [created, ...prev]);
+    setNewRagTitleInput('');
+    setNewRagContentInput('');
+    setShowAddRagModal(false);
+    showToast(`"${created.title}" indexado y almacenado en el RAG (${estimatedChunks} fragmentos).`);
+  };
+
+  const handleDeleteRagDoc = (ragId: string) => {
+    setRagDocs(prev => prev.filter(d => d.id !== ragId));
+    if (viewingRagDoc?.id === ragId) setViewingRagDoc(null);
+    showToast('Documento eliminado del repositorio RAG.');
+  };
+
+  // ==========================================================================
+  // PERSISTENCIA AUTOMÁTICA EN LOCALSTORAGE
   // ==========================================================================
   useEffect(() => {
     try {
       const raw = window.localStorage.getItem(STORAGE_KEY);
       if (!raw) return;
       const saved = JSON.parse(raw);
-      if (saved.firmName) setFirmName(saved.firmName);
-      if (saved.lawyerSignerName) setLawyerSignerName(saved.lawyerSignerName);
-      if (saved.lawyerCollegiateId) setLawyerCollegiateId(saved.lawyerCollegiateId);
+      if (typeof saved.darkMode === 'boolean') setDarkMode(saved.darkMode);
+      if (saved.firmName !== undefined) setFirmName(saved.firmName);
+      if (saved.lawyerSignerName !== undefined) setLawyerSignerName(saved.lawyerSignerName);
+      if (saved.lawyerCollegiateId !== undefined) setLawyerCollegiateId(saved.lawyerCollegiateId);
+      if (saved.customPracticeArea !== undefined) setCustomPracticeArea(saved.customPracticeArea);
       if (saved.llmProvider) setLlmProvider(saved.llmProvider);
       if (saved.llmModel) setLlmModel(saved.llmModel);
+      if (saved.apiKeyInput !== undefined) setApiKeyInput(saved.apiKeyInput);
+      if (saved.ollamaBaseUrl !== undefined) setOllamaBaseUrl(saved.ollamaBaseUrl);
       if (typeof saved.monthlyBudgetUsd === 'number') setMonthlyBudgetUsd(saved.monthlyBudgetUsd);
       if (typeof saved.currentSpendUsd === 'number') setCurrentSpendUsd(saved.currentSpendUsd);
       if (typeof saved.savedHoursCount === 'number') setSavedHoursCount(saved.savedHoursCount);
-      if (Array.isArray(saved.templates) && saved.templates.length > 0) setTemplates(saved.templates);
-      if (Array.isArray(saved.ragDocs) && saved.ragDocs.length > 0) setRagDocs(saved.ragDocs);
+      if (Array.isArray(saved.templates)) {
+        setTemplates(saved.templates);
+        if (saved.templates[0]) setSelectedTemplateId(saved.templates[0].id);
+      }
+      if (Array.isArray(saved.ragDocs)) setRagDocs(saved.ragDocs);
       if (Array.isArray(saved.tasks)) setTasks(saved.tasks);
       if (Array.isArray(saved.calendarEvents)) setCalendarEvents(saved.calendarEvents);
-      if (Array.isArray(saved.crmClients) && saved.crmClients.length > 0) setCrmClients(saved.crmClients);
-      if (Array.isArray(saved.recordings) && saved.recordings.length > 0) setRecordings(saved.recordings);
+      if (Array.isArray(saved.crmClients)) {
+        setCrmClients(saved.crmClients);
+        if (saved.crmClients[0]) setSelectedClientId(saved.crmClients[0].id);
+      }
+      if (Array.isArray(saved.recordings)) setRecordings(saved.recordings);
       if (Array.isArray(saved.approvedDocsRegistry)) setApprovedDocsRegistry(saved.approvedDocsRegistry);
       if (Array.isArray(saved.piiAuditRegistry)) setPiiAuditRegistry(saved.piiAuditRegistry);
       if (Array.isArray(saved.auditLogs)) setAuditLogs(saved.auditLogs);
-      if (Array.isArray(saved.consultSessions) && saved.consultSessions.length > 0) {
+      if (Array.isArray(saved.consultSessions)) {
         setConsultSessions(saved.consultSessions);
-        setActiveSessionId(saved.consultSessions[0].id);
-        const lastT = saved.consultSessions[0].turns[saved.consultSessions[0].turns.length - 1] || null;
-        setConsultResponse(lastT);
+        if (saved.consultSessions[0]) {
+          setActiveSessionId(saved.consultSessions[0].id);
+          const lastT = saved.consultSessions[0].turns[saved.consultSessions[0].turns.length - 1] || null;
+          setConsultResponse(lastT);
+        }
       }
     } catch {
-      // Ignorar si localStorage está restringido en el navegador
+      // Ignorar si localStorage está restringido
     }
   }, []);
 
   useEffect(() => {
     try {
       const payload = {
+        darkMode,
         firmName,
         lawyerSignerName,
         lawyerCollegiateId,
+        customPracticeArea,
         llmProvider,
         llmModel,
+        apiKeyInput,
+        ollamaBaseUrl,
         monthlyBudgetUsd,
         currentSpendUsd,
         savedHoursCount,
@@ -2286,250 +2018,257 @@ ${historyContextStr}`;
       // Ignorar si localStorage está restringido
     }
   }, [
-    firmName, lawyerSignerName, lawyerCollegiateId, llmProvider, llmModel,
-    monthlyBudgetUsd, currentSpendUsd, savedHoursCount, templates, ragDocs,
-    tasks, calendarEvents, crmClients, recordings, approvedDocsRegistry,
+    darkMode, firmName, lawyerSignerName, lawyerCollegiateId, customPracticeArea,
+    llmProvider, llmModel, apiKeyInput, ollamaBaseUrl, monthlyBudgetUsd,
+    currentSpendUsd, savedHoursCount, templates, ragDocs, tasks,
+    calendarEvents, crmClients, recordings, approvedDocsRegistry,
     piiAuditRegistry, auditLogs, consultSessions
   ]);
 
   // ==========================================================================
-  // MENÚ DE MÓDULOS (SIN PALABRA "DOCKER", Y CONFIGURACIÓN DE ÚLTIMO)
+  // NAVEGACIÓN MINIMALISTA DE MÓDULOS
   // ==========================================================================
   const navItems: { id: ModuleId; label: string; badge: string; icon: React.ReactNode }[] = [
-    { id: 'consultor_ia', label: '1. Consultor de IA', badge: 'Privado', icon: <MessageSquare className="w-4 h-4" /> },
-    { id: 'redactor_docs', label: '2. Redactor de Documentos', badge: `${templates.length} Mod`, icon: <FileText className="w-4 h-4" /> },
-    { id: 'grabador', label: '3. Grabador de Actas', badge: 'Online/Sala', icon: <Mic className="w-4 h-4" /> },
+    { id: 'consultor_ia', label: '1. Consultor de IA', badge: `${consultSessions.length}`, icon: <MessageSquare className="w-4 h-4" /> },
+    { id: 'redactor_docs', label: '2. Redactor de Documentos', badge: `${templates.length}`, icon: <FileText className="w-4 h-4" /> },
+    { id: 'grabador', label: '3. Grabador de Actas', badge: `${recordings.length}`, icon: <Mic className="w-4 h-4" /> },
     { id: 'planificador', label: '4. Planificador', badge: `${tasks.length}`, icon: <Kanban className="w-4 h-4" /> },
-    { id: 'calendario', label: '5. Calendario', badge: 'Mes Real', icon: <CalendarIcon className="w-4 h-4" /> },
+    { id: 'calendario', label: '5. Calendario', badge: `${calendarEvents.length}`, icon: <CalendarIcon className="w-4 h-4" /> },
     { id: 'crm', label: '6. CRM Clientes', badge: `${crmClients.length}`, icon: <Users className="w-4 h-4" /> },
     { id: 'kpi', label: '7. KPI & Presupuesto', badge: `$${currentSpendUsd.toFixed(2)}`, icon: <BarChart3 className="w-4 h-4" /> },
-    { id: 'trazabilidad', label: '8. Trazabilidad', badge: 'SHA-256', icon: <Fingerprint className="w-4 h-4" /> },
-    { id: 'human_loop', label: '9. Human-in-the-Loop', badge: `${approvedDocsRegistry.length} Visados`, icon: <UserCheck className="w-4 h-4" /> },
-    { id: 'anonimizacion_pii', label: '10. Anonimización PII', badge: `${piiAuditRegistry.length} Reg`, icon: <EyeOff className="w-4 h-4" /> },
-    { id: 'configuracion_sistema', label: '11. Configuración', badge: 'API & Leyes', icon: <Sliders className="w-4 h-4" /> }
+    { id: 'trazabilidad', label: '8. Trazabilidad', badge: `${auditLogs.length}`, icon: <Fingerprint className="w-4 h-4" /> },
+    { id: 'human_loop', label: '9. Human-in-the-Loop', badge: `${approvedDocsRegistry.length}`, icon: <UserCheck className="w-4 h-4" /> },
+    { id: 'anonimizacion_pii', label: '10. Anonimización PII', badge: `${piiAuditRegistry.length}`, icon: <EyeOff className="w-4 h-4" /> },
+    { id: 'configuracion_sistema', label: '11. Configuración', badge: `${ragDocs.length} RAG`, icon: <Sliders className="w-4 h-4" /> }
   ];
 
+  const activeModuleTitle = useMemo(
+    () => navItems.find(n => n.id === activeTab)?.label || 'AI GOVERN',
+    [activeTab, consultSessions.length, templates.length, recordings.length, tasks.length, calendarEvents.length, crmClients.length, currentSpendUsd, auditLogs.length, approvedDocsRegistry.length, piiAuditRegistry.length, ragDocs.length]
+  );
+
   return (
-    <div className={darkMode ? 'dark-theme min-h-screen bg-[#090D16] text-slate-100 font-sans' : 'min-h-screen bg-[#FAF8F5] text-[#0F172A] font-sans'}>
-      {/* Reglas CSS completas y blindadas para que en Modo Oscuro TODOS los fondos y letras tengan contraste alto */}
-      <style>{`
-        .dark-theme {
-          background-color: #090D16 !important;
-          color: #F8FAFC !important;
-        }
-        .dark-theme h1, .dark-theme h2, .dark-theme h3, .dark-theme h4, .dark-theme strong {
-          color: #F8FAFC !important;
-        }
-        .dark-theme p, .dark-theme span, .dark-theme label, .dark-theme li, .dark-theme td, .dark-theme th, .dark-theme pre, .dark-theme div {
-          color: #E2E8F0;
-        }
-        .dark-theme .card-surface,
-        .dark-theme .bg-white,
-        .dark-theme .bg-white\/95 {
-          background-color: #0F172A !important;
-          border-color: #1E293B !important;
-          color: #F8FAFC !important;
-        }
-        .dark-theme .sub-surface,
-        .dark-theme .bg-\[\#FAF8F5\],
-        .dark-theme .bg-slate-100\/70,
-        .dark-theme .bg-slate-100\/40,
-        .dark-theme .bg-slate-200,
-        .dark-theme .bg-slate-200\/70 {
-          background-color: #162033 !important;
-          border-color: #26354D !important;
-          color: #F1F5F9 !important;
-        }
-        .dark-theme .border-\[\#E6DFD1\],
-        .dark-theme .border-\[\#D5CBB8\],
-        .dark-theme .divide-\[\#E6DFD1\] > :not([hidden]) ~ :not([hidden]) {
-          border-color: #26354D !important;
-        }
-        .dark-theme .text-slate-900,
-        .dark-theme .text-slate-800,
-        .dark-theme .text-slate-700 {
-          color: #F8FAFC !important;
-        }
-        .dark-theme .text-slate-600,
-        .dark-theme .text-slate-500,
-        .dark-theme .text-slate-400 {
-          color: #94A3B8 !important;
-        }
-        .dark-theme .text-amber-900,
-        .dark-theme .text-amber-800,
-        .dark-theme .text-amber-700 {
-          color: #FCD34D !important;
-        }
-        .dark-theme .text-emerald-900,
-        .dark-theme .text-emerald-800,
-        .dark-theme .text-emerald-700 {
-          color: #6EE7B7 !important;
-        }
-        .dark-theme .text-indigo-800,
-        .dark-theme .text-indigo-700 {
-          color: #A5B4FC !important;
-        }
-        .dark-theme .text-rose-700,
-        .dark-theme .text-rose-600 {
-          color: #FDA4AF !important;
-        }
-        .dark-theme input, .dark-theme select, .dark-theme textarea {
-          background-color: #090D16 !important;
-          border-color: #334155 !important;
-          color: #F8FAFC !important;
-        }
-        .dark-theme input::placeholder, .dark-theme textarea::placeholder {
-          color: #94A3B8 !important;
-        }
-      `}</style>
-
-      {/* Cintillo Superior de Privacidad del Sistema de Trabajo del Abogado */}
-      <div className="bg-[#0F172A] text-slate-100 border-b border-slate-800 px-3 sm:px-6 py-2 text-[11px] sm:text-xs">
-        <div className="max-w-[1440px] mx-auto flex flex-wrap items-center justify-between gap-2">
-          <div className="flex items-center gap-2 min-w-0">
-            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse shrink-0" />
-            <span className="font-mono font-bold text-amber-300 truncate">SISTEMA JURÍDICO PRIVADO AI GOVERN:</span>
-            <span className="text-slate-200 hidden md:inline">
-              {firmName} • Secreto Profesional Blindado (0% Entrenamiento de IA)
-            </span>
-          </div>
-          <div className="flex items-center gap-3 text-[10px] sm:text-[11px] font-mono text-slate-300">
-            <span><Key className="w-3 h-3 inline text-amber-400 mr-1" />{llmProvider.toUpperCase()} ({llmModel})</span>
-            <span><FolderOpen className="w-3 h-3 inline text-emerald-400 mr-1" />{templates.length} Modelos</span>
-            <span><Scale className="w-3 h-3 inline text-indigo-400 mr-1" />{ragDocs.length} Leyes RAG</span>
-          </div>
-        </div>
-      </div>
-
-      {/* Notificación flotante */}
+    <div
+      style={{ backgroundColor: theme.pageBg, color: theme.pageText }}
+      className="min-h-screen font-sans transition-colors duration-150"
+    >
+      {/* Notificación flotante minimalista */}
       {toastMessage && (
-        <div className="fixed bottom-4 right-4 left-4 sm:left-auto z-50 max-w-md bg-[#0F172A] text-white border border-amber-500/40 px-4 py-3 rounded-xl shadow-2xl flex items-center gap-3 text-xs">
+        <div
+          style={{ backgroundColor: '#0F172A', color: '#F8FAFC', borderColor: '#334155' }}
+          className="fixed bottom-4 right-4 left-4 sm:left-auto z-50 max-w-md border px-4 py-3 rounded-xl shadow-2xl flex items-center gap-3 text-xs"
+        >
           <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
-          <span className="text-slate-100 font-medium">{toastMessage}</span>
+          <span className="font-medium">{toastMessage}</span>
         </div>
       )}
 
-      {/* Cabecera Principal con Botón para Esconder/Mostrar la Barra Izquierda y Responsivo Móvil */}
-      <header className="card-surface sticky top-0 z-30 bg-white/95 backdrop-blur border-b border-[#E6DFD1] px-3 sm:px-8 py-3">
-        <div className="max-w-[1440px] mx-auto flex flex-wrap items-center justify-between gap-3">
-          <div className="flex items-center gap-2.5">
-            {/* Botón para ocultar o mostrar la barra izquierda de herramientas */}
+      {/* DRAWER LATERAL DESLIZABLE PARA CELULAR Y TABLET (< lg) */}
+      {isMobileDrawerOpen && (
+        <div className="fixed inset-0 z-50 lg:hidden flex">
+          <div
+            className="fixed inset-0 bg-black/60 backdrop-blur-xs"
+            onClick={() => setIsMobileDrawerOpen(false)}
+          />
+          <div
+            style={{ backgroundColor: theme.cardBg, borderColor: theme.cardBorder, color: theme.pageText }}
+            className="relative z-10 w-72 max-w-[85vw] h-full border-r p-4 flex flex-col justify-between overflow-y-auto shadow-2xl"
+          >
+            <div className="space-y-4">
+              <div className="flex items-center justify-between pb-3 border-b" style={{ borderColor: theme.cardBorder }}>
+                <div className="flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-lg bg-[#0F172A] text-amber-400 flex items-center justify-center font-serif font-bold text-sm border border-amber-500/30">
+                    AG
+                  </div>
+                  <div>
+                    <div className="font-serif font-bold text-sm">AI GOVERN</div>
+                    <div style={{ color: theme.mutedText }} className="text-[10px] font-mono">
+                      {firmName || 'Workspace Jurídico'}
+                    </div>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setIsMobileDrawerOpen(false)}
+                  style={secondaryBtnStyle}
+                  className="p-2 rounded-lg border cursor-pointer"
+                  aria-label="Cerrar menú"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+
+              <div className="space-y-1">
+                {navItems.map((item) => {
+                  const isActive = activeTab === item.id;
+                  return (
+                    <button
+                      key={`drawer-${item.id}`}
+                      type="button"
+                      onClick={() => {
+                        setActiveTab(item.id);
+                        setIsMobileDrawerOpen(false);
+                      }}
+                      style={
+                        isActive
+                          ? { backgroundColor: '#0F172A', color: '#FFFFFF', borderColor: '#F59E0B' }
+                          : { backgroundColor: 'transparent', color: theme.pageText, borderColor: 'transparent' }
+                      }
+                      className="w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-medium border transition cursor-pointer"
+                    >
+                      <div className="flex items-center gap-2.5 truncate">
+                        <span className={isActive ? 'text-amber-400' : 'text-amber-600'}>{item.icon}</span>
+                        <span className="truncate">{item.label}</span>
+                      </div>
+                      <span
+                        style={
+                          isActive
+                            ? { backgroundColor: 'rgba(245, 158, 11, 0.2)', color: '#FCD34D' }
+                            : { backgroundColor: theme.subBg, color: theme.mutedText }
+                        }
+                        className="text-[10px] font-mono px-2 py-0.5 rounded"
+                      >
+                        {item.badge}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            <div style={subCardStyle} className="p-3 rounded-xl border text-[11px] space-y-1 mt-4">
+              <div className="font-mono text-[10px] uppercase font-bold flex items-center gap-1.5" style={{ color: theme.emeraldText }}>
+                <Shield className="w-3.5 h-3.5" /> Zero-Trust Activo
+              </div>
+              <p style={{ color: theme.mutedText }}>
+                Motor: {llmProvider.toUpperCase()} ({llmModel}) • {ragDocs.length} leyes en RAG.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* CABECERA PRINCIPAL MINIMALISTA CON ICONO UNIVERSAL DE HAMBURGUESA */}
+      <header
+        style={{ backgroundColor: theme.cardBg, borderColor: theme.cardBorder }}
+        className="sticky top-0 z-30 border-b px-3 sm:px-6 py-2.5"
+      >
+        <div className="max-w-[1440px] mx-auto flex items-center justify-between gap-3">
+          <div className="flex items-center gap-3 min-w-0">
+            {/* Botón Hamburguesa Universal (Abre Drawer en móvil / Colapsa barra en escritorio) */}
             <button
               type="button"
-              onClick={() => setIsMainSidebarOpen(!isMainSidebarOpen)}
-              className="px-2.5 py-2 rounded-xl border border-[#E6DFD1] bg-[#FAF8F5] hover:bg-amber-500/10 transition flex items-center gap-1.5 cursor-pointer text-xs font-semibold text-slate-800"
-              title={isMainSidebarOpen ? 'Esconder barra izquierda de módulos' : 'Mostrar barra izquierda de módulos'}
+              onClick={() => {
+                if (typeof window !== 'undefined' && window.innerWidth < 1024) {
+                  setIsMobileDrawerOpen(true);
+                } else {
+                  setIsMainSidebarOpen(!isMainSidebarOpen);
+                }
+              }}
+              style={secondaryBtnStyle}
+              className="p-2 rounded-xl border hover:opacity-80 transition cursor-pointer shrink-0"
+              title="Menú de módulos"
+              aria-label="Menú"
             >
-              {isMainSidebarOpen ? <ChevronLeft className="w-4 h-4 text-amber-600" /> : <ChevronRight className="w-4 h-4 text-amber-600" />}
-              <span className="hidden sm:inline">{isMainSidebarOpen ? 'Ocultar Menú' : 'Mostrar Menú'}</span>
+              <Menu className="w-5 h-5" />
             </button>
 
-            <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-[#0F172A] text-[#FAF8F5] flex items-center justify-center font-serif font-bold text-base sm:text-lg shadow-sm border border-amber-500/30 shrink-0">
+            <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-[#0F172A] text-amber-400 flex items-center justify-center font-serif font-bold text-sm sm:text-base border border-amber-500/30 shrink-0">
               AG
             </div>
+
             <div className="min-w-0">
-              <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
-                <span className="font-serif font-bold text-base sm:text-xl tracking-tight">AI GOVERN</span>
-                <span className="text-[9px] sm:text-[10px] font-mono uppercase tracking-widest px-2 py-0.5 rounded bg-amber-500/15 text-amber-700 border border-amber-500/30 font-semibold">
-                  Sistema Operativo del Abogado
+              <div className="flex items-center gap-2">
+                <span className="font-serif font-bold text-sm sm:text-lg tracking-tight truncate">
+                  {firmName || 'AI GOVERN'}
+                </span>
+                <span
+                  style={{ backgroundColor: theme.subBg, borderColor: theme.subBorder, color: theme.mutedText }}
+                  className="hidden sm:inline-block text-[10px] font-mono px-2 py-0.5 rounded border"
+                >
+                  {activeModuleTitle}
                 </span>
               </div>
-              <p className="text-[10px] sm:text-[11px] font-mono text-slate-500 truncate">
-                Titular: {lawyerSignerName} • {customPracticeArea}
+              <p style={{ color: theme.mutedText }} className="text-[10px] sm:text-[11px] font-mono truncate">
+                {lawyerSignerName ? `${lawyerSignerName} (${lawyerCollegiateId || 'Abogado'})` : 'Configura los datos de tu despacho en el Módulo 11'}
               </p>
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
+          {/* Indicadores de estado rápidos y controles de tema/ajustes */}
+          <div className="flex items-center gap-2 shrink-0">
+            <div
+              style={{ backgroundColor: theme.subBg, borderColor: theme.subBorder, color: theme.mutedText }}
+              className="hidden md:flex items-center gap-3 px-3 py-1.5 rounded-xl border text-[11px] font-mono"
+            >
+              <span>
+                <Key className="w-3 h-3 inline mr-1 text-amber-500" />
+                {llmProvider.toUpperCase()} ({llmModel})
+              </span>
+              <span>•</span>
+              <span>{templates.length} Modelos</span>
+              <span>•</span>
+              <span>{ragDocs.length} Leyes RAG</span>
+            </div>
+
             <button
               type="button"
               onClick={() => setActiveTab('configuracion_sistema')}
-              className="px-3 py-2 rounded-xl text-xs font-semibold border border-[#E6DFD1] bg-[#FAF8F5] hover:bg-amber-500/10 transition flex items-center gap-1.5 cursor-pointer text-slate-800"
+              style={secondaryBtnStyle}
+              className="px-3 py-2 rounded-xl text-xs font-semibold border hover:opacity-90 transition flex items-center gap-1.5 cursor-pointer"
             >
-              <Sliders className="w-3.5 h-3.5 text-amber-600 shrink-0" />
-              <span className="hidden md:inline">Configurar API, Modelos y Leyes</span>
-              <span className="md:hidden">Ajustes</span>
+              <Sliders className="w-3.5 h-3.5 text-amber-500 shrink-0" />
+              <span className="hidden sm:inline">Configurar API, Modelos y Leyes</span>
             </button>
+
             <button
               type="button"
               onClick={() => setDarkMode(!darkMode)}
-              className="p-2 sm:p-2.5 rounded-xl border border-[#E6DFD1] bg-[#FAF8F5] hover:bg-amber-500/10 transition cursor-pointer"
-              title="Alternar Modo Claro / Modo Oscuro"
+              style={secondaryBtnStyle}
+              className="p-2 rounded-xl border hover:opacity-90 transition cursor-pointer"
+              title={darkMode ? 'Cambiar a Modo Claro' : 'Cambiar a Modo Oscuro'}
+              aria-label="Tema"
             >
-              {darkMode ? <Sun className="w-4 h-4 text-amber-400" /> : <Moon className="w-4 h-4 text-slate-700" />}
+              {darkMode ? <Sun className="w-4 h-4 text-amber-400" /> : <Moon className="w-4 h-4" />}
             </button>
           </div>
         </div>
-
-        {/* Barra de Navegación Táctil Horizontal para Celulares y Tablets (< lg) */}
-        <div className="lg:hidden mt-2.5 pt-2 border-t border-[#E6DFD1] flex items-center gap-1.5 overflow-x-auto pb-1">
-          {navItems.map((item) => {
-            const isActive = activeTab === item.id;
-            return (
-              <button
-                key={`mob-${item.id}`}
-                type="button"
-                onClick={() => setActiveTab(item.id)}
-                className={`shrink-0 px-3 py-1.5 rounded-xl text-[11px] font-medium flex items-center gap-1.5 cursor-pointer transition ${
-                  isActive
-                    ? 'bg-[#0F172A] text-white font-semibold border border-amber-500/40'
-                    : 'bg-[#FAF8F5] border border-[#E6DFD1] text-slate-700'
-                }`}
-              >
-                <span className={isActive ? 'text-amber-400' : 'text-amber-700'}>{item.icon}</span>
-                <span>{item.label}</span>
-              </button>
-            );
-          })}
-        </div>
       </header>
 
-      {/* Contenedor Principal Responsivo: Menú Lateral Ocultable + Área de Trabajo */}
-      <div className="max-w-[1440px] mx-auto px-3 sm:px-8 py-4 sm:py-6 grid grid-cols-1 lg:grid-cols-12 gap-6">
-        {/* Barra Lateral de Módulos (Se puede esconder con el botón superior y en móvil se controla con el botón de menú) */}
+      {/* CONTENEDOR PRINCIPAL: BARRA LATERAL EN ESCRITORIO + ÁREA DE TRABAJO */}
+      <div className="max-w-[1440px] mx-auto px-3 sm:px-6 py-4 sm:py-6 grid grid-cols-1 lg:grid-cols-12 gap-5">
         {isMainSidebarOpen && (
           <aside className="hidden lg:block lg:col-span-3 space-y-4">
-            <div className="card-surface rounded-2xl p-3 bg-white border border-[#E6DFD1] shadow-sm space-y-1">
-              <div className="px-3 py-2 flex items-center justify-between text-[10px] font-mono uppercase tracking-wider text-slate-500 font-bold">
-                <span>Herramientas de Trabajo Diario</span>
-                <button
-                  type="button"
-                  onClick={() => setIsMainSidebarOpen(false)}
-                  className="text-amber-700 hover:underline cursor-pointer"
-                  title="Esconder barra lateral"
-                >
-                  Esconder ✕
-                </button>
-              </div>
+            <div style={cardStyle} className="rounded-2xl p-2.5 border shadow-xs space-y-1">
               {navItems.map((item) => {
                 const isActive = activeTab === item.id;
                 const isConfig = item.id === 'configuracion_sistema';
                 return (
                   <React.Fragment key={item.id}>
                     {isConfig && (
-                      <div className="pt-2 mt-2 border-t border-[#E6DFD1] px-3 py-1 text-[10px] font-mono uppercase tracking-wider text-slate-500 font-bold">
-                        Ajustes del Despacho (Uso Ocasional)
-                      </div>
+                      <div style={{ borderColor: theme.cardBorder }} className="pt-2 mt-2 border-t" />
                     )}
                     <button
                       type="button"
                       onClick={() => setActiveTab(item.id)}
-                      className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-medium transition cursor-pointer ${
+                      style={
                         isActive
-                          ? 'bg-[#0F172A] text-white font-semibold shadow-sm border border-amber-500/40'
-                          : 'hover:bg-amber-500/10 text-slate-700'
-                      }`}
+                          ? { backgroundColor: '#0F172A', color: '#FFFFFF', borderColor: '#F59E0B' }
+                          : { backgroundColor: 'transparent', color: theme.pageText, borderColor: 'transparent' }
+                      }
+                      className="w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-medium border transition cursor-pointer hover:opacity-90"
                     >
                       <div className="flex items-center gap-2.5 truncate">
-                        <span className={isActive ? 'text-amber-400' : 'text-amber-700'}>{item.icon}</span>
-                        <span className={`truncate ${isActive ? 'text-white' : ''}`}>{item.label}</span>
+                        <span className={isActive ? 'text-amber-400' : 'text-amber-600'}>{item.icon}</span>
+                        <span className="truncate">{item.label}</span>
                       </div>
                       <span
-                        className={`text-[10px] font-mono px-1.5 py-0.5 rounded ${
+                        style={
                           isActive
-                            ? 'bg-amber-400/20 text-amber-300'
-                            : 'bg-slate-200/70 text-slate-700'
-                        }`}
+                            ? { backgroundColor: 'rgba(245, 158, 11, 0.2)', color: '#FCD34D' }
+                            : { backgroundColor: theme.subBg, color: theme.mutedText }
+                        }
+                        className="text-[10px] font-mono px-1.5 py-0.5 rounded"
                       >
                         {item.badge}
                       </span>
@@ -2539,55 +2278,42 @@ ${historyContextStr}`;
               })}
             </div>
 
-            {/* Tarjeta Resumen de Privacidad Activa */}
-            <div className="card-surface rounded-2xl p-4 bg-white border border-[#E6DFD1] shadow-sm space-y-2.5 text-xs">
+            <div style={cardStyle} className="rounded-2xl p-4 border shadow-xs space-y-1.5 text-xs">
               <div className="flex items-center justify-between">
-                <span className="font-mono text-[10px] uppercase tracking-wider text-emerald-700 font-bold flex items-center gap-1.5">
-                  <Shield className="w-3.5 h-3.5 text-emerald-600" /> Privacidad Blindada
+                <span style={{ color: theme.emeraldText }} className="font-mono text-[10px] uppercase font-bold flex items-center gap-1.5">
+                  <Shield className="w-3.5 h-3.5" /> Secreto Profesional
                 </span>
-                <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-700 font-bold">
+                <span style={{ color: theme.mutedText }} className="text-[10px] font-mono">
                   Zero-Training
                 </span>
               </div>
-              <p className="text-[11px] text-slate-600 leading-relaxed">
-                Todo lo que escribas o subas en el Consultor, Redactor y Grabador se anonimiza en memoria RAM antes de consultar la IA. <strong>Nada alimenta ni entrena modelos externos.</strong>
+              <p style={{ color: theme.mutedText }} className="text-[11px] leading-relaxed">
+                Anonimización PII en memoria RAM local antes de consultar tu API.
               </p>
             </div>
           </aside>
         )}
 
-        {/* Panel Dinámico de los Módulos (Se expande a 12 columnas cuando la barra izquierda se esconde) */}
-        <main className={isMainSidebarOpen ? 'lg:col-span-9 space-y-6 min-w-0' : 'lg:col-span-12 space-y-6 min-w-0'}>
+        <main className={isMainSidebarOpen ? 'lg:col-span-9 min-w-0' : 'lg:col-span-12 min-w-0'}>
 
           {/* =================================================================
-              1. CONSULTOR DE IA (METODOLOGÍA FORENSE DE 4 ETAPAS + HISTORIAL OCULTABLE + RESPONSIVO MÓVIL)
+              1. CONSULTOR DE IA (ESTILO MINIMALISTA, 4 ETAPAS FORENSES, CONECTADO A TU API Y RAG)
           ================================================================== */}
           {activeTab === 'consultor_ia' && (
-            <div className="card-surface rounded-3xl bg-white border border-[#E6DFD1] shadow-sm overflow-hidden">
+            <div style={cardStyle} className="rounded-2xl border shadow-xs overflow-hidden">
               <div className="grid grid-cols-1 lg:grid-cols-12 min-h-[680px]">
 
-                {/* BARRA IZQUIERDA INTERNA: HISTORIAL DE CONSULTAS (OCULTABLE EN ESCRITORIO Y CELULAR) */}
+                {/* Panel de Historial de Consultas (Ocultable) */}
                 {isHistorySidebarOpen && (
-                  <div className="lg:col-span-3 sub-surface bg-[#FAF8F5] border-b lg:border-b-0 lg:border-r border-[#E6DFD1] p-3.5 sm:p-4 flex flex-col justify-between gap-4">
+                  <div
+                    style={{ backgroundColor: theme.subBg, borderColor: theme.cardBorder }}
+                    className="lg:col-span-3 border-b lg:border-b-0 lg:border-r p-3.5 flex flex-col justify-between gap-4"
+                  >
                     <div className="space-y-3">
-                      <div className="flex items-center justify-between gap-2">
-                        <span className="text-[10px] font-mono uppercase tracking-wider text-slate-500 font-bold">
-                          Historial de Consultas ({consultSessions.length})
-                        </span>
-                        <button
-                          type="button"
-                          onClick={() => setIsHistorySidebarOpen(false)}
-                          className="text-[11px] font-mono text-amber-800 hover:underline cursor-pointer"
-                          title="Esconder panel de historial"
-                        >
-                          Ocultar ✕
-                        </button>
-                      </div>
-
                       <button
                         type="button"
                         onClick={handleStartNewConsultSession}
-                        className="w-full py-2.5 px-3.5 rounded-xl bg-[#0F172A] hover:bg-slate-800 text-white text-xs font-semibold flex items-center justify-center gap-2 cursor-pointer shadow-sm transition"
+                        className="w-full py-2.5 px-3 rounded-xl bg-[#0F172A] hover:bg-slate-800 text-white text-xs font-semibold flex items-center justify-center gap-2 cursor-pointer transition"
                       >
                         <Plus className="w-4 h-4 text-amber-400" />
                         <span>Nueva Consulta / Caso</span>
@@ -2599,123 +2325,127 @@ ${historyContextStr}`;
                           type="text"
                           value={historySearchQuery}
                           onChange={(e) => setHistorySearchQuery(e.target.value)}
-                          placeholder="Buscar expediente o consulta..."
-                          className="w-full pl-8 pr-3 py-2 rounded-xl border text-xs bg-white border-[#D5CBB8]"
+                          placeholder="Buscar en el historial..."
+                          style={inputStyle}
+                          className="w-full pl-8 pr-3 py-1.5 rounded-xl border text-xs"
                         />
                       </div>
 
-                      <div className="space-y-1.5 max-h-[220px] lg:max-h-[430px] overflow-y-auto pr-1">
-                        {consultSessions
-                          .filter(s =>
-                            s.title.toLowerCase().includes(historySearchQuery.toLowerCase()) ||
-                            s.matterTag.toLowerCase().includes(historySearchQuery.toLowerCase())
-                          )
-                          .map((sess) => {
-                            const isCurrent = sess.id === activeSessionId;
-                            return (
-                              <div
-                                key={sess.id}
-                                className={`rounded-xl border p-2.5 text-xs transition ${
-                                  isCurrent
-                                    ? 'bg-[#0F172A] text-white border-amber-500/40 shadow-sm'
-                                    : 'card-surface bg-white border-[#E6DFD1] hover:border-amber-500 text-slate-800'
-                                }`}
-                              >
-                                <div className="flex items-start justify-between gap-1.5">
-                                  <button
-                                    type="button"
-                                    onClick={() => handleSelectConsultSession(sess)}
-                                    className="text-left flex-1 min-w-0 cursor-pointer"
-                                  >
-                                    <div className={`font-semibold truncate ${isCurrent ? 'text-white' : ''}`}>{sess.title}</div>
-                                    <div className={`text-[10px] font-mono mt-1 flex items-center gap-1.5 ${isCurrent ? 'text-amber-300' : 'text-slate-500'}`}>
-                                      <span>{sess.matterTag}</span>
-                                      <span>•</span>
-                                      <span>{sess.turns.length} dictamen(es)</span>
-                                    </div>
-                                  </button>
-                                  {consultSessions.length > 1 && (
+                      <div className="space-y-1.5 max-h-[200px] lg:max-h-[470px] overflow-y-auto pr-1">
+                        {consultSessions.length === 0 ? (
+                          <p style={{ color: theme.mutedText }} className="text-[11px] px-2 py-6 text-center">
+                            Sin consultas previas. Tus sesiones quedarán guardadas aquí automáticamente.
+                          </p>
+                        ) : (
+                          consultSessions
+                            .filter(s => s.title.toLowerCase().includes(historySearchQuery.toLowerCase()))
+                            .map((sess) => {
+                              const isCurrent = sess.id === activeSessionId;
+                              return (
+                                <div
+                                  key={sess.id}
+                                  style={
+                                    isCurrent
+                                      ? { backgroundColor: '#0F172A', color: '#FFFFFF', borderColor: '#F59E0B' }
+                                      : cardStyle
+                                  }
+                                  className="rounded-xl border p-2.5 text-xs transition"
+                                >
+                                  <div className="flex items-start justify-between gap-1.5">
+                                    <button
+                                      type="button"
+                                      onClick={() => handleSelectConsultSession(sess)}
+                                      className="text-left flex-1 min-w-0 cursor-pointer"
+                                    >
+                                      <div className="font-semibold truncate">{sess.title}</div>
+                                      <div
+                                        style={{ color: isCurrent ? '#FCD34D' : theme.mutedText }}
+                                        className="text-[10px] font-mono mt-0.5"
+                                      >
+                                        {sess.updatedAt} • {sess.turns.length} análisis
+                                      </div>
+                                    </button>
                                     <button
                                       type="button"
                                       onClick={() => handleDeleteConsultSession(sess.id)}
                                       title="Eliminar consulta"
-                                      className={`text-[10px] font-mono px-1.5 py-0.5 rounded cursor-pointer ${
-                                        isCurrent ? 'text-slate-300 hover:bg-slate-800' : 'text-slate-400 hover:text-rose-600'
-                                      }`}
+                                      className="text-slate-400 hover:text-rose-500 p-0.5 cursor-pointer"
                                     >
-                                      ✕
+                                      <Trash2 className="w-3.5 h-3.5" />
                                     </button>
-                                  )}
+                                  </div>
                                 </div>
-                              </div>
-                            );
-                          })}
+                              );
+                            })
+                        )}
                       </div>
                     </div>
 
-                    <div className="card-surface p-3 rounded-xl bg-white border border-[#E6DFD1] space-y-1 text-[11px]">
-                      <div className="font-mono text-[10px] uppercase text-emerald-800 font-bold flex items-center gap-1.5">
-                        <Scale className="w-3.5 h-3.5 text-emerald-600" /> Metodología Forense
+                    <div style={cardStyle} className="p-3 rounded-xl border text-[11px] space-y-1">
+                      <div className="font-mono text-[10px] uppercase font-bold" style={{ color: theme.accentText }}>
+                        Estructura de Análisis
                       </div>
-                      <p className="text-slate-600 leading-snug">
-                        1º Base Legal y Artículos • 2º Opciones • 3º Escenarios y Consecuencias • 4º Decisión de Ejecución y Redacción.
+                      <p style={{ color: theme.mutedText }} className="leading-snug">
+                        I. Base Legal y Artículos • II. Opciones • III. Escenarios y Consecuencias • IV. Ejecución.
                       </p>
                     </div>
                   </div>
                 )}
 
-                {/* ÁREA CENTRAL DEL CONSULTOR (SE EXPANDE AL 100% CUANDO EL HISTORIAL SE OCULTA) */}
-                <div className={`${isHistorySidebarOpen ? 'lg:col-span-9' : 'lg:col-span-12'} card-surface flex flex-col justify-between p-3.5 sm:p-6 bg-white min-w-0`}>
+                {/* Área Central de Consulta y Dictamen */}
+                <div className={`${isHistorySidebarOpen ? 'lg:col-span-9' : 'lg:col-span-12'} flex flex-col justify-between p-4 sm:p-6 min-w-0`}>
 
-                  {/* Cabecera del Consultor con botón para mostrar/esconder Historial */}
-                  <div className="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-[#E6DFD1]">
-                    <div className="flex items-center gap-2 min-w-0">
+                  {/* Barra Superior Minimalista del Consultor */}
+                  <div style={{ borderColor: theme.cardBorder }} className="flex flex-wrap items-center justify-between gap-2 pb-3 border-b">
+                    <div className="flex items-center gap-2.5 min-w-0">
                       <button
                         type="button"
                         onClick={() => setIsHistorySidebarOpen(!isHistorySidebarOpen)}
-                        className="px-2.5 py-1.5 rounded-xl border border-[#E6DFD1] bg-[#FAF8F5] text-slate-800 font-mono text-[11px] font-semibold hover:bg-amber-500/10 cursor-pointer flex items-center gap-1 shrink-0"
-                        title={isHistorySidebarOpen ? 'Esconder barra de historial' : 'Mostrar barra de historial'}
+                        style={secondaryBtnStyle}
+                        className="p-2 rounded-xl border cursor-pointer hover:opacity-80"
+                        title={isHistorySidebarOpen ? 'Ocultar historial' : 'Mostrar historial'}
                       >
-                        {isHistorySidebarOpen ? <ChevronLeft className="w-3.5 h-3.5 text-amber-600" /> : <ChevronRight className="w-3.5 h-3.5 text-amber-600" />}
-                        <span>{isHistorySidebarOpen ? 'Ocultar Historial' : `Historial (${consultSessions.length})`}</span>
+                        <FolderOpen className="w-4 h-4 text-amber-500" />
                       </button>
-
                       <div className="min-w-0">
-                        <h2 className="font-serif font-bold text-sm sm:text-lg leading-tight truncate">
-                          {activeSession?.title || 'Consultor Jurídico Forense'}
+                        <h2 className="font-serif font-bold text-base sm:text-lg truncate">
+                          {activeSession?.title || 'Consultor Jurídico'}
                         </h2>
-                        <span className="text-[10px] sm:text-[11px] font-mono text-emerald-700 font-semibold block truncate">
-                          Rigor Metodológico: Base Legal ({ragDocs.length} Leyes) → Opciones → Escenarios → Ejecución ({templates.length} Modelos)
-                        </span>
+                        <p style={{ color: theme.mutedText }} className="text-[11px] font-mono truncate">
+                          {ragDocs.length} leyes en RAG • {templates.length} modelos en Biblioteca
+                        </p>
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-2">
-                      <button
-                        type="button"
-                        onClick={() => setConsultShowSanitizedPayload(!consultShowSanitizedPayload)}
-                        className="px-3 py-1.5 rounded-xl border border-[#E6DFD1] bg-[#FAF8F5] text-slate-800 font-mono text-[11px] font-semibold hover:bg-amber-500/10 cursor-pointer flex items-center gap-1.5"
-                      >
-                        <Shield className="w-3.5 h-3.5 text-emerald-600" />
-                        <span>{consultShowSanitizedPayload ? 'Ocultar filtro en vivo' : 'Ver qué recibe la IA'}</span>
-                      </button>
-                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setConsultShowSanitizedPayload(!consultShowSanitizedPayload)}
+                      style={secondaryBtnStyle}
+                      className="px-3 py-1.5 rounded-xl border font-mono text-[11px] font-semibold cursor-pointer flex items-center gap-1.5"
+                    >
+                      <Shield className="w-3.5 h-3.5 text-emerald-500" />
+                      <span>{consultShowSanitizedPayload ? 'Ocultar filtro en vivo' : 'Ver qué recibe la IA'}</span>
+                    </button>
                   </div>
 
-                  {/* Vista opcional de inspección del payload sanitizado */}
+                  {/* Inspector opcional del filtro PII en RAM */}
                   {consultShowSanitizedPayload && (
-                    <div className="my-3 p-3.5 rounded-2xl bg-[#0F172A] text-slate-100 font-mono text-xs space-y-2 border border-emerald-500/40">
+                    <div
+                      style={{ backgroundColor: '#0F172A', color: '#F8FAFC', borderColor: '#10B981' }}
+                      className="my-3 p-3.5 rounded-xl font-mono text-xs space-y-2 border"
+                    >
                       <div className="flex flex-wrap items-center justify-between gap-2">
                         <span className="text-[10px] uppercase text-emerald-400 font-bold">
-                          Filtro Zero-Trust en RAM ({liveSanitizedPreview.tokens.length} datos ocultados a la IA externa):
+                          Payload Sanitizado en RAM ({liveSanitizedPreview.tokens.length} datos protegidos):
                         </span>
                         <div className="flex items-center gap-1.5">
                           <input
                             type="text"
                             value={customMaskInput}
                             onChange={(e) => setCustomMaskInput(e.target.value)}
-                            placeholder="Blindar otro nombre..."
-                            className="px-2.5 py-1 rounded-lg border border-slate-700 bg-slate-900 text-white text-[11px]"
+                            placeholder="Guía: Nombre o razón social a ocultar..."
+                            style={{ backgroundColor: '#1E293B', color: '#F8FAFC', borderColor: '#334155' }}
+                            className="px-2.5 py-1 rounded-lg border text-[11px]"
                           />
                           <button
                             type="button"
@@ -2727,170 +2457,123 @@ ${historyContextStr}`;
                         </div>
                       </div>
                       <p className="text-slate-300 leading-relaxed whitespace-pre-wrap text-[11px]">
-                        {liveSanitizedPreview.sanitized}
+                        {liveSanitizedPreview.sanitized || 'Escribe tu consulta abajo para previsualizar el filtrado de datos privados en tiempo real.'}
                       </p>
                     </div>
                   )}
 
-                  {/* HILO DE DICTÁMENES Y CONSULTAS */}
+                  {/* Área de Mensajes / Dictámenes */}
                   <div className="flex-1 py-4 space-y-5 max-h-[500px] overflow-y-auto pr-1">
                     {consultThread.length === 0 ? (
-                      <div className="h-full flex flex-col items-center justify-center text-center py-8 px-3 space-y-4">
-                        <div className="w-11 h-11 rounded-2xl bg-[#0F172A] text-amber-300 flex items-center justify-center font-serif font-bold text-base shadow-sm border border-amber-500/30">
-                          AG
+                      <div className="h-full flex flex-col items-center justify-center text-center py-12 px-4 space-y-3">
+                        <div className="w-10 h-10 rounded-xl bg-[#0F172A] text-amber-400 flex items-center justify-center font-serif font-bold text-sm border border-amber-500/30">
+                          <Scale className="w-5 h-5" />
                         </div>
-                        <div className="max-w-xl space-y-1.5">
-                          <h3 className="font-serif text-lg sm:text-xl font-bold">
-                            Planteamiento de Consulta Jurídica y Análisis de Caso
+                        <div className="max-w-lg space-y-1.5">
+                          <h3 className="font-serif text-base sm:text-lg font-bold">
+                            Consultoría Jurídica Conectada a tu RAG y Biblioteca
                           </h3>
-                          <p className="text-xs text-slate-500 leading-relaxed">
-                            Expón los hechos de la controversia o adjunta los instrumentos y comunicaciones del cliente. El sistema estructurará el dictamen bajo metodología forense: <strong>I. Base Legal y Artículos Involucrados</strong>, <strong>II. Opciones Jurídicas</strong>, <strong>III. Escenarios y Consecuencias</strong> y <strong>IV. Decisión de Ejecución y Redacción</strong>.
+                          <p style={{ color: theme.mutedText }} className="text-xs leading-relaxed">
+                            Plantea el caso abajo o adjunta documentos (`.DOC`, `.PDF`, imágenes o comunicaciones del cliente). El sistema analizará: <strong>I. Base Legal y Artículos Involucrados</strong>, <strong>II. Opciones Jurídicas</strong>, <strong>III. Escenarios y Consecuencias</strong> y <strong>IV. Decisión de Ejecución y Redacción</strong>.
                           </p>
                         </div>
 
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 w-full max-w-2xl text-left text-xs pt-2">
-                          <button
-                            type="button"
-                            onClick={() =>
-                              setConsultQuery(
-                                'Necesito evaluar las acciones legales por incumplimiento en la entrega de un inmueble vendido por 85.000 USD por parte de Inversiones Alfa (ID J-30948271-0), correo legal@alfa.com. ¿Procede resolución de contrato con daños y perjuicios o cumplimiento forzoso?'
-                              )
-                            }
-                            className="sub-surface p-3 rounded-2xl border border-[#E6DFD1] bg-[#FAF8F5] hover:border-amber-500 transition cursor-pointer space-y-1"
+                        {(ragDocs.length === 0 || !apiKeyInput.trim()) && (
+                          <div
+                            style={subCardStyle}
+                            className="max-w-lg w-full p-3.5 rounded-xl border text-left text-xs flex items-start justify-between gap-3 mt-2"
                           >
-                            <div className="font-semibold text-slate-800">I. Incumplimiento en Compraventa Inmobiliaria</div>
-                            <div className="text-[11px] text-slate-500 truncate">Artículos 1.167 y 1.486 CC, Prohibición de Enajenar (Art. 588 CPC) y escenarios...</div>
-                          </button>
-
-                          <button
-                            type="button"
-                            onClick={() =>
-                              setConsultQuery(
-                                'El arrendatario Comercializadora Nova, S.A. adeuda tres (03) mensualidades de canon de arrendamiento (1.500,00 USD mensuales) del local comercial propiedad de Inversiones Torre Central, C.A. Analiza base legal, opciones, escenarios y ejecución contra el inquilino y el fiador solidario.'
-                              )
-                            }
-                            className="sub-surface p-3 rounded-2xl border border-[#E6DFD1] bg-[#FAF8F5] hover:border-amber-500 transition cursor-pointer space-y-1"
-                          >
-                            <div className="font-semibold text-slate-800">II. Mora y Ejecución en Arrendamiento Comercial</div>
-                            <div className="text-[11px] text-slate-500 truncate">Artículos 1.592 y 1.813 CC, Secuestro Cautelar (Art. 599 CPC) y ejecución...</div>
-                          </button>
-
-                          <button
-                            type="button"
-                            onClick={() =>
-                              setConsultQuery(
-                                'En la sociedad Grupo Industrial Delta, C.A. se celebró una Asamblea Extraordinaria de Accionistas sin cumplir las formalidades de convocatoria previa para modificar la Junta Directiva y diluir al socio minoritario. Analiza los artículos del Código de Comercio, escenarios e impugnación.'
-                              )
-                            }
-                            className="sub-surface p-3 rounded-2xl border border-[#E6DFD1] bg-[#FAF8F5] hover:border-amber-500 transition cursor-pointer space-y-1"
-                          >
-                            <div className="font-semibold text-slate-800">III. Impugnación de Asamblea Societaria (Art. 290 C.Com.)</div>
-                            <div className="text-[11px] text-slate-500 truncate">Artículos 277, 280 y 290 del Código de Comercio, oposición y suspensión...</div>
-                          </button>
-
-                          <button
-                            type="button"
-                            onClick={() =>
-                              setConsultQuery(
-                                'Apertura de sucesión ab intestato donde uno de los coherederos pretende enajenar un inmueble de la masa hereditaria sin haberse liquidado el 50% de la comunidad conyugal de la viuda, sin declaración sucesoral y lesionando la cuota legítima. Analiza base legal, escenarios y ejecución.'
-                              )
-                            }
-                            className="sub-surface p-3 rounded-2xl border border-[#E6DFD1] bg-[#FAF8F5] hover:border-amber-500 transition cursor-pointer space-y-1"
-                          >
-                            <div className="font-semibold text-slate-800">IV. Comunidad Conyugal, Legítima y Partición Sucesoral</div>
-                            <div className="text-[11px] text-slate-500 truncate">Artículos 148, 168, 883 y 1.067 del Código Civil y bloqueo registral...</div>
-                          </button>
-                        </div>
+                            <div className="space-y-1">
+                              <div className="font-semibold flex items-center gap-1.5" style={{ color: theme.accentText }}>
+                                <AlertCircle className="w-4 h-4 shrink-0" />
+                                Guía de Configuración Inicial
+                              </div>
+                              <p style={{ color: theme.mutedText }} className="text-[11px] leading-relaxed">
+                                Para conectar tu motor de IA y cargar tus leyes en el RAG o tus plantillas en la Biblioteca, ingresa a <strong>11. Configuración</strong>.
+                              </p>
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => setActiveTab('configuracion_sistema')}
+                              className="shrink-0 px-3 py-1.5 rounded-lg bg-[#0F172A] text-white text-[11px] font-semibold cursor-pointer"
+                            >
+                              Ir a Configuración
+                            </button>
+                          </div>
+                        )}
                       </div>
                     ) : (
                       consultThread.map((turn) => (
                         <div key={turn.id} className="space-y-3">
-                          {/* Planteamiento del Abogado */}
                           <div className="flex justify-end">
-                            <div className="max-w-2xl rounded-2xl rounded-tr-sm bg-[#0F172A] text-white px-4 py-3 text-xs sm:text-sm space-y-2 shadow-sm border border-slate-700">
-                              <div className="text-[10px] font-mono uppercase text-amber-300 font-bold">
-                                Planteamiento Jurídico Sometido a Análisis ({turn.timestamp}):
-                              </div>
-                              <p className="leading-relaxed whitespace-pre-wrap text-slate-100">{turn.lawyerQuestion}</p>
+                            <div
+                              style={{ backgroundColor: '#0F172A', color: '#F8FAFC' }}
+                              className="max-w-2xl rounded-2xl rounded-tr-xs px-4 py-3 text-xs sm:text-sm space-y-2 shadow-xs"
+                            >
+                              <p className="leading-relaxed whitespace-pre-wrap">{turn.lawyerQuestion}</p>
                               {turn.attachmentsUsed && turn.attachmentsUsed.length > 0 && (
-                                <div className="flex flex-wrap gap-1.5 pt-1 border-t border-slate-700">
+                                <div className="flex flex-wrap gap-1.5 pt-1.5 border-t border-slate-700">
                                   {turn.attachmentsUsed.map((attName, i) => (
                                     <span key={i} className="text-[10px] font-mono px-2 py-0.5 rounded bg-amber-500/20 text-amber-300">
-                                      Recaudo: {attName}
+                                      {attName}
                                     </span>
                                   ))}
                                 </div>
                               )}
                               <div className="text-[10px] font-mono text-slate-400 text-right">
-                                {turn.tokensProtected} identificadores protegidos en RAM
+                                {turn.timestamp} • {turn.tokensProtected} PII protegidos
                               </div>
                             </div>
                           </div>
 
-                          {/* Dictamen Forense Estructurado en 4 Etapas */}
-                          <div className="flex items-start gap-2.5 sm:gap-3">
-                            <div className="hidden sm:flex w-8 h-8 rounded-xl bg-[#0F172A] text-amber-300 items-center justify-center font-serif font-bold text-xs shrink-0 mt-0.5 border border-amber-500/30">
+                          <div className="flex items-start gap-3">
+                            <div className="hidden sm:flex w-8 h-8 rounded-lg bg-[#0F172A] text-amber-400 items-center justify-center font-serif font-bold text-xs shrink-0 mt-0.5 border border-amber-500/30">
                               AG
                             </div>
-                            <div className="flex-1 min-w-0 sub-surface rounded-2xl rounded-tl-sm bg-[#FAF8F5] border border-[#E6DFD1] p-3.5 sm:p-5 space-y-4 text-xs sm:text-sm">
-                              <div className="flex flex-wrap items-center justify-between gap-2 pb-2.5 border-b border-[#E6DFD1]">
+                            <div style={subCardStyle} className="flex-1 min-w-0 rounded-2xl rounded-tl-xs border p-4 sm:p-5 space-y-3.5 text-xs sm:text-sm">
+                              <div style={{ borderColor: theme.subBorder }} className="flex flex-wrap items-center justify-between gap-2 pb-2 border-b text-[10px] font-mono">
                                 <div className="flex flex-wrap gap-1.5">
                                   {turn.citations.map((cit, i) => (
-                                    <span key={i} className="text-[10px] font-mono px-2 py-0.5 rounded-md bg-indigo-500/10 text-indigo-800 border border-indigo-500/20 font-semibold">
-                                      Ley Analizada (RAG): {cit}
+                                    <span
+                                      key={i}
+                                      style={{ backgroundColor: theme.cardBg, borderColor: theme.cardBorder }}
+                                      className="px-2 py-0.5 rounded border font-semibold"
+                                    >
+                                      RAG: {cit}
                                     </span>
                                   ))}
-                                  <span className="text-[10px] font-mono px-2 py-0.5 rounded-md bg-amber-500/15 text-amber-900 border border-amber-500/30 font-semibold">
-                                    Matriz de Biblioteca: {turn.recommendedTemplateName}
-                                  </span>
+                                  {turn.recommendedTemplateName && (
+                                    <span
+                                      style={{ backgroundColor: theme.cardBg, borderColor: theme.cardBorder, color: theme.accentText }}
+                                      className="px-2 py-0.5 rounded border font-semibold"
+                                    >
+                                      Modelo: {turn.recommendedTemplateName}
+                                    </span>
+                                  )}
                                 </div>
-                                <span className="text-[10px] font-mono text-slate-400">
-                                  Sello SHA-256: {turn.hash.slice(0, 14)}...
-                                </span>
+                                <span style={{ color: theme.mutedText }}>SHA-256: {turn.hash.slice(0, 14)}...</span>
                               </div>
 
-                              {/* Texto del Dictamen en 4 Fases */}
-                              <div className="card-surface p-3.5 sm:p-5 rounded-xl bg-white border border-[#E6DFD1] font-serif text-xs sm:text-sm leading-relaxed text-slate-800 whitespace-pre-wrap">
+                              <div
+                                style={cardStyle}
+                                className="p-4 rounded-xl border font-serif text-xs sm:text-sm leading-relaxed whitespace-pre-wrap"
+                              >
                                 {turn.dictamen}
                               </div>
 
-                              {/* Síntesis ejecutiva para remitir al cliente */}
-                              {turn.clientReadyReply && (
-                                <div className="card-surface p-3 rounded-xl bg-white border border-[#E6DFD1] text-xs space-y-1.5">
-                                  <div className="flex flex-wrap items-center justify-between gap-2">
-                                    <span className="font-mono text-[10px] uppercase text-amber-800 font-bold">
-                                      Comunicación Ejecutiva para Informar al Cliente:
-                                    </span>
-                                    <button
-                                      type="button"
-                                      onClick={() => {
-                                        if (navigator.clipboard?.writeText) {
-                                          navigator.clipboard.writeText(turn.clientReadyReply);
-                                        }
-                                        showToast('Comunicación para el cliente copiada al portapapeles.');
-                                      }}
-                                      className="text-[11px] font-semibold text-amber-800 hover:underline flex items-center gap-1 cursor-pointer"
-                                    >
-                                      <Copy className="w-3 h-3" /> Copiar Texto para Cliente
-                                    </button>
-                                  </div>
-                                  <p className="text-slate-700 leading-relaxed">{turn.clientReadyReply}</p>
-                                </div>
-                              )}
-
-                              {/* Barra de acciones del Dictamen */}
-                              <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-[#E6DFD1] text-xs">
+                              <div style={{ borderColor: theme.subBorder }} className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t text-xs">
                                 <button
                                   type="button"
                                   onClick={() => {
                                     if (navigator.clipboard?.writeText) {
                                       navigator.clipboard.writeText(turn.dictamen);
                                     }
-                                    showToast('Dictamen jurídico copiado íntegramente al portapapeles.');
+                                    showToast('Dictamen copiado al portapapeles.');
                                   }}
-                                  className="px-3 py-1.5 rounded-xl border border-[#D5CBB8] bg-white text-slate-700 font-semibold flex items-center gap-1.5 cursor-pointer hover:bg-amber-500/10"
+                                  style={secondaryBtnStyle}
+                                  className="px-3 py-1.5 rounded-xl border font-semibold flex items-center gap-1.5 cursor-pointer"
                                 >
-                                  <Copy className="w-3.5 h-3.5" /> Copiar Dictamen y Redacción
+                                  <Copy className="w-3.5 h-3.5" /> Copiar Dictamen
                                 </button>
 
                                 <div className="flex flex-wrap gap-2">
@@ -2919,41 +2602,37 @@ ${historyContextStr}`;
                     )}
                   </div>
 
-                  {/* BARRA INFERIOR UNIFICADA DE CONSULTA Y RECAUDOS */}
-                  <div className="pt-3 border-t border-[#E6DFD1] space-y-2">
-
+                  {/* Barra Inferior de Entrada y Adjuntos */}
+                  <div style={{ borderColor: theme.cardBorder }} className="pt-3 border-t space-y-2">
                     {showConversationPasteBox && (
-                      <div className="sub-surface p-3.5 rounded-2xl bg-[#FAF8F5] border border-[#D5CBB8] space-y-2 text-xs">
-                        <div className="flex flex-wrap items-center justify-between gap-2">
-                          <span className="font-mono text-[11px] uppercase text-amber-800 font-bold">
-                            Incorporar Comunicación de WhatsApp, Correo o Cláusula del Caso:
-                          </span>
-                          <button
-                            type="button"
-                            onClick={() =>
-                              setConversationTextInput(
-                                '[10:14] Cliente María Salazar (V-18.987.654): Dra., transferí los 85.000 USD a la cuenta 0134-0031-88-0311098765 de Inversiones Alfa (J-30948271-0), pero el representante me indica que no firmarán en el Registro Público sino dentro de 4 meses.'
-                              )
-                            }
-                            className="text-[10px] font-mono px-2 py-0.5 rounded bg-amber-500/15 text-amber-800 font-semibold cursor-pointer"
-                          >
-                            Cargar Ejemplo
-                          </button>
+                      <div style={subCardStyle} className="p-3.5 rounded-xl border space-y-2 text-xs">
+                        <div className="font-mono text-[11px] uppercase font-bold" style={{ color: theme.accentText }}>
+                          Pegar Comunicación del Cliente o Cláusula a Evaluar
                         </div>
+                        <input
+                          type="text"
+                          value={conversationTitleInput}
+                          onChange={(e) => setConversationTitleInput(e.target.value)}
+                          placeholder="Guía: Referencia del texto (Ej: Mensaje de WhatsApp del cliente / Cláusula tercera)..."
+                          style={inputStyle}
+                          className="w-full px-3 py-1.5 rounded-lg border text-xs"
+                        />
                         <textarea
-                          rows={2}
+                          rows={3}
                           value={conversationTextInput}
                           onChange={(e) => setConversationTextInput(e.target.value)}
-                          placeholder="Pega aquí la comunicación del cliente o de la contraparte para integrarla al análisis..."
-                          className="w-full p-2.5 rounded-xl border bg-white border-[#D5CBB8] text-xs"
+                          placeholder="Guía: Pega aquí la conversación de WhatsApp, correo electrónico o texto que deseas incorporar a la consulta..."
+                          style={inputStyle}
+                          className="w-full p-2.5 rounded-lg border text-xs"
                         />
                         <div className="flex justify-end gap-2">
                           <button
                             type="button"
                             onClick={() => setShowConversationPasteBox(false)}
-                            className="px-3 py-1 rounded-lg border border-[#D5CBB8] text-slate-600 cursor-pointer"
+                            style={secondaryBtnStyle}
+                            className="px-3 py-1 rounded-lg border cursor-pointer"
                           >
-                            Cerrar
+                            Cancelar
                           </button>
                           <button
                             type="button"
@@ -2967,19 +2646,19 @@ ${historyContextStr}`;
                     )}
 
                     {consultAttachments.length > 0 && (
-                      <div className="flex flex-wrap gap-1.5 px-1">
+                      <div className="flex flex-wrap gap-1.5">
                         {consultAttachments.map((att) => (
                           <div
                             key={att.id}
-                            className="sub-surface inline-flex items-center gap-2 px-2.5 py-1 rounded-xl bg-[#FAF8F5] border border-[#D5CBB8] text-[11px]"
+                            style={subCardStyle}
+                            className="inline-flex items-center gap-2 px-2.5 py-1 rounded-lg border text-[11px]"
                           >
-                            <span className="font-mono font-bold text-amber-800">{att.kind}:</span>
-                            <span className="font-medium truncate max-w-[160px]">{att.name}</span>
-                            <span className="text-[10px] font-mono text-emerald-700">({att.piiProtectedCount} PII)</span>
+                            <span className="font-mono font-semibold" style={{ color: theme.accentText }}>{att.kind}:</span>
+                            <span className="truncate max-w-[160px]">{att.name}</span>
                             <button
                               type="button"
                               onClick={() => handleRemoveConsultAttachment(att.id)}
-                              className="text-rose-600 font-bold cursor-pointer hover:underline"
+                              className="text-rose-500 font-bold cursor-pointer"
                             >
                               ✕
                             </button>
@@ -2988,7 +2667,7 @@ ${historyContextStr}`;
                       </div>
                     )}
 
-                    <div className="sub-surface rounded-2xl bg-[#FAF8F5] border border-[#D5CBB8] p-3 space-y-2.5 shadow-sm">
+                    <div style={subCardStyle} className="rounded-2xl border p-3 space-y-2.5">
                       <textarea
                         rows={2}
                         value={consultQuery}
@@ -3002,14 +2681,15 @@ ${historyContextStr}`;
                             handleRunConsultor();
                           }
                         }}
-                        className="w-full px-2.5 py-1.5 rounded-xl border border-transparent text-xs sm:text-sm resize-none"
-                        placeholder="Expón el caso jurídico, solicita el análisis de artículos, opciones, escenarios y consecuencias o pide la redacción del instrumento..."
+                        style={inputStyle}
+                        className="w-full px-3 py-2 rounded-xl border text-xs sm:text-sm resize-none"
+                        placeholder="Guía: Expón los hechos del caso, la consulta de tu cliente o los artículos que deseas analizar..."
                       />
 
-                      <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-[#E6DFD1]">
+                      <div className="flex flex-wrap items-center justify-between gap-2">
                         <div className="flex flex-wrap items-center gap-1.5 text-[11px]">
-                          <label className="card-surface px-2.5 py-1.5 rounded-xl bg-white border border-[#D5CBB8] hover:border-amber-500 font-semibold flex items-center gap-1.5 cursor-pointer text-slate-700">
-                            <Camera className="w-3.5 h-3.5 text-amber-600" />
+                          <label style={secondaryBtnStyle} className="px-2.5 py-1.5 rounded-lg border font-medium flex items-center gap-1.5 cursor-pointer">
+                            <Camera className="w-3.5 h-3.5 text-amber-500" />
                             <span>Imagen</span>
                             <input
                               type="file"
@@ -3022,8 +2702,8 @@ ${historyContextStr}`;
                             />
                           </label>
 
-                          <label className="card-surface px-2.5 py-1.5 rounded-xl bg-white border border-[#D5CBB8] hover:border-amber-500 font-semibold flex items-center gap-1.5 cursor-pointer text-slate-700">
-                            <FileText className="w-3.5 h-3.5 text-indigo-600" />
+                          <label style={secondaryBtnStyle} className="px-2.5 py-1.5 rounded-lg border font-medium flex items-center gap-1.5 cursor-pointer">
+                            <FileText className="w-3.5 h-3.5 text-indigo-500" />
                             <span>.DOC</span>
                             <input
                               type="file"
@@ -3036,8 +2716,8 @@ ${historyContextStr}`;
                             />
                           </label>
 
-                          <label className="card-surface px-2.5 py-1.5 rounded-xl bg-white border border-[#D5CBB8] hover:border-amber-500 font-semibold flex items-center gap-1.5 cursor-pointer text-slate-700">
-                            <FileUp className="w-3.5 h-3.5 text-emerald-600" />
+                          <label style={secondaryBtnStyle} className="px-2.5 py-1.5 rounded-lg border font-medium flex items-center gap-1.5 cursor-pointer">
+                            <FileUp className="w-3.5 h-3.5 text-emerald-500" />
                             <span>.PDF</span>
                             <input
                               type="file"
@@ -3053,18 +2733,20 @@ ${historyContextStr}`;
                           <button
                             type="button"
                             onClick={() => setShowConversationPasteBox(!showConversationPasteBox)}
-                            className="card-surface px-2.5 py-1.5 rounded-xl bg-white border border-[#D5CBB8] hover:border-amber-500 font-semibold flex items-center gap-1.5 cursor-pointer text-slate-700"
+                            style={secondaryBtnStyle}
+                            className="px-2.5 py-1.5 rounded-lg border font-medium flex items-center gap-1.5 cursor-pointer"
                           >
                             <MessageSquare className="w-3.5 h-3.5 text-amber-500" />
-                            <span>Chat Cliente</span>
+                            <span>Conversación</span>
                           </button>
 
                           <select
                             value={consultSelectedLawId}
                             onChange={(e) => setConsultSelectedLawId(e.target.value)}
-                            className="px-2.5 py-1.5 rounded-xl border bg-white border-[#D5CBB8] text-[11px] font-medium max-w-[165px]"
+                            style={inputStyle}
+                            className="px-2.5 py-1.5 rounded-lg border text-[11px] max-w-[160px]"
                           >
-                            <option value="auto">Ley RAG: Todas</option>
+                            <option value="auto">RAG: Todas las Leyes ({ragDocs.length})</option>
                             {ragDocs.map(doc => (
                               <option key={doc.id} value={doc.id}>{doc.title}</option>
                             ))}
@@ -3073,21 +2755,23 @@ ${historyContextStr}`;
                           <select
                             value={consultSelectedTemplateId}
                             onChange={(e) => setConsultSelectedTemplateId(e.target.value)}
-                            className="px-2.5 py-1.5 rounded-xl border bg-white border-[#D5CBB8] text-[11px] font-medium max-w-[165px]"
+                            style={inputStyle}
+                            className="px-2.5 py-1.5 rounded-xl border text-[11px] max-w-[160px]"
                           >
-                            <option value="auto">Modelo: Automático</option>
+                            <option value="auto">Modelo: Automático ({templates.length})</option>
                             {templates.map(tpl => (
                               <option key={tpl.id} value={tpl.id}>{tpl.name}</option>
                             ))}
                           </select>
                         </div>
 
-                        <div className="flex flex-wrap items-center gap-1.5 w-full sm:w-auto justify-end">
+                        <div className="flex items-center gap-1.5 w-full sm:w-auto justify-end">
                           {consultThread.length > 0 && (
                             <button
                               type="button"
                               onClick={handleRunFollowUpQuestion}
-                              className="card-surface px-3.5 py-2 rounded-xl border border-[#D5CBB8] bg-white hover:bg-amber-500/10 text-slate-800 font-semibold text-xs cursor-pointer"
+                              style={secondaryBtnStyle}
+                              className="px-3 py-2 rounded-xl border font-semibold text-xs cursor-pointer"
                             >
                               Repreguntar al Consultor →
                             </button>
@@ -3096,9 +2780,9 @@ ${historyContextStr}`;
                             type="button"
                             onClick={handleRunConsultor}
                             disabled={isConsultLoading}
-                            className="w-full sm:w-auto justify-center px-5 py-2 rounded-xl bg-[#0F172A] hover:bg-slate-800 text-white font-semibold text-xs flex items-center gap-2 cursor-pointer transition shadow-sm border border-amber-500/30"
+                            className="w-full sm:w-auto justify-center px-4 py-2 rounded-xl bg-[#0F172A] hover:bg-slate-800 text-white font-semibold text-xs flex items-center gap-2 cursor-pointer transition"
                           >
-                            <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+                            <Send className="w-3.5 h-3.5 text-amber-400" />
                             <span>Analizar Caso con Privacidad Blindada</span>
                           </button>
                         </div>
@@ -3112,555 +2796,260 @@ ${historyContextStr}`;
           )}
 
           {/* =================================================================
-              2. REDACTOR DE DOCUMENTOS (FLUJO DE 3 PASOS: BIBLIOTECA -> CARGA DATOS -> BORRADOR Y VISTO BUENO .DOC)
+              2. REDACTOR DE DOCUMENTOS (CONECTADO A TU BIBLIOTECA, SIN DATOS DE MAQUETA)
           ================================================================== */}
           {activeTab === 'redactor_docs' && (
-            <div className="card-surface rounded-3xl p-6 sm:p-8 bg-white border border-[#E6DFD1] shadow-sm space-y-6">
-              <div className="flex flex-wrap items-center justify-between gap-4 border-b border-[#E6DFD1] pb-4">
+            <div style={cardStyle} className="rounded-2xl p-4 sm:p-6 border shadow-xs space-y-6">
+              <div style={{ borderColor: theme.cardBorder }} className="flex flex-wrap items-center justify-between gap-4 border-b pb-4">
                 <div>
-                  <span className="text-[11px] font-mono uppercase tracking-widest text-amber-700 font-bold">
-                    2. Redactor Inteligente Conectado a tu Biblioteca ({librarySourceMode})
-                  </span>
-                  <h2 className="font-serif text-xl sm:text-2xl font-bold mt-1">
-                    Sustitución Inteligente de Modelos, Carga por Foto/PDF/Escrito y Visado .DOC
+                  <h2 className="font-serif text-lg sm:text-xl font-bold">
+                    Redactor de Documentos Jurídicos
                   </h2>
+                  <p style={{ color: theme.mutedText }} className="text-xs">
+                    Selecciona una plantilla de tu biblioteca, incorpora los datos por archivo o texto y exporta el instrumento visado en .DOC.
+                  </p>
                 </div>
-                <div className="flex items-center gap-1.5 text-xs font-mono">
-                  <span className={`px-2.5 py-1 rounded-lg font-bold ${redactorStep >= 1 ? 'bg-[#0F172A] text-amber-300' : 'bg-slate-200 text-slate-600'}`}>1. Elegir Modelo</span>
-                  <ChevronRight className="w-3.5 h-3.5 text-slate-400" />
-                  <span className={`px-2.5 py-1 rounded-lg font-bold ${redactorStep >= 2 ? 'bg-[#0F172A] text-amber-300' : 'bg-slate-200 text-slate-600'}`}>2. Cargar Datos (Foto/PDF/Texto)</span>
-                  <ChevronRight className="w-3.5 h-3.5 text-slate-400" />
-                  <span className={`px-2.5 py-1 rounded-lg font-bold ${redactorStep === 3 ? 'bg-emerald-700 text-white' : 'bg-slate-200 text-slate-600'}`}>3. Visto Bueno y .DOC</span>
-                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setActiveTab('configuracion_sistema');
+                    setShowAddTemplateModal(true);
+                  }}
+                  style={secondaryBtnStyle}
+                  className="px-3.5 py-2 rounded-xl border text-xs font-semibold flex items-center gap-1.5 cursor-pointer"
+                >
+                  <Plus className="w-3.5 h-3.5 text-amber-500" />
+                  <span>Agregar Modelo a la Biblioteca</span>
+                </button>
               </div>
 
-              <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-                <div className="lg:col-span-5 space-y-5">
-                  <div className="sub-surface p-4 rounded-2xl bg-[#FAF8F5] border border-[#E6DFD1] space-y-3">
-                    <label className="block text-xs font-mono uppercase text-amber-800 font-bold">
-                      Paso 1: Elige el modelo de tu biblioteca (Drive o Carpeta)
-                    </label>
-                    <select
-                      value={selectedTemplateId}
-                      onChange={(e) => handleSelectTemplate(e.target.value)}
-                      className="w-full px-3.5 py-2.5 rounded-xl border text-xs font-semibold bg-white border-[#D5CBB8]"
-                    >
-                      {templates.map(tpl => (
-                        <option key={tpl.id} value={tpl.id}>
-                          {tpl.name} ({tpl.source})
-                        </option>
-                      ))}
-                    </select>
-
-                    <div className="pt-2 border-t border-[#E6DFD1] space-y-2">
-                      <div className="text-[11px] font-mono font-bold text-slate-700 flex items-center gap-1.5">
-                        <Sparkles className="w-3.5 h-3.5 text-amber-600" />
-                        Datos que la IA identificó para sustituir en este modelo ({selectedTemplate.variables.length}):
-                      </div>
-                      <div className="flex flex-wrap gap-1.5">
-                        {selectedTemplate.variables.map((v) => (
-                          <span key={v.key} className="text-[10px] font-mono px-2 py-0.5 rounded-md bg-amber-500/15 text-amber-800 border border-amber-500/30 font-semibold">
-                            • {v.category}: {v.key}
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* PASO 2: PESTAÑA PARA INCLUIR LOS DATOS MEDIANTE FOTO, PDF, ESCRITO O FICHA CRM */}
-                  <div className="sub-surface p-4 rounded-2xl bg-[#FAF8F5] border border-[#E6DFD1] space-y-3">
-                    <div className="flex items-center justify-between gap-2">
-                      <div className="text-xs font-mono uppercase text-amber-800 font-bold">
-                        Paso 2: Incluye los datos requeridos (Foto, PDF o Escrito)
-                      </div>
-                    </div>
-                    <div className="grid grid-cols-3 gap-1.5">
-                      <button
-                        type="button"
-                        onClick={() => setInputModeTab('foto_ocr')}
-                        className={`py-2 px-2 rounded-xl text-[11px] font-semibold flex items-center justify-center gap-1.5 cursor-pointer transition ${
-                          inputModeTab === 'foto_ocr' ? 'bg-[#0F172A] text-white' : 'bg-white border border-[#D5CBB8] text-slate-700'
-                        }`}
-                      >
-                        <Camera className="w-3.5 h-3.5 text-amber-400" /> Foto / Cédula
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setInputModeTab('pdf_doc')}
-                        className={`py-2 px-2 rounded-xl text-[11px] font-semibold flex items-center justify-center gap-1.5 cursor-pointer transition ${
-                          inputModeTab === 'pdf_doc' ? 'bg-[#0F172A] text-white' : 'bg-white border border-[#D5CBB8] text-slate-700'
-                        }`}
-                      >
-                        <FileUp className="w-3.5 h-3.5 text-emerald-400" /> Subir PDF
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setInputModeTab('escrito_manual')}
-                        className={`py-2 px-2 rounded-xl text-[11px] font-semibold flex items-center justify-center gap-1.5 cursor-pointer transition ${
-                          inputModeTab === 'escrito_manual' ? 'bg-[#0F172A] text-white' : 'bg-white border border-[#D5CBB8] text-slate-700'
-                        }`}
-                      >
-                        <FileText className="w-3.5 h-3.5 text-indigo-400" /> Por Escrito
-                      </button>
-                    </div>
-
-                    {/* Autocompletado rápido desde la ficha del CRM */}
-                    <div className="pt-1">
+              {templates.length === 0 ? (
+                <div style={subCardStyle} className="p-8 rounded-2xl border text-center space-y-3">
+                  <FileText className="w-8 h-8 text-amber-500 mx-auto" />
+                  <h3 className="font-serif font-bold text-base">Tu Biblioteca de Modelos está vacía</h3>
+                  <p style={{ color: theme.mutedText }} className="text-xs max-w-md mx-auto leading-relaxed">
+                    Guarda tus contratos, poderes o escritos en el módulo <strong>11. Configuración</strong> colocando entre llaves dobles los datos variables (ejemplo: <code>{`{{VENDEDOR}}`}</code>, <code>{`{{COMPRADOR}}`}</code>, <code>{`{{PRECIO}}`}</code>) o subiendo tus archivos <code>.DOCX</code> / <code>.TXT</code>.
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setActiveTab('configuracion_sistema');
+                      setShowAddTemplateModal(true);
+                    }}
+                    className="px-4 py-2.5 rounded-xl bg-[#0F172A] text-white text-xs font-semibold cursor-pointer"
+                  >
+                    Cargar Primer Modelo Ahora
+                  </button>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                  <div className="lg:col-span-5 space-y-4">
+                    <div style={subCardStyle} className="p-4 rounded-xl border space-y-3">
+                      <label className="block text-xs font-semibold">
+                        Modelo de tu Biblioteca ({templates.length})
+                      </label>
                       <select
-                        defaultValue=""
-                        onChange={(e) => {
-                          const cli = crmClients.find(c => c.id === e.target.value);
-                          if (cli) handleLoadClientIntoRedactor(cli);
-                        }}
-                        className="w-full px-3 py-2 rounded-xl border text-[11px] bg-white border-[#D5CBB8] font-medium"
+                        value={selectedTemplate?.id || ''}
+                        onChange={(e) => handleSelectTemplate(e.target.value)}
+                        style={inputStyle}
+                        className="w-full px-3 py-2 rounded-xl border text-xs font-semibold"
                       >
-                        <option value="">⚡ O importar datos de un cliente registrado en tu CRM...</option>
-                        {crmClients.map(c => (
-                          <option key={c.id} value={c.id}>
-                            Importar de CRM: {c.name} ({c.taxId})
+                        {templates.map(tpl => (
+                          <option key={tpl.id} value={tpl.id}>
+                            {tpl.name} ({tpl.category})
                           </option>
                         ))}
                       </select>
+
+                      {crmClients.length > 0 && (
+                        <select
+                          defaultValue=""
+                          onChange={(e) => {
+                            const cli = crmClients.find(c => c.id === e.target.value);
+                            if (cli) handleLoadClientIntoRedactor(cli);
+                          }}
+                          style={inputStyle}
+                          className="w-full px-3 py-2 rounded-xl border text-xs"
+                        >
+                          <option value="">Guía: Opcionalmente importa datos de un cliente de tu CRM...</option>
+                          {crmClients.map(c => (
+                            <option key={c.id} value={c.id}>{c.name} ({c.taxId})</option>
+                          ))}
+                        </select>
+                      )}
                     </div>
 
-                    {inputModeTab === 'foto_ocr' && (
-                      <div className="p-4 rounded-xl border border-dashed border-amber-600/50 bg-white text-center space-y-2">
-                        <Camera className="w-6 h-6 text-amber-600 mx-auto" />
-                        <p className="text-xs font-semibold">Sube una Foto de Cédula, RIF o Ficha Catastral</p>
-                        <p className="text-[11px] text-slate-500">
-                          La IA extrae automáticamente nombres de las partes, documentos e inmueble y rellena los campos del modelo.
-                        </p>
-                        <label className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[#0F172A] text-white text-xs font-semibold cursor-pointer">
-                          <Upload className="w-3.5 h-3.5 text-amber-400" />
-                          <span>Seleccionar Foto (.JPG / .PNG)</span>
-                          <input
-                            type="file"
-                            accept="image/*"
-                            className="hidden"
-                            onChange={(e) => {
-                              const f = e.target.files?.[0];
-                              if (f) handleExtractFromPhotoOrPdf(f, 'Foto (OCR)');
-                            }}
-                          />
-                        </label>
-                      </div>
-                    )}
-
-                    {inputModeTab === 'pdf_doc' && (
-                      <div className="p-4 rounded-xl border border-dashed border-emerald-600/50 bg-white text-center space-y-2">
-                        <FileUp className="w-6 h-6 text-emerald-600 mx-auto" />
-                        <p className="text-xs font-semibold">Sube un PDF (Título Anterior, Registro o Minuta)</p>
-                        <p className="text-[11px] text-slate-500">
-                          La IA lee el PDF localmente e identifica partes, linderos, datos de registro y precio.
-                        </p>
-                        <label className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-700 text-white text-xs font-semibold cursor-pointer">
-                          <Upload className="w-3.5 h-3.5" />
-                          <span>Seleccionar PDF / Documento</span>
-                          <input
-                            type="file"
-                            accept=".pdf,.doc,.docx,.txt"
-                            className="hidden"
-                            onChange={(e) => {
-                              const f = e.target.files?.[0];
-                              if (f) handleExtractFromPhotoOrPdf(f, 'Documento PDF');
-                            }}
-                          />
-                        </label>
-                      </div>
-                    )}
-
-                    {inputModeTab === 'escrito_manual' && (
-                      <div className="space-y-2">
-                        <textarea
-                          rows={4}
-                          value={freeTextToExtract}
-                          onChange={(e) => setFreeTextToExtract(e.target.value)}
-                          className="w-full p-3 rounded-xl border text-xs bg-white border-[#D5CBB8]"
-                          placeholder="Escribe o pega los datos de las partes, inmueble, precio, jurisdicción..."
-                        />
+                    <div style={subCardStyle} className="p-4 rounded-xl border space-y-3">
+                      <div className="grid grid-cols-3 gap-1.5">
                         <button
                           type="button"
-                          onClick={handleExtractFromWrittenNotes}
-                          className="w-full py-2.5 rounded-xl bg-[#0F172A] text-white text-xs font-semibold cursor-pointer"
+                          onClick={() => setInputModeTab('escrito_manual')}
+                          style={inputModeTab === 'escrito_manual' ? { backgroundColor: '#0F172A', color: '#FFFFFF' } : secondaryBtnStyle}
+                          className="py-2 px-2 rounded-lg text-[11px] font-semibold border flex items-center justify-center gap-1.5 cursor-pointer"
                         >
-                          Extraer Datos del Escrito y Rellenar Modelo
+                          <FileText className="w-3.5 h-3.5 text-amber-400" /> Por Escrito
                         </button>
+                        <button
+                          type="button"
+                          onClick={() => setInputModeTab('foto_ocr')}
+                          style={inputModeTab === 'foto_ocr' ? { backgroundColor: '#0F172A', color: '#FFFFFF' } : secondaryBtnStyle}
+                          className="py-2 px-2 rounded-lg text-[11px] font-semibold border flex items-center justify-center gap-1.5 cursor-pointer"
+                        >
+                          <Camera className="w-3.5 h-3.5 text-amber-400" /> Foto / Cédula
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setInputModeTab('pdf_doc')}
+                          style={inputModeTab === 'pdf_doc' ? { backgroundColor: '#0F172A', color: '#FFFFFF' } : secondaryBtnStyle}
+                          className="py-2 px-2 rounded-lg text-[11px] font-semibold border flex items-center justify-center gap-1.5 cursor-pointer"
+                        >
+                          <FileUp className="w-3.5 h-3.5 text-emerald-400" /> Archivo PDF/TXT
+                        </button>
+                      </div>
+
+                      {inputModeTab === 'foto_ocr' && (
+                        <div style={cardStyle} className="p-4 rounded-xl border border-dashed text-center space-y-2">
+                          <p className="text-xs font-semibold">Subir imagen de documento de identidad o RIF</p>
+                          <label className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[#0F172A] text-white text-xs font-semibold cursor-pointer">
+                            <Upload className="w-3.5 h-3.5 text-amber-400" />
+                            <span>Seleccionar Imagen</span>
+                            <input
+                              type="file"
+                              accept="image/*"
+                              className="hidden"
+                              onChange={(e) => {
+                                const f = e.target.files?.[0];
+                                if (f) handleExtractFromPhotoOrPdf(f, 'Foto (OCR)');
+                              }}
+                            />
+                          </label>
+                        </div>
+                      )}
+
+                      {inputModeTab === 'pdf_doc' && (
+                        <div style={cardStyle} className="p-4 rounded-xl border border-dashed text-center space-y-2">
+                          <p className="text-xs font-semibold">Subir documento antecedente (.PDF / .DOCX / .TXT)</p>
+                          <label className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-700 text-white text-xs font-semibold cursor-pointer">
+                            <Upload className="w-3.5 h-3.5" />
+                            <span>Seleccionar Documento</span>
+                            <input
+                              type="file"
+                              accept=".pdf,.doc,.docx,.txt"
+                              className="hidden"
+                              onChange={(e) => {
+                                const f = e.target.files?.[0];
+                                if (f) handleExtractFromPhotoOrPdf(f, 'Documento PDF');
+                              }}
+                            />
+                          </label>
+                        </div>
+                      )}
+
+                      {inputModeTab === 'escrito_manual' && (
+                        <div className="space-y-2">
+                          <textarea
+                            rows={3}
+                            value={freeTextToExtract}
+                            onChange={(e) => setFreeTextToExtract(e.target.value)}
+                            style={inputStyle}
+                            className="w-full p-2.5 rounded-xl border text-xs"
+                            placeholder="Guía: Pega aquí los datos de la operación (Ej: Vendedor: Nombre y C.I. / Comprador: Nombre y C.I. / Precio: Monto...) para rellenar los campos automáticamente..."
+                          />
+                          <button
+                            type="button"
+                            onClick={handleExtractFromWrittenNotes}
+                            disabled={isRedactorExtracting}
+                            className="w-full py-2 rounded-xl bg-[#0F172A] text-white text-xs font-semibold cursor-pointer"
+                          >
+                            {isRedactorExtracting ? 'Extrayendo con IA...' : 'Extraer Datos del Escrito y Rellenar Modelo'}
+                          </button>
+                        </div>
+                      )}
+                    </div>
+
+                    {spousalConsentWarning && (
+                      <div style={subCardStyle} className="p-3.5 rounded-xl border border-amber-500/40 text-xs space-y-2">
+                        <div className="font-mono font-bold" style={{ color: theme.accentText }}>
+                          Observación Registral Preventiva (Art. 168 Código Civil)
+                        </div>
+                        <p style={{ color: theme.mutedText }} className="text-[11px]">
+                          Se detectó estado civil casado sin mención de autorización conyugal ni declaración de bien propio.
+                        </p>
+                        <div className="flex flex-wrap gap-2">
+                          <button
+                            type="button"
+                            onClick={() => handleApplySpousalClause('consentimiento')}
+                            className="px-3 py-1 rounded-lg bg-[#0F172A] text-white text-[11px] font-semibold cursor-pointer"
+                          >
+                            + Incluir Consentimiento Conyugal
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleApplySpousalClause('bien_propio')}
+                            style={secondaryBtnStyle}
+                            className="px-3 py-1 rounded-lg border text-[11px] font-semibold cursor-pointer"
+                          >
+                            + Declarar Bien Propio (Art. 151 CC)
+                          </button>
+                        </div>
                       </div>
                     )}
 
-                    {extractedSourceNote && (
-                      <div className="p-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-[11px] font-mono text-emerald-800">
-                        ✓ {extractedSourceNote}
+                    {/* Variables dinámicas del modelo */}
+                    {selectedTemplate && (
+                      <div className="space-y-2.5 max-h-[340px] overflow-y-auto pr-1">
+                        {selectedTemplate.variables.map((v) => (
+                          <div key={v.key} className="space-y-1">
+                            <label className="block text-[11px] font-semibold">
+                              <span style={{ color: theme.accentText }} className="font-mono">{`{{${v.key}}}`}</span> — {v.label}
+                            </label>
+                            <input
+                              type="text"
+                              value={templateValues[v.key] || ''}
+                              onChange={(e) => setTemplateValues({ ...templateValues, [v.key]: e.target.value })}
+                              placeholder={v.placeholder}
+                              style={inputStyle}
+                              className="w-full px-3 py-2 rounded-xl border text-xs"
+                            />
+                          </div>
+                        ))}
                       </div>
                     )}
                   </div>
 
-                  {/* Alerta preventiva forense: Art. 168 Código Civil (Vendedor casado sin mención de cónyuge o bien propio) */}
-                  {spousalConsentWarning && (
-                    <div className="p-3.5 rounded-2xl bg-amber-500/15 border border-amber-600/40 text-xs space-y-2">
-                      <div className="font-mono font-bold text-amber-900 flex items-center gap-1.5">
-                        <Scale className="w-4 h-4 text-amber-700 shrink-0" />
-                        Alerta Registral Preventiva (Art. 168 Código Civil):
-                      </div>
-                      <p className="text-[11px] text-slate-700 leading-relaxed">
-                        El vendedor figura con estado civil <strong>casado</strong> sin mención de autorización conyugal ni declaración de bien propio. Para evitar observación o rechazo en Registro Inmobiliario (SAREN), elige cómo subsanarlo:
-                      </p>
-                      <div className="flex flex-wrap gap-2">
-                        <button
-                          type="button"
-                          onClick={() => handleApplySpousalClause('consentimiento')}
-                          className="px-3 py-1.5 rounded-lg bg-[#0F172A] text-white text-[11px] font-semibold cursor-pointer"
-                        >
-                          + Incluir Consentimiento Conyugal
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => handleApplySpousalClause('bien_propio')}
-                          className="px-3 py-1.5 rounded-lg bg-white border border-amber-700/40 text-slate-800 text-[11px] font-semibold cursor-pointer"
-                        >
-                          + Declarar Bien Propio (Art. 151 CC)
-                        </button>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Campos individuales editables por el abogado */}
-                  <div className="space-y-2.5 max-h-[340px] overflow-y-auto pr-1">
-                    <div className="text-[11px] font-mono uppercase text-slate-500 font-bold">
-                      Verifica o ajusta los datos identificados por la IA:
-                    </div>
-                    {selectedTemplate.variables.map((v) => (
-                      <div key={v.key} className="space-y-1">
-                        <label className="block text-[11px] font-semibold text-slate-700">
-                          <span className="font-mono text-amber-700">[{v.category}]</span> {v.label}
-                        </label>
-                        <input
-                          type="text"
-                          value={templateValues[v.key] || ''}
-                          onChange={(e) => setTemplateValues({ ...templateValues, [v.key]: e.target.value })}
-                          placeholder={v.placeholder}
-                          className="w-full px-3 py-2 rounded-xl border text-xs bg-[#FAF8F5] border-[#D5CBB8]"
-                        />
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                {/* PASO 3: BORRADOR ENSAMBLADO SOBRE EL MODELO ORIGINAL + VISTO BUENO HUMAN LOOP + EXPORTAR .DOC */}
-                <div className="lg:col-span-7 flex flex-col justify-between sub-surface p-6 rounded-2xl border bg-[#FAF8F5] border-[#E6DFD1] space-y-4">
-                  <div className="space-y-3">
-                    <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[#E6DFD1] pb-3">
-                      <div>
-                        <span className="text-[10px] font-mono uppercase text-amber-700 font-bold">
-                          Paso 3: Borrador Desarrollado sobre tu Modelo Original
-                        </span>
+                  {/* Vista Previa del Documento Ensamblado */}
+                  <div style={subCardStyle} className="lg:col-span-7 flex flex-col justify-between p-5 rounded-2xl border space-y-4">
+                    <div className="space-y-3">
+                      <div style={{ borderColor: theme.subBorder }} className="flex items-center justify-between border-b pb-3">
                         <h3 className="font-serif font-bold text-base">
-                          {selectedTemplate.name}
+                          {selectedTemplate?.name || 'Vista Previa del Instrumento'}
                         </h3>
+                        <span style={{ color: theme.emeraldText }} className="text-[11px] font-mono font-semibold">
+                          Sustitución en tiempo real
+                        </span>
                       </div>
-                      <span className="text-[10px] font-mono px-2.5 py-1 rounded-full bg-emerald-500/15 text-emerald-700 font-semibold">
-                        Listo para Revisión del Abogado
-                      </span>
+
+                      <div style={cardStyle} className="p-5 rounded-xl border min-h-[380px]">
+                        <pre className="whitespace-pre-wrap font-serif text-xs sm:text-sm leading-relaxed">
+                          {compiledDocument}
+                        </pre>
+                      </div>
                     </div>
 
-                    <div className="p-5 rounded-xl bg-white border border-[#E6DFD1] min-h-[340px]">
-                      <pre className="whitespace-pre-wrap font-serif text-xs sm:text-sm leading-relaxed text-slate-800">
-                        {compiledDocument}
-                      </pre>
-                    </div>
-                  </div>
-
-                  {/* Barra de Aprobación del Abogado (Registra en Human Loop y Descarga .DOC) */}
-                  <div className="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 space-y-3">
-                    <div className="flex flex-wrap items-center justify-between gap-2">
+                    <div style={cardStyle} className="p-4 rounded-xl border flex flex-wrap items-center justify-between gap-3">
                       <div className="text-xs">
-                        <strong className="text-emerald-900 block">Aprobación y Visado del Abogado (Human-in-the-Loop)</strong>
-                        <span className="text-[11px] text-slate-600">
-                          Al darle el Visto Bueno, queda registrado en el historial de <strong>9. Human-in-the-Loop</strong> y se descarga en <strong>.DOC</strong> para impresión y visado.
+                        <strong className="block">Visado Profesional (Human-in-the-Loop)</strong>
+                        <span style={{ color: theme.mutedText }} className="text-[11px]">
+                          Estampa tu sello SHA-256 y descarga el archivo en formato .DOC.
                         </span>
                       </div>
                       <button
                         type="button"
                         onClick={handleApproveAndExportRedactorDoc}
-                        className="px-5 py-3 rounded-xl bg-emerald-700 hover:bg-emerald-600 text-white font-semibold text-xs flex items-center gap-2 cursor-pointer shadow-sm transition"
+                        className="px-5 py-2.5 rounded-xl bg-emerald-700 hover:bg-emerald-600 text-white font-semibold text-xs flex items-center gap-2 cursor-pointer transition"
                       >
                         <FileCheck className="w-4 h-4" />
                         <span>Dar Visto Bueno y Exportar a .DOC</span>
-                      </button>
-                    </div>
-                    {redactorApprovedStamp && (
-                      <div className="text-[11px] font-mono text-emerald-800 pt-2 border-t border-emerald-500/20">
-                        ✓ Visto Bueno registrado por {lawyerSignerName} • Sello SHA-256: {redactorApprovedStamp.slice(0, 28)}...
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* =================================================================
-              3. GRABADOR DE ACTAS (PRESENCIAL O MEETING ONLINE + CHECKS A PLANIFICADOR + GENERADOR DE MINUTA)
-          ================================================================== */}
-          {activeTab === 'grabador' && (
-            <div className="card-surface rounded-3xl p-6 sm:p-8 bg-white border border-[#E6DFD1] shadow-sm space-y-6">
-              <div className="flex flex-wrap items-center justify-between gap-4 border-b border-[#E6DFD1] pb-4">
-                <div>
-                  <span className="text-[11px] font-mono uppercase tracking-widest text-amber-700 font-bold">
-                    3. Grabador de Reuniones Presenciales y Meetings Online
-                  </span>
-                  <h2 className="font-serif text-xl sm:text-2xl font-bold mt-1">
-                    Resumen Ejecutivo, Acuerdos con Check al Planificador y Generador de Minuta
-                  </h2>
-                </div>
-                {isRecording && (
-                  <span className="px-3 py-1 rounded-full bg-rose-600 text-white font-mono text-xs font-bold animate-pulse">
-                    ● GRABANDO ({String(Math.floor(recordingSeconds / 60)).padStart(2, '0')}:{String(recordingSeconds % 60).padStart(2, '0')})
-                  </span>
-                )}
-              </div>
-
-              <div className="sub-surface p-5 rounded-2xl bg-[#FAF8F5] border border-[#E6DFD1] space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                  <button
-                    type="button"
-                    onClick={() => setRecordingMode('Presencial (Sala / Despacho)')}
-                    className={`p-3.5 rounded-xl border text-left flex items-center gap-3 cursor-pointer transition ${
-                      recordingMode === 'Presencial (Sala / Despacho)'
-                        ? 'bg-[#0F172A] text-white border-amber-500'
-                        : 'bg-white border-[#D5CBB8] text-slate-800'
-                    }`}
-                  >
-                    <Mic className="w-5 h-5 text-amber-400 shrink-0" />
-                    <div>
-                      <div className="text-xs font-bold">Reunión Presencial (En Despacho / Sala / Tribunal)</div>
-                      <div className="text-[11px] opacity-80">Captura directa por micrófono del equipo o móvil</div>
-                    </div>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => setRecordingMode('Meeting Online (Zoom / Meet / Teams)')}
-                    className={`p-3.5 rounded-xl border text-left flex items-center gap-3 cursor-pointer transition ${
-                      recordingMode === 'Meeting Online (Zoom / Meet / Teams)'
-                        ? 'bg-[#0F172A] text-white border-amber-500'
-                        : 'bg-white border-[#D5CBB8] text-slate-800'
-                    }`}
-                  >
-                    <Video className="w-5 h-5 text-emerald-400 shrink-0" />
-                    <div>
-                      <div className="text-xs font-bold">Meeting Online (Zoom / Google Meet / Teams)</div>
-                      <div className="text-[11px] opacity-80">Captura de audio de videollamada con clientes o colegas</div>
-                    </div>
-                  </button>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-12 gap-3 items-end">
-                  <div className="md:col-span-5">
-                    <label className="block text-[11px] font-mono uppercase text-slate-500 mb-1">Título de la Reunión o Audiencia</label>
-                    <input
-                      type="text"
-                      value={meetingTitleInput}
-                      onChange={(e) => setMeetingTitleInput(e.target.value)}
-                      className="w-full px-3.5 py-2 rounded-xl border text-xs bg-white border-[#D5CBB8]"
-                    />
-                  </div>
-                  <div className="md:col-span-4">
-                    <label className="block text-[11px] font-mono uppercase text-slate-500 mb-1">Asistentes</label>
-                    <input
-                      type="text"
-                      value={meetingAttendeesInput}
-                      onChange={(e) => setMeetingAttendeesInput(e.target.value)}
-                      className="w-full px-3.5 py-2 rounded-xl border text-xs bg-white border-[#D5CBB8]"
-                    />
-                  </div>
-                  <div className="md:col-span-3 flex gap-2">
-                    {!isRecording ? (
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setIsRecording(true);
-                          showToast(`Grabando en modo: ${recordingMode}...`);
-                        }}
-                        className="w-full py-2.5 px-4 rounded-xl bg-rose-600 hover:bg-rose-500 text-white text-xs font-semibold flex items-center justify-center gap-2 cursor-pointer"
-                      >
-                        <Mic className="w-4 h-4" /> Iniciar Grabación
-                      </button>
-                    ) : (
-                      <button
-                        type="button"
-                        onClick={handleFinishRecordingSimulation}
-                        className="w-full py-2.5 px-4 rounded-xl bg-emerald-700 hover:bg-emerald-600 text-white text-xs font-semibold flex items-center justify-center gap-2 cursor-pointer animate-pulse"
-                      >
-                        <CheckCircle2 className="w-4 h-4" /> Finalizar y Generar Acta
-                      </button>
-                    )}
-                  </div>
-                </div>
-              </div>
-
-              <div className="space-y-6">
-                {recordings.map((rec) => (
-                  <div key={rec.id} className="sub-surface p-6 rounded-2xl border bg-[#FAF8F5] border-[#E6DFD1] space-y-5">
-                    <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#E6DFD1] pb-3">
-                      <div>
-                        <span className="text-[10px] font-mono px-2.5 py-0.5 rounded-full bg-amber-500/15 text-amber-800 font-bold">
-                          {rec.mode} • Fecha: {rec.date} • Duración: {rec.duration}
-                        </span>
-                        <h3 className="font-serif font-bold text-lg mt-1">{rec.title}</h3>
-                        <p className="text-xs text-slate-500">Asistentes: {rec.attendees}</p>
-                      </div>
-                      <button
-                        type="button"
-                        onClick={() => setShowMinutaModal(rec)}
-                        className="px-4 py-2.5 rounded-xl bg-[#0F172A] hover:bg-slate-800 text-white text-xs font-semibold flex items-center gap-2 cursor-pointer shadow-sm"
-                      >
-                        <Share2 className="w-4 h-4 text-amber-400" />
-                        <span>Generar Minuta para Compartir con Asistentes</span>
-                      </button>
-                    </div>
-
-                    {/* 1. Resumen con los puntos más importantes */}
-                    <div className="space-y-2">
-                      <h4 className="text-xs font-mono uppercase tracking-wider text-amber-800 font-bold">
-                        1. Resumen de Puntos Más Importantes
-                      </h4>
-                      <ul className="space-y-1.5 text-xs">
-                        {rec.summaryPoints.map((pt, i) => (
-                          <li key={i} className="flex items-start gap-2">
-                            <span className="text-amber-600 font-bold">•</span>
-                            <span>{pt}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-
-                    {/* 2. Acuerdos y Tareas con Check para enviar automáticamente al Planificador */}
-                    <div className="space-y-2">
-                      <h4 className="text-xs font-mono uppercase tracking-wider text-emerald-800 font-bold">
-                        2. Decisiones, Acuerdos y Tareas (Marca el Check ✓ para enviarlo automáticamente al Planificador y Calendario)
-                      </h4>
-                      <div className="space-y-2">
-                        {rec.agreementsAndTasks.map((act) => (
-                          <label
-                            key={act.id}
-                            className={`flex items-center justify-between gap-3 p-3 rounded-xl border text-xs cursor-pointer transition ${
-                              act.addedToPlanner
-                                ? 'bg-emerald-500/10 border-emerald-500/40'
-                                : 'bg-white border-[#E6DFD1] hover:border-amber-500'
-                            }`}
-                          >
-                            <div className="flex items-center gap-3">
-                              <input
-                                type="checkbox"
-                                checked={act.addedToPlanner}
-                                onChange={() => handleToggleRecordingTaskCheck(rec.id, act.id)}
-                                className="w-4 h-4 accent-emerald-600 rounded cursor-pointer"
-                              />
-                              <span className="font-medium">{act.text}</span>
-                            </div>
-                            <div className="flex items-center gap-2 shrink-0 font-mono text-[11px]">
-                              <span className="text-slate-500">Fecha: {act.dueDate}</span>
-                              {act.addedToPlanner ? (
-                                <span className="px-2 py-0.5 rounded bg-emerald-700 text-white text-[10px]">
-                                  ✓ En Planificador y Calendario
-                                </span>
-                              ) : (
-                                <span className="px-2 py-0.5 rounded bg-slate-200 text-slate-700 text-[10px]">
-                                  Marcar para Planificar
-                                </span>
-                              )}
-                            </div>
-                          </label>
-                        ))}
-                      </div>
-                    </div>
-
-                    {/* 3. Transcripción Completa al final */}
-                    <div className="space-y-2 pt-2 border-t border-[#E6DFD1]">
-                      <h4 className="text-xs font-mono uppercase tracking-wider text-slate-500 font-bold">
-                        3. Transcripción Completa de la Sesión
-                      </h4>
-                      <div className="p-4 rounded-xl bg-white border border-[#E6DFD1] font-mono text-xs whitespace-pre-wrap leading-relaxed">
-                        {rec.transcript}
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              {showMinutaModal && (
-                <div className="fixed inset-0 z-50 bg-slate-950/75 backdrop-blur-sm flex items-center justify-center p-4">
-                  <div className="card-surface max-w-2xl w-full rounded-3xl p-6 sm:p-8 bg-white border border-[#E6DFD1] shadow-2xl space-y-4">
-                    <div className="flex items-center justify-between border-b border-[#E6DFD1] pb-3">
-                      <div>
-                        <span className="text-[10px] font-mono uppercase text-amber-700 font-bold">
-                          Generador de Minuta de Reunión para Asistentes
-                        </span>
-                        <h3 className="font-serif font-bold text-lg">{showMinutaModal.title}</h3>
-                      </div>
-                      <button
-                        type="button"
-                        onClick={() => setShowMinutaModal(null)}
-                        className="px-3 py-1 rounded-lg bg-slate-200 text-slate-800 text-xs font-bold cursor-pointer"
-                      >
-                        Cerrar ✕
-                      </button>
-                    </div>
-
-                    <div className="p-4 rounded-2xl bg-[#FAF8F5] border border-[#E6DFD1] text-xs space-y-3 max-h-[360px] overflow-y-auto font-serif">
-                      <p><strong>MINUTA DE REUNIÓN Y ACUERDOS</strong></p>
-                      <p><strong>Fecha:</strong> {showMinutaModal.date} | <strong>Modalidad:</strong> {showMinutaModal.mode}</p>
-                      <p><strong>Asistentes:</strong> {showMinutaModal.attendees}</p>
-                      <p><strong>1. PUNTOS TRATADOS:</strong></p>
-                      {showMinutaModal.summaryPoints.map((p, idx) => (
-                        <p key={idx}>• {p}</p>
-                      ))}
-                      <p><strong>2. ACUERDOS Y COMPROMISOS:</strong></p>
-                      {showMinutaModal.agreementsAndTasks.map((a, idx) => (
-                        <p key={idx}>☑ {a.text} (Fecha compromiso: {a.dueDate})</p>
-                      ))}
-                    </div>
-
-                    <div className="flex flex-wrap justify-end gap-2.5 pt-2">
-                      <button
-                        type="button"
-                        onClick={() => {
-                          const text = `MINUTA DE REUNIÓN: ${showMinutaModal.title}\nFecha: ${showMinutaModal.date}\nAsistentes: ${showMinutaModal.attendees}\n\nPUNTOS CLAVE:\n${showMinutaModal.summaryPoints.map(p => `• ${p}`).join('\n')}\n\nACUERDOS Y TAREAS:\n${showMinutaModal.agreementsAndTasks.map(a => `☑ ${a.text} (${a.dueDate})`).join('\n')}`;
-                          if (navigator.clipboard?.writeText) {
-                            navigator.clipboard.writeText(text);
-                          }
-                          showToast('Minuta copiada al portapapeles lista para enviar por WhatsApp o Correo a los asistentes.');
-                        }}
-                        className="px-4 py-2.5 rounded-xl border border-[#D5CBB8] bg-white text-slate-800 text-xs font-semibold flex items-center gap-2 cursor-pointer"
-                      >
-                        <Copy className="w-3.5 h-3.5" /> Copiar para WhatsApp / Correo
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          const text = `Fecha: ${showMinutaModal.date}\nModalidad: ${showMinutaModal.mode}\nAsistentes: ${showMinutaModal.attendees}\n\n1. RESUMEN DE PUNTOS IMPORTANTES:\n${showMinutaModal.summaryPoints.map(p => `• ${p}`).join('\n')}\n\n2. DECISIONES Y TAREAS ACORDADAS:\n${showMinutaModal.agreementsAndTasks.map(a => `☑ ${a.text} — Fecha: ${a.dueDate}`).join('\n')}`;
-                          const hash = computeRealSha256(`${text}|${Date.now()}`);
-                          setApprovedDocsRegistry(prev => [
-                            {
-                              id: `HL-${Date.now().toString().slice(-5)}`,
-                              timestamp: new Date().toLocaleString('es-ES', { dateStyle: 'short', timeStyle: 'short' }),
-                              title: `Minuta — ${showMinutaModal.title}`,
-                              originModule: 'Minuta de Reunión',
-                              templateUsed: 'Minuta Ejecutiva de Acuerdos',
-                              approvedBy: lawyerSignerName,
-                              collegiateNumber: lawyerCollegiateId,
-                              sha256: hash,
-                              content: text
-                            },
-                            ...prev
-                          ]);
-                          exportWordDoc(`Minuta_${showMinutaModal.date}.doc`, showMinutaModal.title, `Minuta Visada por ${lawyerSignerName} • SHA-256: ${hash.slice(0, 20)}...`, text);
-                          showToast('Minuta registrada en Human-in-the-Loop y descargada en formato .DOC.');
-                        }}
-                        className="px-5 py-2.5 rounded-xl bg-[#0F172A] text-white text-xs font-semibold flex items-center gap-2 cursor-pointer"
-                      >
-                        <Download className="w-3.5 h-3.5 text-amber-400" /> Descargar Minuta (.DOC)
                       </button>
                     </div>
                   </div>
@@ -3670,70 +3059,351 @@ ${historyContextStr}`;
           )}
 
           {/* =================================================================
-              4. PLANIFICADOR (CON FECHA, PRIORIDAD Y SINCRONIZACIÓN DIRECTA AL CALENDARIO)
+              3. GRABADOR DE ACTAS (CON DICTADO / TRANSCRIPCIÓN Y ACUERDOS REALES)
+          ================================================================== */}
+          {activeTab === 'grabador' && (
+            <div style={cardStyle} className="rounded-2xl p-4 sm:p-6 border shadow-xs space-y-6">
+              <div style={{ borderColor: theme.cardBorder }} className="flex flex-wrap items-center justify-between gap-4 border-b pb-4">
+                <div>
+                  <h2 className="font-serif text-lg sm:text-xl font-bold">
+                    Grabador de Reuniones y Generador de Actas
+                  </h2>
+                  <p style={{ color: theme.mutedText }} className="text-xs">
+                    Captura audio presencial o de videollamada, transcribe la sesión y envía los compromisos directamente al Planificador y Calendario.
+                  </p>
+                </div>
+                {isRecording && (
+                  <span className="px-3 py-1 rounded-full bg-rose-600 text-white font-mono text-xs font-bold animate-pulse">
+                    ● GRABANDO ({String(Math.floor(recordingSeconds / 60)).padStart(2, '0')}:{String(recordingSeconds % 60).padStart(2, '0')})
+                  </span>
+                )}
+              </div>
+
+              <div style={subCardStyle} className="p-4 sm:p-5 rounded-2xl border space-y-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setRecordingMode('Presencial (Sala / Despacho)')}
+                    style={recordingMode === 'Presencial (Sala / Despacho)' ? { backgroundColor: '#0F172A', color: '#FFFFFF', borderColor: '#F59E0B' } : cardStyle}
+                    className="p-3 rounded-xl border text-left flex items-center gap-3 cursor-pointer"
+                  >
+                    <Mic className="w-4 h-4 text-amber-500 shrink-0" />
+                    <div>
+                      <div className="text-xs font-bold">Reunión Presencial (Despacho / Sala)</div>
+                      <div style={{ color: recordingMode === 'Presencial (Sala / Despacho)' ? '#CBD5E1' : theme.mutedText }} className="text-[11px]">
+                        Captura por micrófono del dispositivo
+                      </div>
+                    </div>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setRecordingMode('Meeting Online (Zoom / Meet / Teams)')}
+                    style={recordingMode === 'Meeting Online (Zoom / Meet / Teams)' ? { backgroundColor: '#0F172A', color: '#FFFFFF', borderColor: '#F59E0B' } : cardStyle}
+                    className="p-3 rounded-xl border text-left flex items-center gap-3 cursor-pointer"
+                  >
+                    <Video className="w-4 h-4 text-emerald-500 shrink-0" />
+                    <div>
+                      <div className="text-xs font-bold">Meeting Online (Zoom / Meet / Teams)</div>
+                      <div style={{ color: recordingMode === 'Meeting Online (Zoom / Meet / Teams)' ? '#CBD5E1' : theme.mutedText }} className="text-[11px]">
+                        Registro de sesión remota con clientes
+                      </div>
+                    </div>
+                  </button>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-[11px] font-semibold mb-1">Título de la Reunión o Audiencia</label>
+                    <input
+                      type="text"
+                      value={meetingTitleInput}
+                      onChange={(e) => setMeetingTitleInput(e.target.value)}
+                      placeholder="Guía: Ej. Reunión de negociación de contrato / Junta Directiva..."
+                      style={inputStyle}
+                      className="w-full px-3 py-2 rounded-xl border text-xs"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[11px] font-semibold mb-1">Asistentes / Partes Intervinientes</label>
+                    <input
+                      type="text"
+                      value={meetingAttendeesInput}
+                      onChange={(e) => setMeetingAttendeesInput(e.target.value)}
+                      placeholder="Guía: Ej. Abogado titular, representante del cliente y contraparte..."
+                      style={inputStyle}
+                      className="w-full px-3 py-2 rounded-xl border text-xs"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-[11px] font-semibold mb-1">
+                    Transcripción en Vivo / Notas de la Sesión (Se completa al hablar con el micrófono activo o al escribir)
+                  </label>
+                  <textarea
+                    rows={3}
+                    value={liveTranscriptInput}
+                    onChange={(e) => setLiveTranscriptInput(e.target.value)}
+                    placeholder="Guía: Pulsa 'Iniciar Grabación' para dictar por micrófono o escribe/pega aquí el desarrollo de la reunión..."
+                    style={inputStyle}
+                    className="w-full p-3 rounded-xl border text-xs"
+                  />
+                </div>
+
+                {/* Agregar acuerdos puntuales antes de cerrar el acta */}
+                <div className="space-y-2">
+                  <label className="block text-[11px] font-semibold">
+                    Acuerdos y Compromisos Derivados de la Reunión ({draftAgreements.length})
+                  </label>
+                  <div className="flex flex-col sm:flex-row gap-2">
+                    <input
+                      type="text"
+                      value={newAgreementInput}
+                      onChange={(e) => setNewAgreementInput(e.target.value)}
+                      placeholder="Guía: Ej. Solicitar solvencia municipal / Redactar addendum..."
+                      style={inputStyle}
+                      className="flex-1 px-3 py-2 rounded-xl border text-xs"
+                    />
+                    <input
+                      type="date"
+                      value={newAgreementDateInput}
+                      onChange={(e) => setNewAgreementDateInput(e.target.value)}
+                      style={inputStyle}
+                      className="px-3 py-2 rounded-xl border text-xs font-mono"
+                    />
+                    <button
+                      type="button"
+                      onClick={handleAddDraftAgreement}
+                      style={secondaryBtnStyle}
+                      className="px-3.5 py-2 rounded-xl border text-xs font-semibold cursor-pointer"
+                    >
+                      + Agregar Acuerdo
+                    </button>
+                  </div>
+                  {draftAgreements.length > 0 && (
+                    <div className="flex flex-wrap gap-1.5 pt-1">
+                      {draftAgreements.map((da, i) => (
+                        <span key={i} style={cardStyle} className="text-[11px] px-2.5 py-1 rounded-lg border">
+                          • {da.text} ({da.dueDate})
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                <div className="flex justify-end">
+                  {!isRecording ? (
+                    <div className="flex flex-wrap gap-2">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setIsRecording(true);
+                          showToast(`Grabación iniciada (${recordingMode}).`);
+                        }}
+                        className="py-2.5 px-4 rounded-xl bg-rose-600 hover:bg-rose-500 text-white text-xs font-semibold flex items-center gap-2 cursor-pointer"
+                      >
+                        <Mic className="w-4 h-4" /> Iniciar Grabación
+                      </button>
+                      {(meetingTitleInput.trim() || liveTranscriptInput.trim()) && (
+                        <button
+                          type="button"
+                          onClick={handleFinishRecordingSimulation}
+                          className="py-2.5 px-4 rounded-xl bg-emerald-700 hover:bg-emerald-600 text-white text-xs font-semibold flex items-center gap-2 cursor-pointer"
+                        >
+                          <CheckCircle2 className="w-4 h-4" /> Finalizar y Generar Acta
+                        </button>
+                      )}
+                    </div>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={handleFinishRecordingSimulation}
+                      className="py-2.5 px-5 rounded-xl bg-emerald-700 hover:bg-emerald-600 text-white text-xs font-semibold flex items-center gap-2 cursor-pointer animate-pulse"
+                    >
+                      <CheckCircle2 className="w-4 h-4" /> Finalizar y Generar Acta
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              {recordings.length === 0 ? (
+                <p style={{ color: theme.mutedText }} className="text-xs text-center py-6">
+                  No hay actas registradas aún. Inicia una grabación o registra las notas de tu reunión arriba.
+                </p>
+              ) : (
+                <div className="space-y-4">
+                  {recordings.map((rec) => (
+                    <div key={rec.id} style={subCardStyle} className="p-5 rounded-2xl border space-y-4">
+                      <div style={{ borderColor: theme.subBorder }} className="flex flex-wrap items-center justify-between gap-3 border-b pb-3">
+                        <div>
+                          <span style={{ color: theme.accentText }} className="text-[10px] font-mono font-bold">
+                            {rec.mode} • {rec.date} • Duración: {rec.duration}
+                          </span>
+                          <h3 className="font-serif font-bold text-base mt-0.5">{rec.title}</h3>
+                          <p style={{ color: theme.mutedText }} className="text-xs">Asistentes: {rec.attendees}</p>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <button
+                            type="button"
+                            onClick={() => setShowMinutaModal(rec)}
+                            className="px-3.5 py-2 rounded-xl bg-[#0F172A] text-white text-xs font-semibold flex items-center gap-1.5 cursor-pointer"
+                          >
+                            <Share2 className="w-3.5 h-3.5 text-amber-400" />
+                            <span>Minuta</span>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleDeleteRecording(rec.id)}
+                            style={secondaryBtnStyle}
+                            className="p-2 rounded-xl border text-rose-500 cursor-pointer"
+                            title="Eliminar acta"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </div>
+
+                      {rec.agreementsAndTasks.length > 0 && (
+                        <div className="space-y-2">
+                          <h4 className="text-xs font-mono uppercase font-bold" style={{ color: theme.emeraldText }}>
+                            Acuerdos y Tareas (Marca ✓ para agendar en Planificador y Calendario)
+                          </h4>
+                          <div className="space-y-1.5">
+                            {rec.agreementsAndTasks.map((act) => (
+                              <label
+                                key={act.id}
+                                style={cardStyle}
+                                className="flex items-center justify-between gap-3 p-3 rounded-xl border text-xs cursor-pointer"
+                              >
+                                <div className="flex items-center gap-2.5">
+                                  <input
+                                    type="checkbox"
+                                    checked={act.addedToPlanner}
+                                    onChange={() => handleToggleRecordingTaskCheck(rec.id, act.id)}
+                                    className="w-4 h-4 accent-emerald-600 rounded cursor-pointer"
+                                  />
+                                  <span className="font-medium">{act.text}</span>
+                                </div>
+                                <span style={{ color: theme.mutedText }} className="font-mono text-[11px] shrink-0">
+                                  {act.dueDate}
+                                </span>
+                              </label>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      <div style={cardStyle} className="p-3.5 rounded-xl border font-mono text-xs whitespace-pre-wrap">
+                        {rec.transcript}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {showMinutaModal && (
+                <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-xs flex items-center justify-center p-4">
+                  <div style={cardStyle} className="max-w-xl w-full rounded-2xl p-6 border shadow-2xl space-y-4">
+                    <div className="flex items-center justify-between border-b pb-3" style={{ borderColor: theme.cardBorder }}>
+                      <h3 className="font-serif font-bold text-base">{showMinutaModal.title}</h3>
+                      <button
+                        type="button"
+                        onClick={() => setShowMinutaModal(null)}
+                        style={secondaryBtnStyle}
+                        className="px-2.5 py-1 rounded-lg border text-xs cursor-pointer"
+                      >
+                        ✕
+                      </button>
+                    </div>
+                    <div style={subCardStyle} className="p-4 rounded-xl border text-xs space-y-2 font-serif max-h-80 overflow-y-auto">
+                      <p><strong>Fecha:</strong> {showMinutaModal.date} | <strong>Modalidad:</strong> {showMinutaModal.mode}</p>
+                      <p><strong>Asistentes:</strong> {showMinutaModal.attendees}</p>
+                      <p><strong>Transcripción / Síntesis:</strong></p>
+                      <p className="whitespace-pre-wrap">{showMinutaModal.transcript}</p>
+                    </div>
+                    <div className="flex justify-end gap-2">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          exportWordDoc(`Minuta_${showMinutaModal.date}.doc`, showMinutaModal.title, `Asistentes: ${showMinutaModal.attendees}`, showMinutaModal.transcript);
+                          showToast('Minuta descargada en .DOC.');
+                        }}
+                        className="px-4 py-2 rounded-xl bg-[#0F172A] text-white text-xs font-semibold flex items-center gap-1.5 cursor-pointer"
+                      >
+                        <Download className="w-3.5 h-3.5 text-amber-400" /> Descargar (.DOC)
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* =================================================================
+              4. PLANIFICADOR KANBAN SINCRONIZADO CON CALENDARIO
           ================================================================== */}
           {activeTab === 'planificador' && (
-            <div className="card-surface rounded-3xl p-6 sm:p-8 bg-white border border-[#E6DFD1] shadow-sm space-y-6">
-              <div className="flex flex-wrap items-center justify-between gap-4 border-b border-[#E6DFD1] pb-4">
+            <div style={cardStyle} className="rounded-2xl p-4 sm:p-6 border shadow-xs space-y-6">
+              <div style={{ borderColor: theme.cardBorder }} className="flex flex-wrap items-center justify-between gap-4 border-b pb-4">
                 <div>
-                  <span className="text-[11px] font-mono uppercase tracking-widest text-amber-700 font-bold">
-                    4. Planificador Conectado en Tiempo Real con tu Calendario
-                  </span>
-                  <h2 className="font-serif text-xl sm:text-2xl font-bold mt-1">
-                    Planificador de Tareas y Expedientes (Sincronización Automática al Calendario)
+                  <h2 className="font-serif text-lg sm:text-xl font-bold">
+                    Planificador de Tareas y Expedientes
                   </h2>
+                  <p style={{ color: theme.mutedText }} className="text-xs">
+                    Cada actividad planificada se agenda automáticamente en el Calendario Mensual.
+                  </p>
                 </div>
                 <button
                   type="button"
                   onClick={() => setActiveTab('calendario')}
-                  className="px-4 py-2 rounded-xl bg-[#0F172A] text-white text-xs font-semibold flex items-center gap-2 cursor-pointer"
+                  style={secondaryBtnStyle}
+                  className="px-3.5 py-2 rounded-xl border text-xs font-semibold flex items-center gap-1.5 cursor-pointer"
                 >
-                  <CalendarIcon className="w-3.5 h-3.5 text-amber-400" /> Ver en el Calendario Mensual →
+                  <CalendarIcon className="w-3.5 h-3.5 text-amber-500" /> Ir al Calendario →
                 </button>
               </div>
 
-              <div className="sub-surface p-4 rounded-2xl bg-[#FAF8F5] border border-[#E6DFD1] grid grid-cols-1 md:grid-cols-12 gap-3 items-end">
+              <div style={subCardStyle} className="p-4 rounded-xl border grid grid-cols-1 md:grid-cols-12 gap-3 items-end">
                 <div className="md:col-span-4">
-                  <label className="block text-[11px] font-mono uppercase text-slate-500 mb-1">Actividad o Tarea a Planificar</label>
+                  <label className="block text-[11px] font-semibold mb-1">Actividad o Actuación</label>
                   <input
                     type="text"
                     value={newTaskTitle}
                     onChange={(e) => setNewTaskTitle(e.target.value)}
-                    placeholder="Ej: Redactar contrato / Presentar escrito..."
-                    className="w-full px-3.5 py-2 rounded-xl border text-xs bg-white border-[#D5CBB8]"
+                    placeholder="Guía: Ej. Consignar escrito de pruebas / Redactar acta..."
+                    style={inputStyle}
+                    className="w-full px-3 py-2 rounded-xl border text-xs"
                   />
                 </div>
                 <div className="md:col-span-3">
-                  <label className="block text-[11px] font-mono uppercase text-slate-500 mb-1">Cliente / Expediente</label>
+                  <label className="block text-[11px] font-semibold mb-1">Cliente / Expediente</label>
                   <input
                     type="text"
-                    list="crm-client-options"
                     value={newTaskClient}
                     onChange={(e) => setNewTaskClient(e.target.value)}
-                    placeholder="Selecciona o escribe cliente..."
-                    className="w-full px-3.5 py-2 rounded-xl border text-xs bg-white border-[#D5CBB8]"
+                    placeholder="Guía: Nombre del cliente o Nº expediente..."
+                    style={inputStyle}
+                    className="w-full px-3 py-2 rounded-xl border text-xs"
                   />
-                  <datalist id="crm-client-options">
-                    {crmClients.map(c => (
-                      <option key={c.id} value={c.name} />
-                    ))}
-                  </datalist>
                 </div>
                 <div className="md:col-span-2">
-                  <label className="block text-[11px] font-mono uppercase text-amber-800 font-bold mb-1">Fecha (Calendario)</label>
+                  <label className="block text-[11px] font-semibold mb-1">Fecha</label>
                   <input
                     type="date"
                     value={newTaskDate}
                     onChange={(e) => setNewTaskDate(e.target.value)}
-                    className="w-full px-2.5 py-2 rounded-xl border text-xs bg-white border-[#D5CBB8] font-mono"
+                    style={inputStyle}
+                    className="w-full px-2.5 py-2 rounded-xl border text-xs font-mono"
                   />
                 </div>
                 <div className="md:col-span-1">
-                  <label className="block text-[11px] font-mono uppercase text-slate-500 mb-1">Prioridad</label>
+                  <label className="block text-[11px] font-semibold mb-1">Prioridad</label>
                   <select
                     value={newTaskPriority}
                     onChange={(e) => setNewTaskPriority(e.target.value as 'Alta' | 'Media' | 'Baja')}
-                    className="w-full px-2 py-2 rounded-xl border text-xs bg-white border-[#D5CBB8]"
+                    style={inputStyle}
+                    className="w-full px-2 py-2 rounded-xl border text-xs"
                   >
                     <option value="Alta">Alta</option>
                     <option value="Media">Media</option>
@@ -3744,7 +3414,7 @@ ${historyContextStr}`;
                   <button
                     type="button"
                     onClick={handleAddPlannerTask}
-                    className="w-full py-2.5 px-3 rounded-xl bg-[#0F172A] hover:bg-slate-800 text-white text-xs font-semibold flex items-center justify-center gap-1.5 cursor-pointer"
+                    className="w-full py-2.5 px-3 rounded-xl bg-[#0F172A] text-white text-xs font-semibold flex items-center justify-center gap-1.5 cursor-pointer"
                   >
                     <Plus className="w-4 h-4 text-amber-400 shrink-0" />
                     <span className="truncate">Planificar y Agendar en Calendario</span>
@@ -3754,36 +3424,27 @@ ${historyContextStr}`;
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 {(['Pendiente', 'En Curso', 'Completado'] as const).map((col) => (
-                  <div key={col} className="sub-surface p-4 rounded-2xl border bg-[#FAF8F5] border-[#E6DFD1] space-y-3">
-                    <div className="flex items-center justify-between border-b border-[#E6DFD1] pb-2">
+                  <div key={col} style={subCardStyle} className="p-4 rounded-xl border space-y-3">
+                    <div style={{ borderColor: theme.subBorder }} className="flex items-center justify-between border-b pb-2">
                       <span className="font-serif font-bold text-sm">{col}</span>
-                      <span className="text-xs font-mono px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-700 font-bold">
+                      <span style={{ color: theme.accentText }} className="text-xs font-mono font-bold">
                         {tasks.filter(t => t.status === col).length}
                       </span>
                     </div>
                     <div className="space-y-2.5">
                       {tasks.filter(t => t.status === col).map(task => (
-                        <div key={task.id} className="card-surface p-3.5 rounded-xl border bg-white border-[#E6DFD1] space-y-2 text-xs shadow-sm">
-                          <div className="flex items-center justify-between gap-1">
-                            <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-amber-500/15 text-amber-800 font-bold">
-                              📅 {task.dueDate}
+                        <div key={task.id} style={cardStyle} className="p-3.5 rounded-xl border space-y-2 text-xs">
+                          <div className="flex items-center justify-between">
+                            <span style={{ color: theme.accentText }} className="text-[10px] font-mono font-bold">
+                              {task.dueDate}
                             </span>
-                            <div className="flex items-center gap-1.5">
-                              <span className={`text-[9px] font-mono px-1.5 py-0.5 rounded font-bold ${
-                                task.priority === 'Alta'
-                                  ? 'bg-rose-500/15 text-rose-700'
-                                  : task.priority === 'Media'
-                                  ? 'bg-amber-500/15 text-amber-800'
-                                  : 'bg-slate-200 text-slate-700'
-                              }`}>
-                                {task.priority}
-                              </span>
-                              <span className="text-[10px] font-mono text-slate-500">{task.origin}</span>
-                            </div>
+                            <span style={{ color: theme.mutedText }} className="text-[10px] font-mono">
+                              {task.priority}
+                            </span>
                           </div>
-                          <p className="font-semibold leading-snug">{task.title}</p>
-                          <p className="text-[11px] text-slate-500">Cliente: {task.client}</p>
-                          <div className="flex items-center justify-between gap-1.5 pt-2 border-t border-[#E6DFD1]">
+                          <p className="font-semibold">{task.title}</p>
+                          <p style={{ color: theme.mutedText }} className="text-[11px]">{task.client}</p>
+                          <div style={{ borderColor: theme.cardBorder }} className="flex items-center justify-between gap-1.5 pt-2 border-t">
                             <input
                               type="date"
                               value={task.dueDate}
@@ -3791,15 +3452,11 @@ ${historyContextStr}`;
                                 const newD = e.target.value;
                                 setTasks(prev => prev.map(tk => tk.id === task.id ? { ...tk, dueDate: newD } : tk));
                                 setCalendarEvents(prev =>
-                                  prev.map(ev =>
-                                    ev.linkedTaskId === task.id || ev.title === task.title || ev.title.startsWith(task.title)
-                                      ? { ...ev, date: newD }
-                                      : ev
-                                  )
+                                  prev.map(ev => (ev.linkedTaskId === task.id ? { ...ev, date: newD } : ev))
                                 );
-                                showToast(`Fecha actualizada en el Calendario al ${newD}`);
                               }}
-                              className="text-[10px] font-mono px-1.5 py-0.5 rounded border border-[#D5CBB8]"
+                              style={inputStyle}
+                              className="text-[10px] font-mono px-1.5 py-0.5 rounded border"
                             />
                             <div className="flex items-center gap-1">
                               <select
@@ -3808,7 +3465,8 @@ ${historyContextStr}`;
                                   const next = e.target.value as PlannerTask['status'];
                                   setTasks(prev => prev.map(tk => tk.id === task.id ? { ...tk, status: next } : tk));
                                 }}
-                                className="text-[10px] font-mono px-2 py-1 rounded border border-[#D5CBB8]"
+                                style={inputStyle}
+                                className="text-[10px] font-mono px-2 py-0.5 rounded border"
                               >
                                 <option value="Pendiente">Pendiente</option>
                                 <option value="En Curso">En Curso</option>
@@ -3817,10 +3475,9 @@ ${historyContextStr}`;
                               <button
                                 type="button"
                                 onClick={() => handleDeletePlannerTask(task.id)}
-                                title="Eliminar tarea"
-                                className="px-1.5 py-1 rounded text-[10px] font-mono text-rose-700 hover:bg-rose-500/10 cursor-pointer"
+                                className="p-1 text-rose-500 cursor-pointer"
                               >
-                                ✕
+                                <Trash2 className="w-3.5 h-3.5" />
                               </button>
                             </div>
                           </div>
@@ -3834,54 +3491,38 @@ ${historyContextStr}`;
           )}
 
           {/* =================================================================
-              5. CALENDARIO REAL DE MES COMPLETO (OPCIÓN AGENDA GENERAL Y OPCIÓN CÓMPUTO PROCESAL)
+              5. CALENDARIO MENSUAL REAL Y CALCULADORA DE PLAZOS PROCESALES
           ================================================================== */}
           {activeTab === 'calendario' && (
-            <div className="card-surface rounded-3xl p-6 sm:p-8 bg-white border border-[#E6DFD1] shadow-sm space-y-6">
-              <div className="flex flex-wrap items-center justify-between gap-4 border-b border-[#E6DFD1] pb-4">
+            <div style={cardStyle} className="rounded-2xl p-4 sm:p-6 border shadow-xs space-y-6">
+              <div style={{ borderColor: theme.cardBorder }} className="flex flex-wrap items-center justify-between gap-4 border-b pb-4">
                 <div>
-                  <span className="text-[11px] font-mono uppercase tracking-widest text-amber-700 font-bold">
-                    5. Calendario Mensual Real del Despacho (General y Procesal)
-                  </span>
-                  <h2 className="font-serif text-xl sm:text-2xl font-bold mt-1">
-                    Calendario Completo del Mes ({monthNames[calendarMonth]} {calendarYear})
+                  <h2 className="font-serif text-lg sm:text-xl font-bold">
+                    Calendario del Despacho ({monthNames[calendarMonth]} {calendarYear})
                   </h2>
+                  <p style={{ color: theme.mutedText }} className="text-xs">
+                    Agenda general y cómputo de lapsos procesales por días hábiles de despacho o continuos.
+                  </p>
                 </div>
 
                 <div className="flex flex-wrap gap-1.5 text-xs">
-                  <button
-                    type="button"
-                    onClick={() => setCalendarLawyerMode('ambos')}
-                    className={`px-3 py-1.5 rounded-xl font-semibold cursor-pointer ${
-                      calendarLawyerMode === 'ambos' ? 'bg-[#0F172A] text-white' : 'bg-[#FAF8F5] border border-[#D5CBB8] text-slate-700'
-                    }`}
-                  >
-                    Vista Completa (Agenda + Procesal)
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setCalendarLawyerMode('agenda_general')}
-                    className={`px-3 py-1.5 rounded-xl font-semibold cursor-pointer ${
-                      calendarLawyerMode === 'agenda_general' ? 'bg-[#0F172A] text-white' : 'bg-[#FAF8F5] border border-[#D5CBB8] text-slate-700'
-                    }`}
-                  >
-                    Solo Agenda General / Corporativa
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setCalendarLawyerMode('computo_procesal')}
-                    className={`px-3 py-1.5 rounded-xl font-semibold cursor-pointer ${
-                      calendarLawyerMode === 'computo_procesal' ? 'bg-[#0F172A] text-white' : 'bg-[#FAF8F5] border border-[#D5CBB8] text-slate-700'
-                    }`}
-                  >
-                    Con Cómputo de Plazos Procesales
-                  </button>
+                  {(['ambos', 'agenda_general', 'computo_procesal'] as const).map((m) => (
+                    <button
+                      key={m}
+                      type="button"
+                      onClick={() => setCalendarLawyerMode(m)}
+                      style={calendarLawyerMode === m ? { backgroundColor: '#0F172A', color: '#FFFFFF' } : secondaryBtnStyle}
+                      className="px-3 py-1.5 rounded-xl border font-semibold cursor-pointer"
+                    >
+                      {m === 'ambos' ? 'Vista Completa' : m === 'agenda_general' ? 'Solo Agenda' : 'Cómputo Procesal'}
+                    </button>
+                  ))}
                 </div>
               </div>
 
               <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
                 <div className="lg:col-span-8 space-y-3">
-                  <div className="flex items-center justify-between bg-[#0F172A] text-white px-4 py-3 rounded-2xl">
+                  <div className="flex items-center justify-between bg-[#0F172A] text-white px-4 py-2.5 rounded-xl">
                     <button
                       type="button"
                       onClick={() => {
@@ -3892,11 +3533,11 @@ ${historyContextStr}`;
                           setCalendarMonth(m => m - 1);
                         }
                       }}
-                      className="p-1.5 rounded-lg hover:bg-slate-800 cursor-pointer flex items-center gap-1 text-xs"
+                      className="p-1 rounded-lg hover:bg-slate-800 cursor-pointer flex items-center gap-1 text-xs"
                     >
-                      <ChevronLeft className="w-4 h-4" /> Mes Anterior
+                      <ChevronLeft className="w-4 h-4" /> Anterior
                     </button>
-                    <span className="font-serif font-bold text-base sm:text-lg text-amber-300">
+                    <span className="font-serif font-bold text-sm sm:text-base text-amber-300">
                       {monthNames[calendarMonth]} {calendarYear}
                     </span>
                     <button
@@ -3909,26 +3550,21 @@ ${historyContextStr}`;
                           setCalendarMonth(m => m + 1);
                         }
                       }}
-                      className="p-1.5 rounded-lg hover:bg-slate-800 cursor-pointer flex items-center gap-1 text-xs"
+                      className="p-1 rounded-lg hover:bg-slate-800 cursor-pointer flex items-center gap-1 text-xs"
                     >
-                      Mes Siguiente <ChevronRight className="w-4 h-4" />
+                      Siguiente <ChevronRight className="w-4 h-4" />
                     </button>
                   </div>
 
-                  <div className="grid grid-cols-7 gap-1.5 text-center text-[11px] font-mono uppercase font-bold text-slate-500">
-                    <div>Lun</div>
-                    <div>Mar</div>
-                    <div>Mié</div>
-                    <div>Jue</div>
-                    <div>Vie</div>
-                    <div className="text-rose-600">Sáb</div>
-                    <div className="text-rose-600">Dom</div>
+                  <div style={{ color: theme.mutedText }} className="grid grid-cols-7 gap-1 text-center text-[10px] font-mono uppercase font-bold">
+                    <div>Lun</div><div>Mar</div><div>Mié</div><div>Jue</div><div>Vie</div>
+                    <div className="text-rose-500">Sáb</div><div className="text-rose-500">Dom</div>
                   </div>
 
-                  <div className="grid grid-cols-7 gap-1.5">
+                  <div className="grid grid-cols-7 gap-1">
                     {calendarMonthCells.map((cell, idx) => {
                       if (!cell.day || !cell.dateStr) {
-                        return <div key={idx} className="h-24 rounded-xl bg-slate-100/40 border border-transparent" />;
+                        return <div key={idx} className="h-20 sm:h-24 rounded-xl opacity-20" />;
                       }
                       const dayEvents = calendarEvents.filter(ev => {
                         if (ev.date !== cell.dateStr) return false;
@@ -3942,43 +3578,40 @@ ${historyContextStr}`;
                           key={cell.dateStr}
                           type="button"
                           onClick={() => setSelectedCalendarDate(cell.dateStr!)}
-                          className={`h-24 p-2 rounded-xl border text-left flex flex-col justify-between transition cursor-pointer overflow-hidden ${
+                          style={
                             isSelected
-                              ? 'border-2 border-amber-600 bg-amber-500/10'
+                              ? { backgroundColor: theme.subBg, borderColor: '#F59E0B', color: theme.pageText }
                               : cell.isWeekend || cell.isNonWorking
-                              ? 'bg-slate-100/70 border-[#E6DFD1]'
-                              : 'card-surface bg-white border-[#E6DFD1] hover:border-amber-500/50'
+                              ? subCardStyle
+                              : cardStyle
+                          }
+                          className={`h-20 sm:h-24 p-1.5 sm:p-2 rounded-xl border text-left flex flex-col justify-between transition cursor-pointer overflow-hidden ${
+                            isSelected ? 'border-2' : ''
                           }`}
                         >
                           <div className="flex items-center justify-between w-full">
-                            <span className={`text-xs font-mono font-bold ${cell.isWeekend || cell.isNonWorking ? 'text-rose-600' : ''}`}>
+                            <span className={`text-xs font-mono font-bold ${cell.isWeekend || cell.isNonWorking ? 'text-rose-500' : ''}`}>
                               {cell.day}
-                              {cell.isNonWorking && !cell.isWeekend ? ' • Inhábil' : ''}
                             </span>
                             {dayEvents.length > 0 && (
-                              <span className="text-[9px] font-mono px-1.5 py-0.2 rounded-full bg-[#0F172A] text-amber-300 font-bold">
+                              <span className="text-[9px] font-mono px-1.5 rounded-full bg-[#0F172A] text-amber-300 font-bold">
                                 {dayEvents.length}
                               </span>
                             )}
                           </div>
-                          <div className="space-y-1 w-full overflow-hidden">
+                          <div className="space-y-0.5 w-full overflow-hidden">
                             {dayEvents.slice(0, 2).map(ev => (
                               <div
                                 key={ev.id}
-                                className={`text-[9px] px-1.5 py-0.5 rounded truncate font-medium ${
+                                className={`text-[9px] px-1 py-0.5 rounded truncate font-medium ${
                                   ev.type === 'Plazo Procesal'
                                     ? 'bg-rose-600 text-white'
-                                    : 'bg-amber-500/20 text-amber-900'
+                                    : 'bg-amber-500/20 text-amber-500'
                                 }`}
                               >
                                 {ev.title}
                               </div>
                             ))}
-                            {dayEvents.length > 2 && (
-                              <div className="text-[9px] font-mono text-slate-500 font-semibold">
-                                +{dayEvents.length - 2} más...
-                              </div>
-                            )}
                           </div>
                         </button>
                       );
@@ -3987,55 +3620,64 @@ ${historyContextStr}`;
                 </div>
 
                 <div className="lg:col-span-4 space-y-4">
-                  <div className="sub-surface p-5 rounded-2xl bg-[#FAF8F5] border border-[#E6DFD1] space-y-3">
-                    <div className="flex items-center justify-between gap-2">
-                      <div className="text-xs font-mono uppercase text-amber-800 font-bold">
-                        Agenda del Día: {selectedCalendarDate}
-                      </div>
+                  <div style={subCardStyle} className="p-4 rounded-xl border space-y-3">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-mono font-bold" style={{ color: theme.accentText }}>
+                        Fecha: {selectedCalendarDate}
+                      </span>
                       <button
                         type="button"
                         onClick={() => handleToggleNoDispatchDay(selectedCalendarDate)}
-                        className="text-[10px] font-mono px-2 py-1 rounded-lg border border-[#D5CBB8] bg-white text-slate-700 cursor-pointer hover:bg-rose-500/10"
+                        style={secondaryBtnStyle}
+                        className="text-[10px] font-mono px-2 py-1 rounded-lg border cursor-pointer"
                       >
                         {nonWorkingDates.includes(selectedCalendarDate) ? '✓ Día Sin Despacho' : 'Marcar Sin Despacho'}
                       </button>
                     </div>
+
                     <div className="space-y-2">
                       {calendarEvents.filter(e => e.date === selectedCalendarDate).length === 0 ? (
-                        <p className="text-xs text-slate-500">No hay actividades registradas en esta fecha.</p>
+                        <p style={{ color: theme.mutedText }} className="text-xs">Sin eventos en esta fecha.</p>
                       ) : (
                         calendarEvents
                           .filter(e => e.date === selectedCalendarDate)
                           .map(ev => (
-                            <div key={ev.id} className="card-surface p-3 rounded-xl bg-white border border-[#E6DFD1] text-xs space-y-1">
-                              <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-amber-500/15 text-amber-800 font-bold">
-                                {ev.type}
-                              </span>
-                              <p className="font-semibold">{ev.title}</p>
-                              {ev.client && <p className="text-[11px] text-slate-500">{ev.client}</p>}
+                            <div key={ev.id} style={cardStyle} className="p-2.5 rounded-xl border text-xs flex items-start justify-between gap-2">
+                              <div>
+                                <span style={{ color: theme.accentText }} className="text-[10px] font-mono font-bold block">
+                                  {ev.type}
+                                </span>
+                                <p className="font-semibold">{ev.title}</p>
+                              </div>
+                              <button
+                                type="button"
+                                onClick={() => handleDeleteCalendarEvent(ev.id)}
+                                className="text-rose-500 p-1 cursor-pointer"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </button>
                             </div>
                           ))
                       )}
                     </div>
 
-                    <div className="pt-3 border-t border-[#E6DFD1] space-y-2">
-                      <label className="block text-[11px] font-mono uppercase text-slate-500 font-bold">
-                        Agregar Evento o Recordatorio el {selectedCalendarDate}:
-                      </label>
+                    <div style={{ borderColor: theme.subBorder }} className="pt-3 border-t space-y-2">
                       <input
                         type="text"
                         value={newCalEventTitle}
                         onChange={(e) => setNewCalEventTitle(e.target.value)}
-                        placeholder="Ej: Firma en Notaría / Reunión con cliente..."
-                        className="w-full px-3 py-2 rounded-xl border text-xs bg-white border-[#D5CBB8]"
+                        placeholder="Guía: Título de audiencia, firma o evento..."
+                        style={inputStyle}
+                        className="w-full px-3 py-2 rounded-xl border text-xs"
                       />
                       <select
                         value={newCalEventType}
                         onChange={(e) => setNewCalEventType(e.target.value as 'Agenda General' | 'Plazo Procesal')}
-                        className="w-full px-3 py-2 rounded-xl border text-xs bg-white border-[#D5CBB8]"
+                        style={inputStyle}
+                        className="w-full px-3 py-2 rounded-xl border text-xs"
                       >
-                        <option value="Agenda General">Agenda General / Corporativa</option>
-                        <option value="Plazo Procesal">Vencimiento / Plazo Procesal</option>
+                        <option value="Agenda General">Agenda General</option>
+                        <option value="Plazo Procesal">Plazo Procesal</option>
                       </select>
                       <button
                         type="button"
@@ -4048,62 +3690,55 @@ ${historyContextStr}`;
                   </div>
 
                   {calendarLawyerMode !== 'agenda_general' && (
-                    <div className="sub-surface p-5 rounded-2xl bg-[#FAF8F5] border border-[#E6DFD1] space-y-3">
-                      <div className="text-xs font-mono uppercase text-rose-700 font-bold">
-                        Calculadora de Plazos Procesales (Opcional Litigio)
+                    <div style={subCardStyle} className="p-4 rounded-xl border space-y-2.5">
+                      <div className="text-xs font-mono uppercase text-rose-500 font-bold">
+                        Calculadora de Lapsos Procesales
                       </div>
                       <input
                         type="text"
                         value={procTitleInput}
                         onChange={(e) => setProcTitleInput(e.target.value)}
-                        className="w-full px-3 py-2 rounded-xl border text-xs bg-white border-[#D5CBB8]"
-                        placeholder="Acto procesal..."
+                        placeholder="Guía: Ej. Contestación de demanda / Apelación..."
+                        style={inputStyle}
+                        className="w-full px-3 py-2 rounded-xl border text-xs"
                       />
                       <div className="grid grid-cols-2 gap-2">
                         <div>
-                          <label className="block text-[10px] font-mono text-slate-500">Notificación</label>
+                          <label style={{ color: theme.mutedText }} className="block text-[10px] font-mono">Inicio / Citación</label>
                           <input
                             type="date"
                             value={procNotificationDate}
                             onChange={(e) => setProcNotificationDate(e.target.value)}
-                            className="w-full px-2.5 py-1.5 rounded-xl border text-xs bg-white border-[#D5CBB8]"
+                            style={inputStyle}
+                            className="w-full px-2 py-1.5 rounded-xl border text-xs"
                           />
                         </div>
                         <div>
-                          <label className="block text-[10px] font-mono text-slate-500">Días de Lapso</label>
+                          <label style={{ color: theme.mutedText }} className="block text-[10px] font-mono">Días de Lapso</label>
                           <input
                             type="number"
                             min={1}
                             max={180}
                             value={procDaysCount}
                             onChange={(e) => setProcDaysCount(Number(e.target.value))}
-                            className="w-full px-2.5 py-1.5 rounded-xl border text-xs bg-white border-[#D5CBB8]"
+                            style={inputStyle}
+                            className="w-full px-2 py-1.5 rounded-xl border text-xs"
                           />
                         </div>
                       </div>
                       <select
                         value={procDayMode}
                         onChange={(e) => setProcDayMode(e.target.value as 'habiles' | 'continuos')}
-                        className="w-full px-3 py-2 rounded-xl border text-xs bg-white border-[#D5CBB8]"
+                        style={inputStyle}
+                        className="w-full px-3 py-2 rounded-xl border text-xs"
                       >
-                        <option value="habiles">Días Hábiles de Despacho (Excluye Sáb/Dom)</option>
-                        <option value="continuos">Días Continuos / Naturales</option>
+                        <option value="habiles">Días de Despacho (Excluye Sáb/Dom/Inhábiles)</option>
+                        <option value="continuos">Días Continuos</option>
                       </select>
-                      {procDayMode === 'habiles' && (
-                        <label className="flex items-center gap-2 text-[11px] text-slate-600 cursor-pointer">
-                          <input
-                            type="checkbox"
-                            checked={procExcludeHolidaysAndRecess}
-                            onChange={(e) => setProcExcludeHolidaysAndRecess(e.target.checked)}
-                            className="accent-rose-600 rounded"
-                          />
-                          <span>Descontar feriados, días marcados sin despacho y receso judicial (Art. 201 CPC)</span>
-                        </label>
-                      )}
                       <button
                         type="button"
                         onClick={handleCalculateAndAddProceduralDeadline}
-                        className="w-full py-2.5 rounded-xl bg-rose-700 hover:bg-rose-600 text-white text-xs font-semibold cursor-pointer"
+                        className="w-full py-2 rounded-xl bg-rose-700 hover:bg-rose-600 text-white text-xs font-semibold cursor-pointer"
                       >
                         Calcular Vencimiento y Marcar en el Mes
                       </button>
@@ -4115,23 +3750,23 @@ ${historyContextStr}`;
           )}
 
           {/* =================================================================
-              6. CRM (EN LA VISTA PREVIA SOLO EL NOMBRE, Y AL SELECCIONAR SE DESPLIEGA LA FICHA LEGAL COMPLETA)
+              6. CRM JURÍDICO DE CLIENTES (ALTA, EDICIÓN, EXPEDIENTES Y ELIMINACIÓN)
           ================================================================== */}
           {activeTab === 'crm' && (
-            <div className="card-surface rounded-3xl p-6 sm:p-8 bg-white border border-[#E6DFD1] shadow-sm space-y-6">
-              <div className="flex flex-wrap items-center justify-between gap-4 border-b border-[#E6DFD1] pb-4">
+            <div style={cardStyle} className="rounded-2xl p-4 sm:p-6 border shadow-xs space-y-6">
+              <div style={{ borderColor: theme.cardBorder }} className="flex flex-wrap items-center justify-between gap-4 border-b pb-4">
                 <div>
-                  <span className="text-[11px] font-mono uppercase tracking-widest text-amber-700 font-bold">
-                    6. Directorio y Expediente Único de Clientes
-                  </span>
-                  <h2 className="font-serif text-xl sm:text-2xl font-bold mt-1">
-                    CRM Jurídico con Ficha Legal Completa del Cliente
+                  <h2 className="font-serif text-lg sm:text-xl font-bold">
+                    Directorio y Ficha Legal de Clientes (CRM)
                   </h2>
+                  <p style={{ color: theme.mutedText }} className="text-xs">
+                    Almacena los datos fiscales, registrales, poderes y expedientes de tus clientes.
+                  </p>
                 </div>
                 <button
                   type="button"
                   onClick={() => setShowNewClientForm(!showNewClientForm)}
-                  className="px-4 py-2.5 rounded-xl bg-[#0F172A] text-white text-xs font-semibold flex items-center gap-2 cursor-pointer"
+                  className="px-4 py-2 rounded-xl bg-[#0F172A] text-white text-xs font-semibold flex items-center gap-2 cursor-pointer"
                 >
                   <Plus className="w-4 h-4 text-amber-400" />
                   <span>{showNewClientForm ? 'Cerrar Formulario' : 'Nuevo Cliente'}</span>
@@ -4139,339 +3774,278 @@ ${historyContextStr}`;
               </div>
 
               {showNewClientForm && (
-                <div className="sub-surface p-5 rounded-2xl bg-[#FAF8F5] border border-[#E6DFD1] space-y-3 text-xs">
-                  <div className="font-mono font-bold uppercase text-amber-800">Registrar Nueva Ficha Legal de Cliente</div>
+                <div style={subCardStyle} className="p-4 rounded-xl border space-y-3 text-xs">
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                     <input
                       type="text"
-                      placeholder="Nombre o Razón Social *"
+                      placeholder="Guía: Nombre completo o Razón Social *"
                       value={newClientForm.name}
                       onChange={(e) => setNewClientForm({ ...newClientForm, name: e.target.value })}
-                      className="px-3 py-2 rounded-xl border bg-white border-[#D5CBB8]"
+                      style={inputStyle}
+                      className="px-3 py-2 rounded-xl border"
                     />
                     <input
                       type="text"
-                      placeholder="C.I. / RIF / NIF / Pasaporte"
+                      placeholder="Guía: C.I. / RIF / NIF"
                       value={newClientForm.taxId}
                       onChange={(e) => setNewClientForm({ ...newClientForm, taxId: e.target.value })}
-                      className="px-3 py-2 rounded-xl border bg-white border-[#D5CBB8]"
+                      style={inputStyle}
+                      className="px-3 py-2 rounded-xl border"
                     />
                     <input
                       type="text"
-                      placeholder="Representante Legal y Cargo"
+                      placeholder="Guía: Representante Legal y Cargo"
                       value={newClientForm.legalRep}
                       onChange={(e) => setNewClientForm({ ...newClientForm, legalRep: e.target.value })}
-                      className="px-3 py-2 rounded-xl border bg-white border-[#D5CBB8]"
+                      style={inputStyle}
+                      className="px-3 py-2 rounded-xl border"
                     />
                     <input
                       type="text"
-                      placeholder="Datos de Registro Mercantil / Poder"
+                      placeholder="Guía: Datos de Registro Mercantil y Poder"
                       value={newClientForm.registryInfo}
                       onChange={(e) => setNewClientForm({ ...newClientForm, registryInfo: e.target.value })}
-                      className="px-3 py-2 rounded-xl border bg-white border-[#D5CBB8]"
+                      style={inputStyle}
+                      className="px-3 py-2 rounded-xl border"
                     />
                     <input
                       type="text"
-                      placeholder="Teléfono / WhatsApp"
+                      placeholder="Guía: Teléfono / WhatsApp"
                       value={newClientForm.phone}
                       onChange={(e) => setNewClientForm({ ...newClientForm, phone: e.target.value })}
-                      className="px-3 py-2 rounded-xl border bg-white border-[#D5CBB8]"
+                      style={inputStyle}
+                      className="px-3 py-2 rounded-xl border"
                     />
                     <input
                       type="email"
-                      placeholder="Correo Electrónico"
+                      placeholder="Guía: Correo Electrónico"
                       value={newClientForm.email}
                       onChange={(e) => setNewClientForm({ ...newClientForm, email: e.target.value })}
-                      className="px-3 py-2 rounded-xl border bg-white border-[#D5CBB8]"
+                      style={inputStyle}
+                      className="px-3 py-2 rounded-xl border"
                     />
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                     <input
                       type="text"
-                      placeholder="Domicilio Fiscal y Procesal"
+                      placeholder="Guía: Domicilio Fiscal y Procesal"
                       value={newClientForm.address}
                       onChange={(e) => setNewClientForm({ ...newClientForm, address: e.target.value })}
-                      className="px-3 py-2 rounded-xl border bg-white border-[#D5CBB8]"
+                      style={inputStyle}
+                      className="px-3 py-2 rounded-xl border"
                     />
                     <input
                       type="text"
-                      placeholder="Esquema de Honorarios / Iguala"
+                      placeholder="Guía: Esquema de Honorarios o Iguala"
                       value={newClientForm.feeArrangement}
                       onChange={(e) => setNewClientForm({ ...newClientForm, feeArrangement: e.target.value })}
-                      className="px-3 py-2 rounded-xl border bg-white border-[#D5CBB8]"
+                      style={inputStyle}
+                      className="px-3 py-2 rounded-xl border"
                     />
                   </div>
                   <button
                     type="button"
                     onClick={handleCreateCrmClient}
-                    className="px-5 py-2.5 rounded-xl bg-emerald-700 text-white font-semibold cursor-pointer"
+                    className="px-5 py-2 rounded-xl bg-emerald-700 text-white font-semibold cursor-pointer"
                   >
                     Guardar Ficha Legal del Cliente
                   </button>
                 </div>
               )}
 
-              <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-                {/* Columna Izquierda: Vista Previa Limpia (SOLO EL NOMBRE DEL CLIENTE) */}
-                <div className="lg:col-span-4 sub-surface p-4 rounded-2xl bg-[#FAF8F5] border border-[#E6DFD1] space-y-3">
-                  <div className="text-[11px] font-mono uppercase text-slate-500 font-bold">
-                    Clientes del Despacho (Selecciona un nombre)
-                  </div>
-                  <div className="relative">
-                    <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-2.5" />
-                    <input
-                      type="text"
-                      value={crmSearch}
-                      onChange={(e) => setCrmSearch(e.target.value)}
-                      placeholder="Buscar por nombre..."
-                      className="w-full pl-8 pr-3 py-2 rounded-xl border text-xs bg-white border-[#D5CBB8]"
-                    />
-                  </div>
-                  <div className="space-y-1.5">
-                    {crmClients
-                      .filter(c => c.name.toLowerCase().includes(crmSearch.toLowerCase()))
-                      .map((client) => {
-                        const isSelected = client.id === selectedClient.id;
-                        return (
-                          <button
-                            key={client.id}
-                            type="button"
-                            onClick={() => {
-                              setSelectedClientId(client.id);
-                              setIsEditingClient(false);
-                            }}
-                            className={`w-full px-4 py-3 rounded-xl text-left text-xs font-semibold flex items-center justify-between transition cursor-pointer ${
-                              isSelected
-                                ? 'bg-[#0F172A] text-white shadow-sm'
-                                : 'bg-white border border-[#E6DFD1] hover:border-amber-500 text-slate-800'
-                            }`}
-                          >
-                            <span className="truncate">{client.name}</span>
-                            <ChevronRight className={`w-4 h-4 shrink-0 ${isSelected ? 'text-amber-400' : 'text-slate-400'}`} />
-                          </button>
-                        );
-                      })}
-                  </div>
-                </div>
-
-                {/* Columna Derecha: Ficha Legal Completa Desplegada */}
-                <div className="lg:col-span-8 sub-surface p-6 rounded-2xl bg-[#FAF8F5] border border-[#E6DFD1] space-y-5">
-                  <div className="flex flex-wrap items-start justify-between gap-3 border-b border-[#E6DFD1] pb-4">
-                    <div>
-                      <span className="text-[10px] font-mono uppercase px-2.5 py-0.5 rounded-full bg-amber-500/15 text-amber-800 font-bold">
-                        Ficha Legal Completa • {selectedClient.personType}
-                      </span>
-                      <h3 className="font-serif text-xl sm:text-2xl font-bold mt-1">{selectedClient.name}</h3>
-                    </div>
-                    <div className="flex flex-wrap items-center gap-2">
-                      <select
-                        value={selectedClient.powerStatus}
-                        onChange={(e) => handleUpdateSelectedClientField('powerStatus', e.target.value as CrmClient['powerStatus'])}
-                        className={`text-xs font-mono px-3 py-1 rounded-full font-bold border cursor-pointer ${
-                          selectedClient.powerStatus === 'Vigente'
-                            ? 'bg-emerald-500/15 text-emerald-700 border-emerald-500/30'
-                            : 'bg-amber-500/15 text-amber-700 border-amber-500/30'
-                        }`}
-                      >
-                        <option value="Vigente">Poder: Vigente</option>
-                        <option value="Por Renovar">Poder: Por Renovar</option>
-                        <option value="En Trámite">Poder: En Trámite</option>
-                      </select>
-                      <button
-                        type="button"
-                        onClick={() => setIsEditingClient(!isEditingClient)}
-                        className="px-3 py-1.5 rounded-xl border border-[#D5CBB8] bg-white text-slate-800 text-xs font-semibold cursor-pointer"
-                      >
-                        {isEditingClient ? 'Guardar Cambios' : 'Editar Ficha'}
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => handleLoadClientIntoRedactor(selectedClient)}
-                        className="px-3 py-1.5 rounded-xl bg-[#0F172A] text-white text-xs font-semibold cursor-pointer flex items-center gap-1.5"
-                      >
-                        <FileText className="w-3.5 h-3.5 text-amber-400" />
-                        <span>Usar en Redactor</span>
-                      </button>
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
-                    <div className="card-surface p-4 rounded-xl bg-white border border-[#E6DFD1] space-y-1">
-                      <span className="text-[10px] font-mono uppercase text-slate-400 block">Documento / ID Fiscal (C.I. / RIF / NIF)</span>
-                      {isEditingClient ? (
-                        <input
-                          type="text"
-                          value={selectedClient.taxId}
-                          onChange={(e) => handleUpdateSelectedClientField('taxId', e.target.value)}
-                          className="w-full px-2.5 py-1 rounded border border-[#D5CBB8] font-mono text-xs"
-                        />
-                      ) : (
-                        <strong className="font-mono text-sm">{selectedClient.taxId}</strong>
-                      )}
-                    </div>
-                    <div className="card-surface p-4 rounded-xl bg-white border border-[#E6DFD1] space-y-1">
-                      <span className="text-[10px] font-mono uppercase text-slate-400 block">Representante Legal y Carácter</span>
-                      {isEditingClient ? (
-                        <input
-                          type="text"
-                          value={selectedClient.legalRep}
-                          onChange={(e) => handleUpdateSelectedClientField('legalRep', e.target.value)}
-                          className="w-full px-2.5 py-1 rounded border border-[#D5CBB8] text-xs"
-                        />
-                      ) : (
-                        <strong>{selectedClient.legalRep}</strong>
-                      )}
-                    </div>
-                    <div className="card-surface p-4 rounded-xl bg-white border border-[#E6DFD1] space-y-1 md:col-span-2">
-                      <span className="text-[10px] font-mono uppercase text-slate-400 block">Datos de Registro Mercantil / Notaría y Poderes</span>
-                      {isEditingClient ? (
-                        <input
-                          type="text"
-                          value={selectedClient.registryInfo}
-                          onChange={(e) => handleUpdateSelectedClientField('registryInfo', e.target.value)}
-                          className="w-full px-2.5 py-1 rounded border border-[#D5CBB8] text-xs"
-                        />
-                      ) : (
-                        <p className="font-medium">{selectedClient.registryInfo}</p>
-                      )}
-                    </div>
-                    <div className="card-surface p-4 rounded-xl bg-white border border-[#E6DFD1] space-y-1 md:col-span-2">
-                      <span className="text-[10px] font-mono uppercase text-slate-400 block">Domicilio Fiscal y Procesal</span>
-                      {isEditingClient ? (
-                        <input
-                          type="text"
-                          value={selectedClient.address}
-                          onChange={(e) => handleUpdateSelectedClientField('address', e.target.value)}
-                          className="w-full px-2.5 py-1 rounded border border-[#D5CBB8] text-xs"
-                        />
-                      ) : (
-                        <p className="font-medium">{selectedClient.address}</p>
-                      )}
-                    </div>
-                    <div className="card-surface p-4 rounded-xl bg-white border border-[#E6DFD1] space-y-1">
-                      <span className="text-[10px] font-mono uppercase text-slate-400 block">Teléfono / WhatsApp</span>
-                      {isEditingClient ? (
-                        <input
-                          type="text"
-                          value={selectedClient.phone}
-                          onChange={(e) => handleUpdateSelectedClientField('phone', e.target.value)}
-                          className="w-full px-2.5 py-1 rounded border border-[#D5CBB8] font-mono text-xs"
-                        />
-                      ) : (
-                        <p className="font-mono font-semibold">{selectedClient.phone}</p>
-                      )}
-                    </div>
-                    <div className="card-surface p-4 rounded-xl bg-white border border-[#E6DFD1] space-y-1">
-                      <span className="text-[10px] font-mono uppercase text-slate-400 block">Correo Electrónico</span>
-                      {isEditingClient ? (
-                        <input
-                          type="email"
-                          value={selectedClient.email}
-                          onChange={(e) => handleUpdateSelectedClientField('email', e.target.value)}
-                          className="w-full px-2.5 py-1 rounded border border-[#D5CBB8] font-mono text-xs"
-                        />
-                      ) : (
-                        <p className="font-mono font-semibold">{selectedClient.email}</p>
-                      )}
-                    </div>
-                  </div>
-
-                  <div className="card-surface p-4 rounded-xl bg-white border border-[#E6DFD1] space-y-2.5 text-xs">
-                    <span className="text-[10px] font-mono uppercase text-amber-800 font-bold block">
-                      Expedientes y Contratos Vinculados
-                    </span>
-                    <ul className="space-y-1">
-                      {selectedClient.activeMatters.map((m, i) => (
-                        <li key={i} className="font-mono text-xs flex items-center gap-2">
-                          <Briefcase className="w-3.5 h-3.5 text-amber-600 shrink-0" /> {m}
-                        </li>
-                      ))}
-                    </ul>
-                    <div className="flex gap-2 pt-2 border-t border-[#E6DFD1]">
+              {crmClients.length === 0 ? (
+                <p style={{ color: theme.mutedText }} className="text-xs text-center py-8">
+                  No hay clientes registrados. Pulsa "Nuevo Cliente" arriba para crear la primera ficha legal.
+                </p>
+              ) : (
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                  <div style={subCardStyle} className="lg:col-span-4 p-4 rounded-xl border space-y-3">
+                    <div className="relative">
+                      <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-2.5" />
                       <input
                         type="text"
-                        value={newMatterInput}
-                        onChange={(e) => setNewMatterInput(e.target.value)}
-                        placeholder="Ej: EXP-2026-180: Acción Resolutoria / Contrato..."
-                        className="w-full px-3 py-1.5 rounded-lg border text-xs bg-[#FAF8F5] border-[#D5CBB8]"
+                        value={crmSearch}
+                        onChange={(e) => setCrmSearch(e.target.value)}
+                        placeholder="Buscar cliente..."
+                        style={inputStyle}
+                        className="w-full pl-8 pr-3 py-2 rounded-xl border text-xs"
                       />
-                      <button
-                        type="button"
-                        onClick={handleAddMatterToSelectedClient}
-                        className="shrink-0 px-3 py-1.5 rounded-lg bg-[#0F172A] text-white text-xs font-semibold cursor-pointer"
-                      >
-                        + Agregar Expediente
-                      </button>
+                    </div>
+                    <div className="space-y-1.5">
+                      {crmClients
+                        .filter(c => c.name.toLowerCase().includes(crmSearch.toLowerCase()))
+                        .map((client) => {
+                          const isSelected = selectedClient?.id === client.id;
+                          return (
+                            <div
+                              key={client.id}
+                              style={isSelected ? { backgroundColor: '#0F172A', color: '#FFFFFF' } : cardStyle}
+                              className="w-full px-3.5 py-2.5 rounded-xl border text-xs font-semibold flex items-center justify-between"
+                            >
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setSelectedClientId(client.id);
+                                  setIsEditingClient(false);
+                                }}
+                                className="truncate flex-1 text-left cursor-pointer"
+                              >
+                                {client.name}
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => handleDeleteCrmClient(client.id)}
+                                className="text-rose-400 hover:text-rose-500 p-1 cursor-pointer"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
+                          );
+                        })}
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
-                    <div className="card-surface p-4 rounded-xl bg-white border border-[#E6DFD1] space-y-1">
-                      <span className="text-[10px] font-mono uppercase text-slate-400 block">Acuerdo de Honorarios / Iguala</span>
-                      {isEditingClient ? (
-                        <input
-                          type="text"
-                          value={selectedClient.feeArrangement}
-                          onChange={(e) => handleUpdateSelectedClientField('feeArrangement', e.target.value)}
-                          className="w-full px-2.5 py-1 rounded border border-[#D5CBB8] text-xs"
-                        />
-                      ) : (
-                        <p>{selectedClient.feeArrangement}</p>
-                      )}
+                  {selectedClient && (
+                    <div style={subCardStyle} className="lg:col-span-8 p-5 rounded-xl border space-y-4">
+                      <div style={{ borderColor: theme.subBorder }} className="flex flex-wrap items-start justify-between gap-3 border-b pb-3">
+                        <div>
+                          <span style={{ color: theme.accentText }} className="text-[10px] font-mono uppercase font-bold">
+                            {selectedClient.personType}
+                          </span>
+                          <h3 className="font-serif text-lg sm:text-xl font-bold">{selectedClient.name}</h3>
+                        </div>
+                        <div className="flex flex-wrap items-center gap-2">
+                          <button
+                            type="button"
+                            onClick={() => setIsEditingClient(!isEditingClient)}
+                            style={secondaryBtnStyle}
+                            className="px-3 py-1.5 rounded-xl border text-xs font-semibold cursor-pointer"
+                          >
+                            {isEditingClient ? 'Guardar' : 'Editar'}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleLoadClientIntoRedactor(selectedClient)}
+                            className="px-3 py-1.5 rounded-xl bg-[#0F172A] text-white text-xs font-semibold cursor-pointer flex items-center gap-1.5"
+                          >
+                            <FileText className="w-3.5 h-3.5 text-amber-400" />
+                            <span>Usar en Redactor</span>
+                          </button>
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
+                        <div style={cardStyle} className="p-3.5 rounded-xl border space-y-1">
+                          <span style={{ color: theme.mutedText }} className="text-[10px] font-mono uppercase block">C.I. / RIF / NIF</span>
+                          {isEditingClient ? (
+                            <input
+                              type="text"
+                              value={selectedClient.taxId}
+                              onChange={(e) => handleUpdateSelectedClientField('taxId', e.target.value)}
+                              style={inputStyle}
+                              className="w-full px-2 py-1 rounded border font-mono text-xs"
+                            />
+                          ) : (
+                            <strong className="font-mono">{selectedClient.taxId}</strong>
+                          )}
+                        </div>
+                        <div style={cardStyle} className="p-3.5 rounded-xl border space-y-1">
+                          <span style={{ color: theme.mutedText }} className="text-[10px] font-mono uppercase block">Representante Legal</span>
+                          {isEditingClient ? (
+                            <input
+                              type="text"
+                              value={selectedClient.legalRep}
+                              onChange={(e) => handleUpdateSelectedClientField('legalRep', e.target.value)}
+                              style={inputStyle}
+                              className="w-full px-2 py-1 rounded border text-xs"
+                            />
+                          ) : (
+                            <strong>{selectedClient.legalRep}</strong>
+                          )}
+                        </div>
+                        <div style={cardStyle} className="p-3.5 rounded-xl border space-y-1 md:col-span-2">
+                          <span style={{ color: theme.mutedText }} className="text-[10px] font-mono uppercase block">Registro Mercantil y Poderes</span>
+                          {isEditingClient ? (
+                            <input
+                              type="text"
+                              value={selectedClient.registryInfo}
+                              onChange={(e) => handleUpdateSelectedClientField('registryInfo', e.target.value)}
+                              style={inputStyle}
+                              className="w-full px-2 py-1 rounded border text-xs"
+                            />
+                          ) : (
+                            <p>{selectedClient.registryInfo}</p>
+                          )}
+                        </div>
+                      </div>
+
+                      <div style={cardStyle} className="p-3.5 rounded-xl border space-y-2 text-xs">
+                        <span style={{ color: theme.accentText }} className="text-[10px] font-mono uppercase font-bold block">
+                          Expedientes Vinculados ({selectedClient.activeMatters.length})
+                        </span>
+                        <ul className="space-y-1">
+                          {selectedClient.activeMatters.map((m, i) => (
+                            <li key={i} className="font-mono text-xs flex items-center gap-2">
+                              <Briefcase className="w-3.5 h-3.5 text-amber-500 shrink-0" /> {m}
+                            </li>
+                          ))}
+                        </ul>
+                        <div className="flex gap-2 pt-2">
+                          <input
+                            type="text"
+                            value={newMatterInput}
+                            onChange={(e) => setNewMatterInput(e.target.value)}
+                            placeholder="Guía: Nº y carátula del expediente..."
+                            style={inputStyle}
+                            className="w-full px-3 py-1.5 rounded-lg border text-xs"
+                          />
+                          <button
+                            type="button"
+                            onClick={handleAddMatterToSelectedClient}
+                            className="shrink-0 px-3 py-1.5 rounded-lg bg-[#0F172A] text-white text-xs font-semibold cursor-pointer"
+                          >
+                            + Agregar Expediente
+                          </button>
+                        </div>
+                      </div>
                     </div>
-                    <div className="card-surface p-4 rounded-xl bg-white border border-[#E6DFD1] space-y-1">
-                      <span className="text-[10px] font-mono uppercase text-slate-400 block">Observaciones Confidenciales</span>
-                      {isEditingClient ? (
-                        <input
-                          type="text"
-                          value={selectedClient.confidentialNotes}
-                          onChange={(e) => handleUpdateSelectedClientField('confidentialNotes', e.target.value)}
-                          className="w-full px-2.5 py-1 rounded border border-[#D5CBB8] text-xs"
-                        />
-                      ) : (
-                        <p>{selectedClient.confidentialNotes}</p>
-                      )}
-                    </div>
-                  </div>
+                  )}
                 </div>
-              </div>
+              )}
             </div>
           )}
 
           {/* =================================================================
-              7. KPI & CONTROL DE GASTO API
+              7. KPI & PRESUPUESTO
           ================================================================== */}
           {activeTab === 'kpi' && (
-            <div className="card-surface rounded-3xl p-6 sm:p-8 bg-white border border-[#E6DFD1] shadow-sm space-y-6">
-              <div className="border-b border-[#E6DFD1] pb-4">
-                <span className="text-[11px] font-mono uppercase tracking-widest text-amber-700 font-bold">
-                  7. Rendimiento del Despacho y Control de Consumo de API
-                </span>
-                <h2 className="font-serif text-xl sm:text-2xl font-bold mt-1">
-                  Métricas de Tiempo Ahorrado y Gasto Real en Centavos
+            <div style={cardStyle} className="rounded-2xl p-4 sm:p-6 border shadow-xs space-y-6">
+              <div style={{ borderColor: theme.cardBorder }} className="border-b pb-4">
+                <h2 className="font-serif text-lg sm:text-xl font-bold">
+                  Métricas de Uso y Presupuesto de API
                 </h2>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
-                <div className="sub-surface p-5 rounded-2xl border bg-[#FAF8F5] border-[#E6DFD1]">
-                  <span className="text-[10px] font-mono uppercase text-slate-500">Consumo API Mes Actual</span>
-                  <div className="text-2xl font-serif font-bold text-emerald-700 mt-1">${currentSpendUsd.toFixed(2)} USD</div>
-                  <span className="text-[11px] text-slate-500">Tope mensual: ${monthlyBudgetUsd} USD</span>
+                <div style={subCardStyle} className="p-5 rounded-xl border">
+                  <span style={{ color: theme.mutedText }} className="text-[10px] font-mono uppercase">Consumo API Actual</span>
+                  <div style={{ color: theme.emeraldText }} className="text-2xl font-serif font-bold mt-1">${currentSpendUsd.toFixed(2)} USD</div>
+                  <span style={{ color: theme.mutedText }} className="text-[11px]">Límite: ${monthlyBudgetUsd} USD</span>
                 </div>
-                <div className="sub-surface p-5 rounded-2xl border bg-[#FAF8F5] border-[#E6DFD1]">
-                  <span className="text-[10px] font-mono uppercase text-slate-500">Documentos Visados</span>
+                <div style={subCardStyle} className="p-5 rounded-xl border">
+                  <span style={{ color: theme.mutedText }} className="text-[10px] font-mono uppercase">Documentos Visados</span>
                   <div className="text-2xl font-serif font-bold mt-1">{approvedDocsRegistry.length}</div>
-                  <span className="text-[11px] text-slate-500">Registrados en Human-Loop</span>
+                  <span style={{ color: theme.mutedText }} className="text-[11px]">En Human-in-the-Loop</span>
                 </div>
-                <div className="sub-surface p-5 rounded-2xl border bg-[#FAF8F5] border-[#E6DFD1]">
-                  <span className="text-[10px] font-mono uppercase text-slate-500">Horas Letradas Ahorradas</span>
-                  <div className="text-2xl font-serif font-bold text-amber-700 mt-1">{savedHoursCount} h</div>
-                  <span className="text-[11px] text-slate-500">En redacción, consultas y actas</span>
+                <div style={subCardStyle} className="p-5 rounded-xl border">
+                  <span style={{ color: theme.mutedText }} className="text-[10px] font-mono uppercase">Horas Ahorradas</span>
+                  <div style={{ color: theme.accentText }} className="text-2xl font-serif font-bold mt-1">{savedHoursCount} h</div>
+                  <span style={{ color: theme.mutedText }} className="text-[11px]">En consultas y redacción</span>
                 </div>
-                <div className="sub-surface p-5 rounded-2xl border bg-[#FAF8F5] border-[#E6DFD1]">
-                  <span className="text-[10px] font-mono uppercase text-slate-500">Fugas de Datos a IA</span>
-                  <div className="text-2xl font-serif font-bold text-emerald-700 mt-1">0%</div>
-                  <span className="text-[11px] text-slate-500">{piiAuditRegistry.length} operaciones anonimizadas</span>
+                <div style={subCardStyle} className="p-5 rounded-xl border">
+                  <span style={{ color: theme.mutedText }} className="text-[10px] font-mono uppercase">Operaciones Protegidas</span>
+                  <div style={{ color: theme.emeraldText }} className="text-2xl font-serif font-bold mt-1">{piiAuditRegistry.length}</div>
+                  <span style={{ color: theme.mutedText }} className="text-[11px]">Anonimizadas en RAM</span>
                 </div>
               </div>
             </div>
@@ -4481,174 +4055,149 @@ ${historyContextStr}`;
               8. TRAZABILIDAD SHA-256
           ================================================================== */}
           {activeTab === 'trazabilidad' && (
-            <div className="card-surface rounded-3xl p-6 sm:p-8 bg-white border border-[#E6DFD1] shadow-sm space-y-6">
-              <div className="border-b border-[#E6DFD1] pb-4">
-                <span className="text-[11px] font-mono uppercase tracking-widest text-amber-700 font-bold">
-                  8. Bitácora Criptográfica Inmutable SHA-256
-                </span>
-                <h2 className="font-serif text-xl sm:text-2xl font-bold mt-1">
-                  Registro General de Operaciones del Sistema
+            <div style={cardStyle} className="rounded-2xl p-4 sm:p-6 border shadow-xs space-y-6">
+              <div style={{ borderColor: theme.cardBorder }} className="flex items-center justify-between border-b pb-4">
+                <h2 className="font-serif text-lg sm:text-xl font-bold">
+                  Bitácora Criptográfica SHA-256 ({auditLogs.length})
+                </h2>
+                {auditLogs.length > 0 && (
+                  <button
+                    type="button"
+                    onClick={() => setAuditLogs([])}
+                    style={secondaryBtnStyle}
+                    className="px-3 py-1.5 rounded-lg border text-xs cursor-pointer"
+                  >
+                    Limpiar Bitácora
+                  </button>
+                )}
+              </div>
+
+              {auditLogs.length === 0 ? (
+                <p style={{ color: theme.mutedText }} className="text-xs text-center py-8">
+                  Aún no hay operaciones registradas. Cada dictamen o documento visado generará su sello SHA-256 aquí.
+                </p>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left border-collapse text-xs">
+                    <thead>
+                      <tr className="bg-[#0F172A] text-white font-mono text-[10px] uppercase">
+                        <th className="p-3">Hora</th>
+                        <th className="p-3">Módulo</th>
+                        <th className="p-3">Operación</th>
+                        <th className="p-3">PII</th>
+                        <th className="p-3">Hash SHA-256</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {auditLogs.map(log => (
+                        <tr key={log.id} style={{ borderColor: theme.cardBorder }} className="border-b">
+                          <td className="p-3 font-mono">{log.timestamp}</td>
+                          <td className="p-3 font-semibold">{log.module}</td>
+                          <td className="p-3">{log.action}</td>
+                          <td className="p-3 font-mono" style={{ color: theme.emeraldText }}>{log.piiCount}</td>
+                          <td className="p-3 font-mono text-[10px]" style={{ color: theme.mutedText }}>{log.sha256.slice(0, 24)}...</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* =================================================================
+              9. HUMAN-IN-THE-LOOP
+          ================================================================== */}
+          {activeTab === 'human_loop' && (
+            <div style={cardStyle} className="rounded-2xl p-4 sm:p-6 border shadow-xs space-y-6">
+              <div style={{ borderColor: theme.cardBorder }} className="border-b pb-4">
+                <h2 className="font-serif text-lg sm:text-xl font-bold">
+                  Registro de Documentos Visados (Human-in-the-Loop)
                 </h2>
               </div>
 
-              <div className="overflow-x-auto">
-                <table className="w-full text-left border-collapse text-xs">
-                  <thead>
-                    <tr className="bg-[#0F172A] text-white font-mono text-[10px] uppercase">
-                      <th className="p-3.5">Hora</th>
-                      <th className="p-3.5">Módulo</th>
-                      <th className="p-3.5">Operación</th>
-                      <th className="p-3.5">Datos Protegidos</th>
-                      <th className="p-3.5">Visado Human-Loop</th>
-                      <th className="p-3.5">Hash SHA-256 (FIPS 180-4)</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-[#E6DFD1]">
-                    {auditLogs.map(log => (
-                      <tr key={log.id}>
-                        <td className="p-3.5 font-mono">{log.timestamp}</td>
-                        <td className="p-3.5 font-semibold">{log.module}</td>
-                        <td className="p-3.5">{log.action}</td>
-                        <td className="p-3.5 font-mono text-emerald-700 font-bold">{log.piiCount} PII</td>
-                        <td className="p-3.5 font-mono text-[10px]">
-                          {log.humanVerified ? (
-                            <span className="px-2 py-0.5 rounded bg-emerald-500/15 text-emerald-800 font-bold">✓ Visado</span>
-                          ) : (
-                            <span className="px-2 py-0.5 rounded bg-amber-500/15 text-amber-800">Pendiente</span>
-                          )}
-                        </td>
-                        <td className="p-3.5 font-mono text-[10px] text-slate-500" title={log.sha256}>
-                          {log.sha256.slice(0, 24)}...
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          )}
-
-          {/* =================================================================
-              9. HUMAN-IN-THE-LOOP (SOLO EL REGISTRO DE LOS DOCUMENTOS APROBADOS POR EL ABOGADO)
-          ================================================================== */}
-          {activeTab === 'human_loop' && (
-            <div className="card-surface rounded-3xl p-6 sm:p-8 bg-white border border-[#E6DFD1] shadow-sm space-y-6">
-              <div className="flex flex-wrap items-center justify-between gap-4 border-b border-[#E6DFD1] pb-4">
-                <div>
-                  <span className="text-[11px] font-mono uppercase tracking-widest text-emerald-700 font-bold">
-                    9. Registro Histórico de Visados (Human-in-the-Loop)
-                  </span>
-                  <h2 className="font-serif text-xl sm:text-2xl font-bold mt-1">
-                    Registro de Documentos y Dictámenes Aprobados por el Abogado
-                  </h2>
-                </div>
-                <span className="text-xs font-mono px-3 py-1.5 rounded-xl bg-emerald-500/15 text-emerald-800 font-semibold">
-                  {approvedDocsRegistry.length} Documentos con Visto Bueno
-                </span>
-              </div>
-
-              <p className="text-xs text-slate-600">
-                La aprobación ocurre directamente mientras trabajas en el <strong>Redactor de Documentos</strong>, en el <strong>Consultor de IA</strong> o en el <strong>Grabador de Actas</strong>. En esta pestaña queda únicamente el <strong>registro inmutable de los documentos que recibieron tu Visto Bueno</strong>.
-              </p>
-
-              <div className="space-y-3">
-                {approvedDocsRegistry.map((rec) => (
-                  <div key={rec.id} className="sub-surface p-5 rounded-2xl border bg-[#FAF8F5] border-[#E6DFD1] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                    <div className="space-y-1 text-xs">
-                      <div className="flex flex-wrap items-center gap-2">
-                        <span className="px-2.5 py-0.5 rounded-full bg-emerald-700 text-white font-mono text-[10px] font-bold">
-                          ✓ APROBADO POR EL ABOGADO ({rec.id})
-                        </span>
-                        <span className="font-mono text-slate-500">{rec.timestamp}</span>
-                        <span className="font-mono text-amber-800">• Origen: {rec.originModule}</span>
+              {approvedDocsRegistry.length === 0 ? (
+                <p style={{ color: theme.mutedText }} className="text-xs text-center py-8">
+                  No hay documentos visados todavía. Cuando apruebes un dictamen o contrato aparecerá aquí.
+                </p>
+              ) : (
+                <div className="space-y-3">
+                  {approvedDocsRegistry.map((rec) => (
+                    <div key={rec.id} style={subCardStyle} className="p-4 rounded-xl border flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                      <div className="space-y-1 text-xs">
+                        <div className="flex items-center gap-2 font-mono text-[10px]">
+                          <span style={{ color: theme.emeraldText }} className="font-bold">✓ VISADO ({rec.id})</span>
+                          <span style={{ color: theme.mutedText }}>{rec.timestamp} • {rec.originModule}</span>
+                        </div>
+                        <h3 className="font-serif font-bold text-sm">{rec.title}</h3>
+                        <p style={{ color: theme.mutedText }} className="text-[11px]">
+                          {rec.approvedBy} ({rec.collegiateNumber}) • SHA-256: {rec.sha256.slice(0, 20)}...
+                        </p>
                       </div>
-                      <h3 className="font-serif font-bold text-base">{rec.title}</h3>
-                      <p className="text-[11px] text-slate-600">
-                        Firmante: <strong>{rec.approvedBy}</strong> ({rec.collegiateNumber}) • Modelo: {rec.templateUsed}
-                      </p>
-                      <p className="text-[10px] font-mono text-slate-500">
-                        Sello SHA-256: {rec.sha256}
-                      </p>
+                      <button
+                        type="button"
+                        onClick={() => exportWordDoc(`${rec.title.replace(/\s+/g, '_')}.doc`, rec.title, `Visado por ${rec.approvedBy}`, rec.content)}
+                        className="shrink-0 px-3.5 py-2 rounded-xl bg-[#0F172A] text-white text-xs font-semibold flex items-center gap-1.5 cursor-pointer"
+                      >
+                        <Download className="w-3.5 h-3.5 text-amber-400" /> Descargar (.DOC)
+                      </button>
                     </div>
-                    <button
-                      type="button"
-                      onClick={() => exportWordDoc(`${rec.title.replace(/\s+/g, '_')}.doc`, rec.title, `Visado por ${rec.approvedBy} • SHA-256: ${rec.sha256.slice(0, 20)}`, rec.content)}
-                      className="shrink-0 px-4 py-2.5 rounded-xl bg-[#0F172A] text-white text-xs font-semibold flex items-center gap-2 cursor-pointer"
-                    >
-                      <Download className="w-3.5 h-3.5 text-amber-400" /> Descargar Copia (.DOC)
-                    </button>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              )}
             </div>
           )}
 
           {/* =================================================================
-              10. ANONIMIZACIÓN PII (SOLO EL REGISTRO AUTOMÁTICO DE DATOS PROTEGIDOS)
+              10. ANONIMIZACIÓN PII
           ================================================================== */}
           {activeTab === 'anonimizacion_pii' && (
-            <div className="card-surface rounded-3xl p-6 sm:p-8 bg-white border border-[#E6DFD1] shadow-sm space-y-6">
-              <div className="flex flex-wrap items-center justify-between gap-4 border-b border-[#E6DFD1] pb-4">
-                <div>
-                  <span className="text-[11px] font-mono uppercase tracking-widest text-emerald-700 font-bold">
-                    10. Registro de Privacidad y Anonimización PII en Memoria Local
-                  </span>
-                  <h2 className="font-serif text-xl sm:text-2xl font-bold mt-1">
-                    Bitácora de Datos Sensibles Ocultados Automáticamente a la IA
-                  </h2>
-                </div>
-                <span className="text-xs font-mono px-3 py-1.5 rounded-xl bg-emerald-500/15 text-emerald-800 font-semibold">
-                  100% Procesado en las Pestañas de Trabajo
-                </span>
+            <div style={cardStyle} className="rounded-2xl p-4 sm:p-6 border shadow-xs space-y-6">
+              <div style={{ borderColor: theme.cardBorder }} className="border-b pb-4">
+                <h2 className="font-serif text-lg sm:text-xl font-bold">
+                  Bitácora de Anonimización PII en Memoria RAM
+                </h2>
               </div>
 
-              <p className="text-xs text-slate-600">
-                La ocultación de nombres, razones sociales, documentos de identidad (con o sin puntos), RIF/NIF, teléfonos, cuentas de 20 dígitos o IBAN y montos ocurre automáticamente en segundo plano cuando utilizas el <strong>Consultor de IA</strong>, el <strong>Redactor de Documentos</strong> o el <strong>Grabador de Actas</strong>. Aquí se conserva únicamente la constancia auditable de cada protección ejecutada.
-              </p>
-
-              <div className="space-y-3">
-                {piiAuditRegistry.map((entry) => (
-                  <div key={entry.id} className="sub-surface p-5 rounded-2xl border bg-[#FAF8F5] border-[#E6DFD1] space-y-3 text-xs">
-                    <div className="flex flex-wrap items-center justify-between gap-2">
-                      <div className="flex items-center gap-2">
-                        <span className="px-2.5 py-0.5 rounded bg-[#0F172A] text-amber-300 font-mono text-[10px] font-bold">
-                          {entry.id} • {entry.originModule}
-                        </span>
-                        <span className="font-mono text-slate-500">{entry.timestamp}</span>
+              {piiAuditRegistry.length === 0 ? (
+                <p style={{ color: theme.mutedText }} className="text-xs text-center py-8">
+                  Aún no se han ejecutado operaciones de anonimización en esta sesión.
+                </p>
+              ) : (
+                <div className="space-y-3">
+                  {piiAuditRegistry.map((entry) => (
+                    <div key={entry.id} style={subCardStyle} className="p-4 rounded-xl border space-y-2 text-xs">
+                      <div className="flex items-center justify-between font-mono text-[10px]">
+                        <span style={{ color: theme.accentText }} className="font-bold">{entry.id} • {entry.originModule}</span>
+                        <span style={{ color: theme.mutedText }}>{entry.timestamp}</span>
                       </div>
-                      <span className="px-2.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-800 font-mono text-[10px] font-bold">
-                        ✓ Zero-Data-Retention (No entrena IA)
-                      </span>
+                      <p className="font-medium">{entry.contextSummary}</p>
+                      <div className="flex flex-wrap gap-1.5">
+                        {entry.tokensDetected.map((tok, i) => (
+                          <span key={i} style={cardStyle} className="px-2 py-1 rounded border font-mono text-[10px]">
+                            <strong style={{ color: theme.emeraldText }}>{tok.token}</strong> → {tok.maskedPreview}
+                          </span>
+                        ))}
+                      </div>
                     </div>
-                    <p className="font-medium text-slate-700">Operación: {entry.contextSummary}</p>
-                    <div className="flex flex-wrap gap-2">
-                      {entry.tokensDetected.map((tok, i) => (
-                        <span key={i} className="px-2.5 py-1 rounded-lg bg-white border border-[#E6DFD1] font-mono text-[11px]">
-                          <strong className="text-emerald-700">{tok.token}</strong> → {tok.maskedPreview}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              )}
             </div>
           )}
 
           {/* =================================================================
-              11. CONFIGURACIÓN DEL SISTEMA (UBICADA DE ÚLTIMA, SIN PALABRA DOCKER Y SIN LÍMITES DE PAÍS/RAMA)
+              11. CONFIGURACIÓN FUNCIONAL DEL DESPACHO (API, BIBLIOTECA CRUD Y RAG CRUD)
           ================================================================== */}
           {activeTab === 'configuracion_sistema' && (
-            <div className="card-surface rounded-3xl p-6 sm:p-8 bg-white border border-[#E6DFD1] shadow-sm space-y-8">
-              <div className="flex flex-wrap items-center justify-between gap-4 border-b border-[#E6DFD1] pb-4">
+            <div style={cardStyle} className="rounded-2xl p-4 sm:p-6 border shadow-xs space-y-6">
+              <div style={{ borderColor: theme.cardBorder }} className="flex flex-wrap items-center justify-between gap-4 border-b pb-4">
                 <div>
-                  <span className="text-[11px] font-mono uppercase tracking-widest text-amber-700 font-bold">
-                    11. Configuración Inicial del Despacho (Uso Ocasional)
-                  </span>
-                  <h2 className="font-serif text-xl sm:text-2xl font-bold mt-1">
-                    Conexión de tu API de IA, tu Biblioteca de Modelos y tus Leyes
+                  <h2 className="font-serif text-lg sm:text-xl font-bold">
+                    Configuración de API, Biblioteca de Modelos y Repositorio RAG
                   </h2>
-                  <p className="text-xs text-slate-600 mt-1">
-                    Configura una sola vez los datos de tu firma, la llave de tu modelo de IA preferido, la carpeta o Google Drive de tus modelos y los códigos o leyes con los que trabajas.
+                  <p style={{ color: theme.mutedText }} className="text-xs">
+                    Conecta tu API Key privada, administra tus modelos de contratos y agrega o elimina las leyes de tu RAG. Todo queda almacenado en tu equipo.
                   </p>
                 </div>
                 <button
@@ -4659,262 +4208,483 @@ ${historyContextStr}`;
                     } catch {
                       // ignorar
                     }
-                    showToast('Memoria local limpiada. Recarga la página si deseas volver a los valores iniciales de fábrica.');
+                    showToast('Almacenamiento local restablecido.');
                   }}
-                  className="px-3.5 py-2 rounded-xl border border-[#D5CBB8] bg-[#FAF8F5] text-xs font-semibold text-slate-700 cursor-pointer"
+                  style={secondaryBtnStyle}
+                  className="px-3 py-1.5 rounded-xl border text-xs font-semibold cursor-pointer"
                 >
                   Restablecer Memoria Local
                 </button>
               </div>
 
-              <div className="sub-surface p-5 rounded-2xl bg-[#FAF8F5] border border-[#E6DFD1] space-y-4">
-                <h3 className="font-serif font-bold text-base">Datos del Abogado o Despacho Adquirente</h3>
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4 text-xs">
+              {/* 1. Datos del Despacho y Abogado Titular */}
+              <div style={subCardStyle} className="p-4 sm:p-5 rounded-xl border space-y-3">
+                <h3 className="font-serif font-bold text-sm">1. Identificación del Despacho y Abogado Titular</h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-xs">
                   <div>
-                    <label className="block font-mono text-[11px] text-slate-500 mb-1">Nombre del Despacho o Firma</label>
+                    <label style={{ color: theme.mutedText }} className="block font-mono text-[10px] uppercase mb-1">Nombre del Despacho</label>
                     <input
                       type="text"
                       value={firmName}
                       onChange={(e) => setFirmName(e.target.value)}
-                      className="w-full px-3.5 py-2 rounded-xl border bg-white border-[#D5CBB8]"
+                      placeholder="Guía: Ej. Escritorio Jurídico Piccolo"
+                      style={inputStyle}
+                      className="w-full px-3 py-2 rounded-xl border"
                     />
                   </div>
                   <div>
-                    <label className="block font-mono text-[11px] text-slate-500 mb-1">Nombre del Abogado para Visados</label>
+                    <label style={{ color: theme.mutedText }} className="block font-mono text-[10px] uppercase mb-1">Abogado Titular (Para Visados)</label>
                     <input
                       type="text"
                       value={lawyerSignerName}
                       onChange={(e) => setLawyerSignerName(e.target.value)}
-                      className="w-full px-3.5 py-2 rounded-xl border bg-white border-[#D5CBB8]"
+                      placeholder="Guía: Ej. Dra. Bárbara Piccolo"
+                      style={inputStyle}
+                      className="w-full px-3 py-2 rounded-xl border"
                     />
                   </div>
                   <div>
-                    <label className="block font-mono text-[11px] text-slate-500 mb-1">Nº de Colegiado / Inpreabogado</label>
+                    <label style={{ color: theme.mutedText }} className="block font-mono text-[10px] uppercase mb-1">Nº Colegiado / Inpreabogado</label>
                     <input
                       type="text"
                       value={lawyerCollegiateId}
                       onChange={(e) => setLawyerCollegiateId(e.target.value)}
-                      className="w-full px-3.5 py-2 rounded-xl border bg-white border-[#D5CBB8]"
+                      placeholder="Guía: Ej. Inpreabogado Nº 104.892"
+                      style={inputStyle}
+                      className="w-full px-3 py-2 rounded-xl border"
                     />
                   </div>
                   <div>
-                    <label className="block font-mono text-[11px] text-slate-500 mb-1">Especialidad o Práctica</label>
+                    <label style={{ color: theme.mutedText }} className="block font-mono text-[10px] uppercase mb-1">Especialidad Principal</label>
                     <input
                       type="text"
                       value={customPracticeArea}
                       onChange={(e) => setCustomPracticeArea(e.target.value)}
-                      className="w-full px-3.5 py-2 rounded-xl border bg-white border-[#D5CBB8]"
+                      placeholder="Guía: Ej. Derecho Corporativo y Civil"
+                      style={inputStyle}
+                      className="w-full px-3 py-2 rounded-xl border"
                     />
                   </div>
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <div className="sub-surface p-5 rounded-2xl bg-[#FAF8F5] border border-[#E6DFD1] space-y-4">
-                  <div className="flex items-center gap-2 text-xs font-mono uppercase text-amber-800 font-bold">
-                    <Key className="w-4 h-4 text-amber-600" /> 1. Tu Modelo de IA y API
+              {/* 2. Conexión de API de IA */}
+              <div style={subCardStyle} className="p-4 sm:p-5 rounded-xl border space-y-3">
+                <div className="flex items-center justify-between">
+                  <h3 className="font-serif font-bold text-sm flex items-center gap-2">
+                    <Key className="w-4 h-4 text-amber-500" /> 2. Conexión de tu Motor de IA (API Key)
+                  </h3>
+                  <span style={{ color: apiKeyInput.trim() ? theme.emeraldText : theme.mutedText }} className="text-[11px] font-mono font-semibold">
+                    {apiKeyInput.trim() || llmProvider === 'ollama' ? '✓ API Configurada' : 'Pendiente de API Key'}
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-3 text-xs">
+                  <div>
+                    <label style={{ color: theme.mutedText }} className="block font-mono text-[10px] uppercase mb-1">Proveedor</label>
+                    <select
+                      value={llmProvider}
+                      onChange={(e) => {
+                        const nextProv = e.target.value as 'openai' | 'anthropic' | 'gemini' | 'groq' | 'ollama';
+                        setLlmProvider(nextProv);
+                        setLlmModel(PROVIDER_DEFAULT_MODELS[nextProv][0]);
+                      }}
+                      style={inputStyle}
+                      className="w-full px-3 py-2 rounded-xl border"
+                    >
+                      <option value="openai">OpenAI (GPT-4o)</option>
+                      <option value="gemini">Google Gemini (2.5 Pro / Flash)</option>
+                      <option value="groq">Groq (Llama 3.3 70B)</option>
+                      <option value="anthropic">Anthropic (Claude 3.5 Sonnet)</option>
+                      <option value="ollama">Ollama (Modelo Local sin Internet)</option>
+                    </select>
                   </div>
-                  <div className="space-y-3 text-xs">
+
+                  <div>
+                    <label style={{ color: theme.mutedText }} className="block font-mono text-[10px] uppercase mb-1">Modelo</label>
+                    <select
+                      value={llmModel}
+                      onChange={(e) => setLlmModel(e.target.value)}
+                      style={inputStyle}
+                      className="w-full px-3 py-2 rounded-xl border font-mono"
+                    >
+                      {PROVIDER_DEFAULT_MODELS[llmProvider].map(m => (
+                        <option key={m} value={m}>{m}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {llmProvider === 'ollama' ? (
                     <div>
-                      <label className="block font-mono text-[11px] text-slate-500 mb-1">Proveedor de IA</label>
-                      <select
-                        value={llmProvider}
-                        onChange={(e) => {
-                          const nextProv = e.target.value as 'openai' | 'anthropic' | 'gemini' | 'groq' | 'ollama';
-                          setLlmProvider(nextProv);
-                          setLlmModel(PROVIDER_DEFAULT_MODELS[nextProv][0]);
-                        }}
-                        className="w-full px-3 py-2 rounded-xl border bg-white border-[#D5CBB8]"
-                      >
-                        <option value="openai">OpenAI (GPT-4o)</option>
-                        <option value="anthropic">Anthropic (Claude 3.5 Sonnet)</option>
-                        <option value="gemini">Google Gemini Pro</option>
-                        <option value="groq">Groq (Llama 3.3 70B)</option>
-                        <option value="ollama">Modelo Local sin Internet (Ollama)</option>
-                      </select>
+                      <label style={{ color: theme.mutedText }} className="block font-mono text-[10px] uppercase mb-1">URL Local de Ollama</label>
+                      <input
+                        type="text"
+                        value={ollamaBaseUrl}
+                        onChange={(e) => setOllamaBaseUrl(e.target.value)}
+                        placeholder="Guía: http://localhost:11434"
+                        style={inputStyle}
+                        className="w-full px-3 py-2 rounded-xl border font-mono"
+                      />
                     </div>
+                  ) : (
                     <div>
-                      <label className="block font-mono text-[11px] text-slate-500 mb-1">Modelo Activo</label>
-                      <select
-                        value={llmModel}
-                        onChange={(e) => setLlmModel(e.target.value)}
-                        className="w-full px-3 py-2 rounded-xl border bg-white border-[#D5CBB8] font-mono"
-                      >
-                        {PROVIDER_DEFAULT_MODELS[llmProvider].map(m => (
-                          <option key={m} value={m}>{m}</option>
-                        ))}
-                      </select>
-                    </div>
-                    <div>
-                      <label className="block font-mono text-[11px] text-slate-500 mb-1">Tu API Key Privada</label>
+                      <label style={{ color: theme.mutedText }} className="block font-mono text-[10px] uppercase mb-1">Tu API Key Privada</label>
                       <input
                         type="password"
                         value={apiKeyInput}
                         onChange={(e) => setApiKeyInput(e.target.value)}
-                        className="w-full px-3 py-2 rounded-xl border bg-white border-[#D5CBB8] font-mono"
+                        placeholder={
+                          llmProvider === 'openai'
+                            ? 'Guía: Pega tu llave sk-proj-...'
+                            : llmProvider === 'gemini'
+                            ? 'Guía: Pega tu llave AIzaSy...'
+                            : llmProvider === 'groq'
+                            ? 'Guía: Pega tu llave gsk_...'
+                            : 'Guía: Pega tu llave sk-ant-...'
+                        }
+                        style={inputStyle}
+                        className="w-full px-3 py-2 rounded-xl border font-mono"
                       />
                     </div>
+                  )}
+
+                  <div>
+                    <label style={{ color: theme.mutedText }} className="block font-mono text-[10px] uppercase mb-1">
+                      Tope Mensual: ${monthlyBudgetUsd} USD
+                    </label>
+                    <input
+                      type="range"
+                      min={5}
+                      max={200}
+                      value={monthlyBudgetUsd}
+                      onChange={(e) => setMonthlyBudgetUsd(Number(e.target.value))}
+                      className="w-full accent-amber-500 mt-2"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* 3. Gestión Funcional de Biblioteca de Modelos y Leyes RAG (Agregar, Ver y Eliminar) */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+                {/* BIBLIOTECA DE MODELOS (CRUD COMPLETO) */}
+                <div style={subCardStyle} className="p-4 sm:p-5 rounded-xl border space-y-4">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
                     <div>
-                      <label className="block font-mono text-[11px] text-slate-500 mb-1">
-                        Presupuesto Mensual Máximo: <strong>${monthlyBudgetUsd} USD</strong>
-                      </label>
-                      <input
-                        type="range"
-                        min={5}
-                        max={200}
-                        value={monthlyBudgetUsd}
-                        onChange={(e) => setMonthlyBudgetUsd(Number(e.target.value))}
-                        className="w-full accent-amber-600"
-                      />
+                      <h3 className="font-serif font-bold text-sm flex items-center gap-2">
+                        <FolderOpen className="w-4 h-4 text-emerald-500" /> 3. Biblioteca de Modelos ({templates.length})
+                      </h3>
+                      <p style={{ color: theme.mutedText }} className="text-[11px]">
+                        Guarda tus plantillas con variables <code>{`{{VARIABLE}}`}</code> para usarlas en el Consultor y Redactor.
+                      </p>
                     </div>
-                  </div>
-                </div>
-
-                <div className="sub-surface p-5 rounded-2xl bg-[#FAF8F5] border border-[#E6DFD1] space-y-4">
-                  <div className="flex items-center gap-2 text-xs font-mono uppercase text-emerald-800 font-bold">
-                    <FolderOpen className="w-4 h-4 text-emerald-600" /> 2. Tu Biblioteca de Modelos
-                  </div>
-                  <div className="space-y-3 text-xs">
-                    <div className="grid grid-cols-2 gap-2">
+                    <div className="flex gap-1.5">
                       <button
                         type="button"
-                        onClick={() => setLibrarySourceMode('Google Drive')}
-                        className={`py-2 rounded-xl font-semibold cursor-pointer ${
-                          librarySourceMode === 'Google Drive' ? 'bg-[#0F172A] text-white' : 'bg-white border border-[#D5CBB8]'
-                        }`}
+                        onClick={() => setShowAddTemplateModal(!showAddTemplateModal)}
+                        className="px-3 py-1.5 rounded-lg bg-[#0F172A] text-white text-xs font-semibold cursor-pointer flex items-center gap-1"
                       >
-                        Google Drive
+                        <Plus className="w-3.5 h-3.5 text-amber-400" /> Crear / Pegar Modelo
                       </button>
-                      <button
-                        type="button"
-                        onClick={() => setLibrarySourceMode('Carpeta Local')}
-                        className={`py-2 rounded-xl font-semibold cursor-pointer ${
-                          librarySourceMode === 'Carpeta Local' ? 'bg-[#0F172A] text-white' : 'bg-white border border-[#D5CBB8]'
-                        }`}
-                      >
-                        Carpeta Local
-                      </button>
-                    </div>
-                    {librarySourceMode === 'Google Drive' ? (
-                      <input
-                        type="text"
-                        value={driveFolderUrl}
-                        onChange={(e) => setDriveFolderUrl(e.target.value)}
-                        placeholder="Enlace de tu carpeta de Google Drive..."
-                        className="w-full px-3 py-2 rounded-xl border bg-white border-[#D5CBB8] font-mono"
-                      />
-                    ) : (
-                      <input
-                        type="text"
-                        value={localFolderPath}
-                        onChange={(e) => setLocalFolderPath(e.target.value)}
-                        placeholder="Ruta de tu carpeta de modelos..."
-                        className="w-full px-3 py-2 rounded-xl border bg-white border-[#D5CBB8] font-mono"
-                      />
-                    )}
-                    <label className="w-full py-2.5 px-3 rounded-xl bg-emerald-700 text-white font-semibold flex items-center justify-center gap-2 cursor-pointer">
-                      <Upload className="w-3.5 h-3.5" />
-                      <span>Agregar Nuevo Modelo (.DOCX / .TXT)</span>
-                      <input
-                        type="file"
-                        accept=".doc,.docx,.txt,.md"
-                        className="hidden"
-                        onChange={(e) => {
-                          const f = e.target.files?.[0];
-                          if (!f) return;
-                          const registerTemplateFromText = (rawContent?: string) => {
-                            const cleanText = rawContent && rawContent.trim().length > 20
-                              ? rawContent.trim()
-                              : `DOCUMENTO BASE CARGADO DE BIBLIOTECA (${f.name}):\n\nENTRE LAS PARTES: {{PARTES}}.\n\nOBJETO DEL INSTRUMENTO: {{OBJETO}}.\n\nMONTO O CONTRAPRESTACIÓN: {{PRECIO_MONTO}}.\n\nJURISDICCIÓN APLICABLE: {{JURISDICCION}}.`;
-
-                            // Detecta dinámicamente variables {{VARIABLE}} presentes en el archivo cargado
-                            const matches = Array.from(cleanText.matchAll(/\{\{([A-Z0-9_]+)\}\}/gi)).map(m => m[1].toUpperCase());
-                            const uniqueKeys = Array.from(new Set(matches));
-                            const detectedVars: ModelTemplateVariable[] =
-                              uniqueKeys.length > 0
-                                ? uniqueKeys.map(k => ({
-                                    key: k,
-                                    label: `Campo ${k.replace(/_/g, ' ')}`,
-                                    category: 'Variable Detectada',
-                                    placeholder: `Valor para ${k}`
-                                  }))
-                                : [
-                                    { key: 'PARTES', label: 'Identificación de las Partes', category: 'Partes', placeholder: 'Nombres y documentos' },
-                                    { key: 'OBJETO', label: 'Objeto y Condiciones del Instrumento', category: 'Objeto', placeholder: 'Descripción del negocio jurídico' },
-                                    { key: 'PRECIO_MONTO', label: 'Monto o Contraprestación', category: 'Precio', placeholder: 'Monto en números y letras' },
-                                    { key: 'JURISDICCION', label: 'Jurisdicción y Domicilio Especial', category: 'Jurisdicción', placeholder: 'Ciudad y tribunales' }
-                                  ];
-
-                            const newTpl: ModelTemplate = {
-                              id: `tpl-${Date.now().toString().slice(-4)}`,
-                              name: f.name.replace(/\.[^/.]+$/, ''),
-                              category: 'Modelo Propio del Despacho',
-                              source: librarySourceMode,
-                              updatedAt: 'Recién cargado',
-                              variables: detectedVars,
-                              contentPreview: cleanText
-                            };
-                            setTemplates(prev => [newTpl, ...prev]);
-                            setSelectedTemplateId(newTpl.id);
-                            showToast(`Modelo "${newTpl.name}" agregado con ${detectedVars.length} variables detectadas.`);
-                          };
-
-                          if (/\.(txt|md)$/i.test(f.name) && typeof FileReader !== 'undefined') {
+                      <label className="px-3 py-1.5 rounded-lg bg-emerald-700 text-white text-xs font-semibold flex items-center gap-1 cursor-pointer">
+                        <Upload className="w-3.5 h-3.5" />
+                        <span>Agregar Nuevo Modelo (.DOCX / .TXT)</span>
+                        <input
+                          type="file"
+                          accept=".doc,.docx,.txt,.md"
+                          className="hidden"
+                          onChange={(e) => {
+                            const f = e.target.files?.[0];
+                            if (!f) return;
                             const reader = new FileReader();
-                            reader.onload = () => registerTemplateFromText(String(reader.result || ''));
+                            reader.onload = () => {
+                              const raw = String(reader.result || '');
+                              const printable = raw.match(/[A-Za-záéíóúñÁÉÍÓÚÑ0-9.,;:()¿?¡!$€%@#/_\\\-\{\}\s]{10,}/g);
+                              const cleanText = /\.(txt|md)$/i.test(f.name)
+                                ? raw.trim()
+                                : printable
+                                ? printable.join(' ').trim()
+                                : '';
+                              const finalBody =
+                                cleanText.length > 20
+                                  ? cleanText
+                                  : `ENTRE: {{PARTE_A}}, por una parte; y por la otra {{PARTE_B}}, se ha convenido en celebrar el presente contrato:\n\nPRIMERA (OBJETO): {{OBJETO_CONTRATO}}.\n\nSEGUNDA (PRECIO): {{PRECIO_CONDICIONES}}.\n\nTERCERA (JURISDICCIÓN): {{JURISDICCION}}.`;
+                              const detectedVars = detectVariablesInTemplateText(finalBody);
+                              const newTpl: ModelTemplate = {
+                                id: `tpl-${Date.now().toString().slice(-5)}`,
+                                name: f.name.replace(/\.[^/.]+$/, ''),
+                                category: 'Biblioteca del Despacho',
+                                source: librarySourceMode,
+                                updatedAt: new Date().toLocaleDateString('es-ES'),
+                                variables: detectedVars,
+                                contentPreview: finalBody
+                              };
+                              setTemplates(prev => [newTpl, ...prev]);
+                              setSelectedTemplateId(newTpl.id);
+                              showToast(`Modelo "${newTpl.name}" almacenado (${detectedVars.length} variables).`);
+                            };
                             reader.readAsText(f);
-                          } else {
-                            registerTemplateFromText();
-                          }
-                        }}
+                          }}
+                        />
+                      </label>
+                    </div>
+                  </div>
+
+                  {showAddTemplateModal && (
+                    <div style={cardStyle} className="p-3.5 rounded-xl border space-y-2.5 text-xs">
+                      <input
+                        type="text"
+                        value={newTplNameInput}
+                        onChange={(e) => setNewTplNameInput(e.target.value)}
+                        placeholder="Guía: Nombre del modelo (Ej. Contrato de Compraventa / Poder Especial)..."
+                        style={inputStyle}
+                        className="w-full px-3 py-1.5 rounded-lg border"
                       />
-                    </label>
+                      <input
+                        type="text"
+                        value={newTplCategoryInput}
+                        onChange={(e) => setNewTplCategoryInput(e.target.value)}
+                        placeholder="Guía: Categoría (Ej. Civil / Mercantil / Laboral)..."
+                        style={inputStyle}
+                        className="w-full px-3 py-1.5 rounded-lg border"
+                      />
+                      <textarea
+                        rows={5}
+                        value={newTplContentInput}
+                        onChange={(e) => setNewTplContentInput(e.target.value)}
+                        placeholder="Guía: Pega aquí el texto completo de tu modelo y coloca entre dobles llaves los datos a sustituir, por ejemplo: Yo, {{OTORGANTE}}, confiero poder especial a {{APODERADOS}} para {{FACULTADES}}..."
+                        style={inputStyle}
+                        className="w-full p-2.5 rounded-lg border font-serif text-xs"
+                      />
+                      <div className="flex justify-end gap-2">
+                        <button
+                          type="button"
+                          onClick={() => setShowAddTemplateModal(false)}
+                          style={secondaryBtnStyle}
+                          className="px-3 py-1 rounded-lg border cursor-pointer"
+                        >
+                          Cancelar
+                        </button>
+                        <button
+                          type="button"
+                          onClick={handleCreateTemplateManual}
+                          className="px-4 py-1 rounded-lg bg-emerald-700 text-white font-semibold cursor-pointer"
+                        >
+                          Guardar Modelo en Biblioteca
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="space-y-2 max-h-60 overflow-y-auto pr-1">
+                    {templates.length === 0 ? (
+                      <p style={{ color: theme.mutedText }} className="text-xs py-4 text-center">
+                        No hay modelos cargados. Agrega tus plantillas arriba para almacenarlas.
+                      </p>
+                    ) : (
+                      templates.map(tpl => (
+                        <div key={tpl.id} style={cardStyle} className="p-3 rounded-xl border flex items-center justify-between gap-2 text-xs">
+                          <div className="min-w-0">
+                            <div className="font-semibold truncate">{tpl.name}</div>
+                            <div style={{ color: theme.mutedText }} className="text-[10px] font-mono">
+                              {tpl.category} • {tpl.variables.length} variables ({tpl.variables.map(v => `{{${v.key}}}`).slice(0, 3).join(', ')})
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-1 shrink-0">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                handleSelectTemplate(tpl.id);
+                                setActiveTab('redactor_docs');
+                              }}
+                              style={secondaryBtnStyle}
+                              className="px-2.5 py-1 rounded-lg border text-[11px] font-semibold cursor-pointer"
+                            >
+                              Abrir
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleDeleteTemplate(tpl.id)}
+                              className="p-1.5 text-rose-500 hover:bg-rose-500/10 rounded-lg cursor-pointer"
+                              title="Eliminar modelo"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </div>
+                        </div>
+                      ))
+                    )}
                   </div>
                 </div>
 
-                <div className="sub-surface p-5 rounded-2xl bg-[#FAF8F5] border border-[#E6DFD1] space-y-4">
-                  <div className="flex items-center gap-2 text-xs font-mono uppercase text-indigo-800 font-bold">
-                    <Scale className="w-4 h-4 text-indigo-600" /> 3. Tus Leyes y Normativa (RAG)
-                  </div>
-                  <div className="space-y-3 text-xs">
-                    <p className="text-[11px] text-slate-600">
-                      Sube libremente las leyes, códigos, reglamentos o sentencias de tu país y especialidad sin restricciones.
-                    </p>
-                    <label className="w-full py-2.5 px-3 rounded-xl bg-[#0F172A] text-white font-semibold flex items-center justify-center gap-2 cursor-pointer">
-                      <Upload className="w-3.5 h-3.5 text-amber-400" />
-                      <span>Cargar Ley, Código o Sentencia (.PDF)</span>
-                      <input
-                        type="file"
-                        accept=".pdf,.txt,.doc,.docx"
-                        className="hidden"
-                        onChange={(e) => {
-                          const f = e.target.files?.[0];
-                          if (!f) return;
-                          setRagDocs(prev => [
-                            {
-                              id: `rag-${Date.now().toString().slice(-4)}`,
-                              title: f.name.replace(/\.[^/.]+$/, ''),
-                              type: 'Código / Ley',
-                              chunks: 185,
-                              status: 'Indexado',
-                              excerpt: 'Normativa cargada directamente por el abogado titular para fundamentar el Consultor de IA.'
-                            },
-                            ...prev
-                          ]);
-                          showToast(`Normativa "${f.name}" indexada en el sistema.`);
-                        }}
-                      />
-                    </label>
-                    <div className="space-y-1.5 max-h-32 overflow-y-auto">
-                      {ragDocs.map(doc => (
-                        <div key={doc.id} className="p-2 rounded-lg bg-white border border-[#E6DFD1] flex items-center justify-between text-[11px]">
-                          <span className="truncate font-medium">{doc.title}</span>
-                          <span className="text-[10px] font-mono text-emerald-700 font-bold shrink-0 ml-2">✓ {doc.status}</span>
-                        </div>
-                      ))}
+                {/* REPOSITORIO RAG DE LEYES Y NORMATIVA (CRUD COMPLETO: AGREGAR, VER Y ELIMINAR) */}
+                <div style={subCardStyle} className="p-4 sm:p-5 rounded-xl border space-y-4">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <div>
+                      <h3 className="font-serif font-bold text-sm flex items-center gap-2">
+                        <Scale className="w-4 h-4 text-indigo-500" /> 4. Leyes y Normativa en RAG ({ragDocs.length})
+                      </h3>
+                      <p style={{ color: theme.mutedText }} className="text-[11px]">
+                        Sube o pega tus leyes, códigos y sentencias. Puedes consultarlos o eliminarlos cuando quieras.
+                      </p>
+                    </div>
+                    <div className="flex gap-1.5">
+                      <button
+                        type="button"
+                        onClick={() => setShowAddRagModal(!showAddRagModal)}
+                        className="px-3 py-1.5 rounded-lg bg-[#0F172A] text-white text-xs font-semibold cursor-pointer flex items-center gap-1"
+                      >
+                        <Plus className="w-3.5 h-3.5 text-amber-400" /> Pegar Ley / Artículos
+                      </button>
+                      <label className="px-3 py-1.5 rounded-lg bg-indigo-700 text-white text-xs font-semibold flex items-center gap-1 cursor-pointer">
+                        <Upload className="w-3.5 h-3.5" />
+                        <span>Cargar Ley, Código o Sentencia (.PDF)</span>
+                        <input
+                          type="file"
+                          accept=".pdf,.txt,.doc,.docx,.md"
+                          className="hidden"
+                          onChange={(e) => {
+                            const f = e.target.files?.[0];
+                            if (!f) return;
+                            const reader = new FileReader();
+                            reader.onload = () => {
+                              const raw = String(reader.result || '');
+                              const printable = raw.match(/[A-Za-záéíóúñÁÉÍÓÚÑ0-9.,;:()¿?¡!$€%@#/_\\\-\s]{12,}/g);
+                              const cleanText = /\.(txt|md)$/i.test(f.name)
+                                ? raw.trim()
+                                : printable
+                                ? printable.join(' ').replace(/\s+/g, ' ').trim()
+                                : '';
+                              const storedText =
+                                cleanText.length > 30
+                                  ? cleanText.slice(0, 25000)
+                                  : `Cuerpo normativo indexado desde el archivo "${f.name}" (${(f.size / 1024).toFixed(1)} KB).`;
+                              const chunksCount = Math.max(1, Math.ceil(storedText.length / 400));
+                              const newDoc: RagLawDocument = {
+                                id: `rag-${Date.now().toString().slice(-5)}`,
+                                title: f.name.replace(/\.[^/.]+$/, ''),
+                                type: 'Código / Ley',
+                                chunks: chunksCount,
+                                status: 'Indexado',
+                                excerpt: storedText.slice(0, 260) + (storedText.length > 260 ? '...' : ''),
+                                fullText: storedText
+                              };
+                              setRagDocs(prev => [newDoc, ...prev]);
+                              showToast(`"${newDoc.title}" almacenado en el RAG (${chunksCount} fragmentos).`);
+                            };
+                            reader.readAsText(f);
+                          }}
+                        />
+                      </label>
                     </div>
                   </div>
+
+                  {showAddRagModal && (
+                    <div style={cardStyle} className="p-3.5 rounded-xl border space-y-2.5 text-xs">
+                      <input
+                        type="text"
+                        value={newRagTitleInput}
+                        onChange={(e) => setNewRagTitleInput(e.target.value)}
+                        placeholder="Guía: Título de la Ley o Sentencia (Ej. Código Civil / Código de Comercio)..."
+                        style={inputStyle}
+                        className="w-full px-3 py-1.5 rounded-lg border"
+                      />
+                      <select
+                        value={newRagTypeInput}
+                        onChange={(e) => setNewRagTypeInput(e.target.value as RagLawDocument['type'])}
+                        style={inputStyle}
+                        className="w-full px-3 py-1.5 rounded-lg border"
+                      >
+                        <option value="Código / Ley">Código / Ley</option>
+                        <option value="Jurisprudencia / Doctrina">Jurisprudencia / Doctrina</option>
+                        <option value="Reglamento / Norma">Reglamento / Norma</option>
+                      </select>
+                      <textarea
+                        rows={5}
+                        value={newRagContentInput}
+                        onChange={(e) => setNewRagContentInput(e.target.value)}
+                        placeholder="Guía: Pega aquí los artículos, capítulos o el texto íntegro de la ley o sentencia que deseas almacenar en el RAG para que el Consultor responda con base en ella..."
+                        style={inputStyle}
+                        className="w-full p-2.5 rounded-lg border text-xs"
+                      />
+                      <div className="flex justify-end gap-2">
+                        <button
+                          type="button"
+                          onClick={() => setShowAddRagModal(false)}
+                          style={secondaryBtnStyle}
+                          className="px-3 py-1 rounded-lg border cursor-pointer"
+                        >
+                          Cancelar
+                        </button>
+                        <button
+                          type="button"
+                          onClick={handleCreateRagManual}
+                          className="px-4 py-1 rounded-lg bg-emerald-700 text-white font-semibold cursor-pointer"
+                        >
+                          Almacenar en el RAG
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
+                  {viewingRagDoc && (
+                    <div style={cardStyle} className="p-3.5 rounded-xl border space-y-2 text-xs">
+                      <div className="flex items-center justify-between">
+                        <strong className="font-serif">{viewingRagDoc.title}</strong>
+                        <button
+                          type="button"
+                          onClick={() => setViewingRagDoc(null)}
+                          style={secondaryBtnStyle}
+                          className="px-2 py-0.5 rounded border text-[10px] cursor-pointer"
+                        >
+                          Cerrar vista
+                        </button>
+                      </div>
+                      <pre style={{ color: theme.mutedText }} className="whitespace-pre-wrap font-mono text-[11px] max-h-40 overflow-y-auto">
+                        {viewingRagDoc.fullText || viewingRagDoc.excerpt}
+                      </pre>
+                    </div>
+                  )}
+
+                  <div className="space-y-2 max-h-60 overflow-y-auto pr-1">
+                    {ragDocs.length === 0 ? (
+                      <p style={{ color: theme.mutedText }} className="text-xs py-4 text-center">
+                        No hay leyes almacenadas en el RAG. Sube un archivo o pega los artículos arriba.
+                      </p>
+                    ) : (
+                      ragDocs.map(doc => (
+                        <div key={doc.id} style={cardStyle} className="p-3 rounded-xl border flex items-center justify-between gap-2 text-xs">
+                          <div className="min-w-0">
+                            <div className="font-semibold truncate">{doc.title}</div>
+                            <div style={{ color: theme.mutedText }} className="text-[10px] font-mono">
+                              {doc.type} • {doc.chunks} fragmentos indexados
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-1 shrink-0">
+                            <button
+                              type="button"
+                              onClick={() => setViewingRagDoc(doc)}
+                              style={secondaryBtnStyle}
+                              className="p-1.5 rounded-lg border cursor-pointer"
+                              title="Ver contenido indexado"
+                            >
+                              <Eye className="w-3.5 h-3.5" />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleDeleteRagDoc(doc.id)}
+                              className="p-1.5 text-rose-500 hover:bg-rose-500/10 rounded-lg cursor-pointer"
+                              title="Eliminar del RAG"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </div>
+                        </div>
+                      ))
+                    )}
+                  </div>
                 </div>
+
               </div>
             </div>
           )}
