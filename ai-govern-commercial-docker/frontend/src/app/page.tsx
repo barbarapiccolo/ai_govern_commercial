@@ -399,7 +399,7 @@ function isJudicialRecessDate(dateStr: string): boolean {
   return false;
 }
 
-const STORAGE_KEY = 'ai_govern_legal_os_state_v3';
+const STORAGE_KEY = 'ai_govern_legal_os_state_v4';
 
 // ============================================================================
 // COMPONENTE PRINCIPAL DEL SISTEMA DE TRABAJO DEL ABOGADO
@@ -409,6 +409,8 @@ export default function AiGovernLegalSystem() {
   // 1. La pestaña inicial es directamente el Consultor de IA; Configuración está de última
   const [activeTab, setActiveTab] = useState<ModuleId>('consultor_ia');
   const [darkMode, setDarkMode] = useState<boolean>(false);
+  const [isMainSidebarOpen, setIsMainSidebarOpen] = useState<boolean>(true);
+  const [isHistorySidebarOpen, setIsHistorySidebarOpen] = useState<boolean>(true);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   const showToast = (msg: string) => {
@@ -654,7 +656,7 @@ export default function AiGovernLegalSystem() {
   }, [crmClients]);
 
   // ==========================================================================
-  // MÓDULO 1: CONSULTOR DE IA (INTERFAZ ESTILO CHATGPT / GEMINI / DEEPSEEK CON HISTORIAL)
+  // MÓDULO 1: CONSULTOR DE IA (METODOLOGÍA FORENSE DE 4 FASES + HISTORIAL OCULTABLE)
   // ==========================================================================
   const [consultQuery, setConsultQuery] = useState<string>('');
   const [consultSelectedLawId, setConsultSelectedLawId] = useState<string>('auto');
@@ -668,90 +670,83 @@ export default function AiGovernLegalSystem() {
   const [isConsultLoading, setIsConsultLoading] = useState<boolean>(false);
   const [historySearchQuery, setHistorySearchQuery] = useState<string>('');
 
-  // Bandeja de recaudos adjuntos al mensaje actual en el composer (Imágenes, DOC, PDF y Chat Cliente)
   const [consultAttachments, setConsultAttachments] = useState<ConsultAttachment[]>([]);
   const [showConversationPasteBox, setShowConversationPasteBox] = useState<boolean>(false);
-  const [conversationTitleInput, setConversationTitleInput] = useState<string>('Chat WhatsApp / Correo del Cliente');
+  const [conversationTitleInput, setConversationTitleInput] = useState<string>('Comunicación / Recaudo del Cliente');
   const [conversationTextInput, setConversationTextInput] = useState<string>('');
   const [followUpQuestionInput, setFollowUpQuestionInput] = useState<string>('');
 
-  // Historial de conversaciones jurídicas estilo ChatGPT / Gemini / DeepSeek
+  // Historial de Consultas estructurado bajo la Metodología Forense de 4 Fases
   const [consultSessions, setConsultSessions] = useState<ConsultChatSession[]>([
     {
       id: 'sess-01',
-      title: 'Incumplimiento entrega inmueble Inversiones Alfa',
+      title: 'Incumplimiento de entrega de inmueble — Inversiones Alfa',
       updatedAt: 'Hoy, 09:15',
-      matterTag: 'Civil / Inmobiliario',
+      matterTag: 'Civil / Procesal',
       turns: [
         {
           id: 'turn-init-1',
           timestamp: '09:15',
-          lawyerQuestion: 'Necesito evaluar las acciones legales por incumplimiento en la entrega de un inmueble vendido por 85.000 USD por parte de Inversiones Alfa (ID J-30948271-0), correo legal@alfa.com. Dame ideas estratégicas y redáctame la cláusula o intimación.',
-          sanitizedSentToAi: 'Necesito evaluar las acciones legales por incumplimiento en la entrega de un inmueble vendido por [MONTO_OPERACION_04] por parte de [ENTIDAD_MERCANTIL_01] (ID [ID_FISCAL_DOC_02]), correo [EMAIL_CLIENTE_03]. Dame ideas estratégicas y redáctame la cláusula o intimación.',
-          dictamen: `Colega, he analizado el caso ciñéndome estrictamente a tu repositorio RAG (**Código Civil** y **Código de Procedimiento Civil**) y a tu **Biblioteca de Modelos** (*Contrato de Compraventa de Inmueble*) para garantizar **0% alucinación normativa**:
+          lawyerQuestion: 'Necesito evaluar las acciones legales por incumplimiento en la entrega de un inmueble vendido por 85.000 USD por parte de Inversiones Alfa (ID J-30948271-0), correo legal@alfa.com. ¿Procede resolución de contrato con daños y perjuicios o cumplimiento forzoso?',
+          sanitizedSentToAi: 'Necesito evaluar las acciones legales por incumplimiento en la entrega de un inmueble vendido por [MONTO_OPERACION_04] por parte de [ENTIDAD_MERCANTIL_01] (ID [ID_FISCAL_DOC_02]), correo [EMAIL_CLIENTE_03]. ¿Procede resolución de contrato con daños y perjuicios o cumplimiento forzoso?',
+          dictamen: `I. BASE LEGAL Y ANÁLISIS DE LOS ARTÍCULOS INVOLUCRADOS POR CADA LEY (RAG):
 
-⚖️ **1. DIAGNÓSTICO JURÍDICO ANCLADO A TU RAG:**
-Conforme al **Código Civil (Art. 1.167, 1.159 y 1.264)** indexado en tu sistema, en los contratos bilaterales la condición resolutoria va implícita. Ante la mora de **Inversiones Alfa** en la tradición material y protocolización luego de recibido el precio (85.000 USD), a tu cliente le asiste el derecho potestativo de elegir entre:
-• **Opción A (Cumplimiento Forzoso):** Demandar la entrega material del inmueble y que la sentencia definitiva sirva de título traslativo en Registro, más daños moratorios.
-• **Opción B (Resolución de Contrato):** Exigir la restitución íntegra de los 85.000 USD indexados más el resarcimiento de daños y perjuicios.
+1. Código Civil (Obligaciones, Contratos, Compraventa y Garantías):
+   • Artículo 1.159 y Artículo 1.160: Establecen el principio de fuerza de ley del contrato entre las partes (pacta sunt servanda) y el deber de ejecución de buena fe, obligando no solo a lo expresado en el texto, sino a todas las consecuencias que se derivan de la equidad, el uso o la ley.
+   • Artículo 1.167: Regula la acción en los contratos bilaterales sinalagmáticos. Ante el incumplimiento de una de las partes respecto de su obligación principal, el contratante cumplidor tiene la facultad legal de reclamar judicialmente la ejecución del contrato o la resolución del mismo, con los daños y perjuicios en ambos casos si hubiere lugar a ello.
+   • Artículo 1.486 y Artículo 1.487: Regulan la obligación esencial del vendedor de hacer la tradición de la cosa vendida. En materia de inmuebles, la tradición se verifica con el otorgamiento del instrumento de propiedad ante el Registro Público competente y la puesta en posesión material del bien libre de ocupantes.
+   • Artículo 1.264 y Artículo 1.271: Disponen que las obligaciones deben cumplirse exactamente como han sido contraídas, siendo el deudor moroso responsable de los daños y perjuicios (daño emergente y lucro cesante) salvo que pruebe causa extraña no imputable.
+   • Artículo 168: En caso de que en la cadena de titularidad o comparecencia intervengan personas naturales casadas, exige el consentimiento expreso de ambos cónyuges para enajenar o gravar bienes inmuebles.
 
-💡 **2. IDEAS ESTRATÉGICAS PARA RESOLVER EL CASO:**
-• **Idea 1 (Asfixia Cautelar Inmediata):** Si el inmueble sigue a nombre de Inversiones Alfa y está libre de hipotecas, nos conviene demandar y pedir en el libelo **Medida Preventiva de Prohibición de Enajenar y Gravar (Arts. 585 y 588 CPC)**. Eso bloquea la ficha catastral/registral en SAREN y obliga al vendedor a sentarse a negociar en 48 horas.
-• **Idea 2 (Intimación Notarial Previa para constituir Mora Indubitable):** Antes o en paralelo al libelo, notifiquemos por vía notarial un ultimátum de 5 días hábiles para firmar en el Registro Público, dejando constancia de que tu cliente ya pagó el precio.
-• **Idea 3 (Verificación del Art. 168 CC):** Si quien firma por la parte vendedora es persona natural casada, verifiquemos el consentimiento conyugal para evitar nulidades registrales.
+2. Código de Procedimiento Civil / Ley de Enjuiciamiento:
+   • Artículo 340: Determina los requisitos formales de admisibilidad del libelo de la demanda, exigiendo acompañar el instrumento fundamental del cual se derive inmediatamente el derecho deducido (ordinal 6º).
+   • Artículo 585 y Artículo 588 (Ordinal 3º): Regulan el decreto de la Medida Preventiva de Prohibición de Enajenar y Gravar sobre bienes inmuebles, exigiendo la concurrencia de presunción grave del derecho que se reclama (fumus boni iuris) y riesgo manifiesto de que quede ilusoria la ejecución del fallo (periculum in mora).
 
-✍️ **3. REDACCIÓN FORENSE LISTA PARA USAR (BASADA EN TU MODELO DE COMPRAVENTA):**
-"CLÁUSULA DE PACTO COMISORIO EXPRESO Y EJECUCIÓN FORZOSA: El retardo o negativa de EL VENDEDOR (Inversiones Alfa, RIF J-30948271-0) en otorgar la protocolización definitiva o hacer la entrega material del inmueble libre de bienes y personas, facultará de pleno derecho a EL COMPRADOR, a su sola elección conforme al Artículo 1.167 del Código Civil, para exigir judicialmente la tradición forzosa con prohibición de enajenar y gravar sobre el inmueble, o declarar resuelto el contrato con restitución inmediata de los OCHENTA Y CINCO MIL DÓLARES (85.000,00 USD) más una penalidad convencional del veinte por ciento (20%) por daños y perjuicios."`,
-          clientReadyReply: 'Estimado cliente: Ya evaluamos tu caso contra Inversiones Alfa conforme al Código Civil y Procesal Civil. Tienes pleno respaldo para exigir la entrega forzosa del inmueble o la devolución de los 85.000 USD más daños y perjuicios, solicitando de inmediato al Tribunal una Prohibición de Enajenar y Gravar para bloquear el inmueble en el Registro.',
+II. OPCIONES JURÍDICAS DISPONIBLES:
+
+Conforme al marco normativo analizado, el patrocinado dispone de tres (03) opciones jurídicas:
+• Opción Primera: Ejercer la Acción de Cumplimiento Forzoso de Contrato acumulada con Indemnización de Daños y Perjuicios Moratorios y solicitud de Medida Cautelar de Prohibición de Enajenar y Gravar.
+• Opción Segunda: Ejercer la Acción Resolutoria de Contrato acumulada con Restitución Indexada del Precio Pagado (85.000,00 USD) más Daños y Perjuicios Compensatorios.
+• Opción Tercera: Practicar Intimación Notarial Extrajudicial Previa otorgando plazo perentorio de cumplimiento antes de la interposición del libelo, a fin de preconstituir la prueba fehaciente de la mora y activar el pacto comisorio o cláusula penal si estuviere pactada.
+
+III. ANÁLISIS DE ESCENARIOS Y CONSECUENCIAS DE CADA ESCENARIO:
+
+• Escenario 1 (Interposición de Demanda de Cumplimiento Forzoso con Prohibición de Enajenar y Gravar):
+  - Supuesto: El inmueble se encuentra inscrito en el Registro Inmobiliario a nombre de Inversiones Alfa, libre de gravámenes preferentes, y el interés primordial del cliente es incorporar el inmueble a su patrimonio.
+  - Consecuencias Jurídicas y Patrimoniales: Al decretarse la Prohibición de Enajenar y Gravar (Art. 588 CPC) y oficiarse al Registrador Público, el inmueble queda inmovilizado registralmente frente a terceros. La sentencia definitivamente firme declarará con lugar la acción y suplirá el título de propiedad para su protocolización forzosa, condenando además a la demandada en costas procesales (hasta el 30% del valor litigado conforme al Art. 286 CPC) y a los daños derivados del retardo en la entrega material.
+
+• Escenario 2 (Interposición de Demanda de Resolución de Contrato y Restitución del Precio):
+  - Supuesto: El cliente ya no desea recibir el inmueble por pérdida de utilidad económica del negocio, o se detecta que el bien presenta gravámenes ocultos, vicios registrales o imposibilidad material de entrega.
+  - Consecuencias Jurídicas y Patrimoniales: La sentencia extinguirá con efecto retroactivo (ex tunc) el vínculo contractual, ordenando la devolución íntegra de los 85.000,00 USD más la corrección monetaria / indexación e indemnización de daños y perjuicios. Riesgo a prever: la efectividad del cobro dependerá de la solvencia patrimonial de Inversiones Alfa, por lo que resulta indispensable solicitar simultáneamente Medida Preventiva de Embargo sobre bienes muebles o cuentas bancarias.
+
+• Escenario 3 (Ejecución de Intimación Notarial Previa antes de la Vía Jurisdiccional):
+  - Supuesto: El contrato no contiene renuncia expresa al requerimiento de mora o tiene fecha de entrega abierta/prorrogable.
+  - Consecuencias Jurídicas y Patrimoniales: Elimina cualquier defensa dilatoria de la contraparte basada en la excepción de contrato no cumplido (exceptio non adimpleti contractus - Art. 1.168 CC) o en la falta de vencimiento del plazo, blindando el fumus boni iuris para que el Tribunal decrete la medida cautelar inaudita altera parte en el primer despacho tras la admisión.
+
+IV. DECISIÓN DE EJECUCIÓN, MODO DE ACCIONAR Y REDACCIÓN FORENSE:
+
+• Decisión Técnica de Ejecución:
+  Siendo que el cliente ya desembolsó la totalidad del precio (85.000,00 USD), la vía de mayor resguardo patrimonial es ejecutar el Escenario 3 seguido de inmediato por el Escenario 1 (Acción de Cumplimiento Forzoso con Prohibición de Enajenar y Gravar), ya que garantiza el aseguramiento real sobre el inmueble desde el inicio del proceso.
+
+• Manera de Accionar (Paso a Paso):
+  1) Solicitar nota simple o certificación de gravámenes actualizada en el Registro Público correspondiente para confirmar que la titularidad registral permanece en cabeza de Inversiones Alfa.
+  2) Practicar hoy mismo notificación / intimación formal dejando constancia de los comprobantes de pago de los 85.000,00 USD y otorgando setenta y dos (72) horas para concurrir al otorgamiento y entrega material.
+  3) Vencido dicho término, presentar el libelo de demanda por Cumplimiento de Contrato y Daños y Perjuicios conforme al Art. 340 CPC, pidiendo en cuaderno separado el decreto de Prohibición de Enajenar y Gravar (Arts. 585 y 588 CPC).
+
+• Redacción Forense Propuesta (Adecuada sobre el Modelo «Contrato de Compraventa de Inmueble» de la Biblioteca del Despacho):
+"ACTA DE INTIMACIÓN Y CONSTITUCIÓN EN MORA / CLÁUSULA DE EJECUCIÓN: De conformidad con lo previsto en los Artículos 1.167, 1.264 y 1.486 del Código Civil vigente, habiendo la parte compradora satisfecho íntegramente el precio convenido de OCHENTA Y CINCO MIL DÓLARES DE LOS ESTADOS UNIDOS DE AMÉRICA (85.000,00 USD), se intima formalmente a la sociedad mercantil INVERSIONES ALFA (RIF J-30948271-0) para que dentro del término perentorio de tres (03) días hábiles siguientes a la presente notificación concurra ante el Registro Público competente a otorgar el instrumento definitivo de compraventa y efectuar la entrega material del inmueble libre de bienes y personas; advirtiéndosele que, en su defecto, se procederá de inmediato a demandar judicialmente el cumplimiento forzoso o la resolución contractual con resarcimiento de daños y perjuicios, costos, costas procesales y solicitud de Medida Preventiva de Prohibición de Enajenar y Gravar conforme a los Artículos 585 y 588 del Código de Procedimiento Civil."`,
+          clientReadyReply: 'Estimado cliente: Concluido el análisis jurídico de los artículos 1.167 y 1.486 del Código Civil y 585 del Código de Procedimiento Civil, la decisión técnica más segura para proteger los 85.000 USD pagados es intimar formalmente en mora a Inversiones Alfa y, de forma inmediata, interponer demanda de Cumplimiento Forzoso solicitando al Tribunal una Medida de Prohibición de Enajenar y Gravar que bloquee el inmueble en el Registro Público.',
           recommendedTemplateId: 'tpl-compraventa',
           recommendedTemplateName: 'Contrato de Compraventa de Inmueble',
-          suggestedClauseText: 'CLÁUSULA DE PACTO COMISORIO EXPRESO Y EJECUCIÓN FORZOSA: El retardo o negativa de EL VENDEDOR en otorgar la protocolización definitiva o hacer la entrega material del inmueble facultará a EL COMPRADOR (Art. 1.167 CC) para exigir la tradición forzosa o resolver el contrato con penalidad del 20%.',
+          suggestedClauseText: 'De conformidad con los Artículos 1.167, 1.264 y 1.486 del Código Civil vigente, el incumplimiento de EL VENDEDOR en el otorgamiento registral y entrega material del inmueble facultará a EL COMPRADOR para demandar el cumplimiento forzoso o la resolución del contrato con daños y perjuicios y Prohibición de Enajenar y Gravar (Arts. 585 y 588 CPC).',
           citations: [
             'Código Civil (Obligaciones, Contratos, Compraventa y Garantías)',
             'Código de Procedimiento Civil / Ley de Enjuiciamiento'
           ],
-          attachmentsUsed: ['Chat_WhatsApp_Cliente_Compradora.txt (Conversación de Cliente)'],
-          tokensProtected: 4,
-          hash: computeRealSha256('sess-01-turn-init-1'),
-          auditLogId: 'TRZ-2026-001',
-          approvedInHumanLoop: false
-        }
-      ]
-    },
-    {
-      id: 'sess-02',
-      title: 'Mora y desalojo en Local Comercial (Nova)',
-      updatedAt: 'Ayer, 16:40',
-      matterTag: 'Arrendamiento',
-      turns: [
-        {
-          id: 'turn-init-2',
-          timestamp: '16:40',
-          lawyerQuestion: 'El inquilino Comercializadora Nova, S.A. debe 3 meses de canon (1.500 USD/mes) a mi cliente Inversiones Torre Central, C.A. Dame ideas y redáctame la intimación.',
-          sanitizedSentToAi: 'El inquilino [ENTIDAD_MERCANTIL_01] debe 3 meses de canon ([MONTO_OPERACION_03]/mes) a mi cliente [PARTE_CLIENTE_02]. Dame ideas y redáctame la intimación.',
-          dictamen: `Colega, revisado el caso bajo las leyes de tu RAG (**Código Civil** y **Código de Comercio**) y tu plantilla **Contrato de Arrendamiento de Local Comercial**:
-
-⚖️ **1. BASE LEGAL EN TU RAG (CERO ALUCINACIÓN):**
-El incumplimiento de la obligación principal de pagar el canon dentro de los primeros 5 días de cada mes (Cláusula Segunda de tu modelo de *Contrato de Arrendamiento de Local Comercial*) configura mora solvendi y activa la causal legal de resolución y desalojo, además de hacer exigible la garantía o fianza solidaria.
-
-💡 **2. IDEAS ESTRATÉGICAS:**
-• **Idea 1:** Ejecutar directamente al fiador solidario y principal pagador en paralelo a la intimación del arrendatario; eso suele acelerar el pago sin esperar toda la secuela del juicio.
-• **Idea 2:** No recibir abonos parciales sin dejar constancia escrita de que se imputan primero a intereses y gastos de cobranza y que no implican novación ni perdón de la causal de desalojo.
-
-✍️ **3. REDACCIÓN DE INTIMACIÓN DE PAGO Y ENTREGA:**
-"Por medio de la presente, actuando en representación de INVERSIONES TORRE CENTRAL, C.A., se intima formalmente a COMERCIALIZADORA NOVA, S.A. al pago íntegro de TRES (03) cánones de arrendamiento vencidos a razón de 1.500,00 USD mensuales, dentro del plazo improrrogable de cuarenta y ocho (48) horas, so pena de proceder a la resolución judicial del contrato, ejecución de depósito/fianza y secuestro cautelar del Local Comercial."`,
-          clientReadyReply: 'Estimado cliente (Inversiones Torre Central, C.A.): Ya redactamos la intimación formal contra Comercializadora Nova, S.A. por los 3 meses insolutos para activar la ejecución de la garantía y la recuperación del local.',
-          recommendedTemplateId: 'tpl-arrendamiento',
-          recommendedTemplateName: 'Contrato de Arrendamiento de Local Comercial',
-          suggestedClauseText: 'CLÁUSULA DE MORA Y EJECUCIÓN DE GARANTÍA: La falta de pago de dos (02) cánones mensuales facultará a EL ARRENDADOR a resolver el contrato de pleno derecho y ejecutar la fianza solidaria.',
-          citations: [
-            'Código Civil (Obligaciones, Contratos, Compraventa y Garantías)',
-            'Código de Comercio y Legislación Societaria Vigente'
-          ],
           attachmentsUsed: [],
-          tokensProtected: 3,
-          hash: computeRealSha256('sess-02-turn-init-2'),
-          auditLogId: 'TRZ-2026-002',
+          tokensProtected: 4,
+          hash: computeRealSha256('sess-01-turn-init-1-v4'),
+          auditLogId: 'TRZ-2026-001',
           approvedInHumanLoop: false
         }
       ]
@@ -809,7 +804,7 @@ El incumplimiento de la obligación principal de pagar el canon dentro de los pr
       id: newId,
       title: 'Nueva Consulta Jurídica',
       updatedAt: 'Ahora',
-      matterTag: 'General RAG',
+      matterTag: 'Análisis Forense',
       turns: []
     };
     setConsultSessions(prev => [blankSession, ...prev]);
@@ -817,7 +812,7 @@ El incumplimiento de la obligación principal de pagar el canon dentro de los pr
     setConsultQuery('');
     setConsultAttachments([]);
     setConsultResponse(null);
-    showToast('Nuevo hilo de consulta abierto. Escribe tu caso, pide ideas o solicita una redacción.');
+    showToast('Nuevo expediente de consulta abierto.');
   };
 
   const handleSelectConsultSession = (sess: ConsultChatSession) => {
@@ -837,7 +832,7 @@ El incumplimiento de la obligación principal de pagar el canon dentro de los pr
         handleStartNewConsultSession();
       }
     }
-    showToast('Conversación eliminada del historial.');
+    showToast('Consulta eliminada del historial.');
   };
 
   const handleAddCustomMaskTerm = () => {
@@ -866,11 +861,11 @@ El incumplimiento de la obligación principal de pagar el canon dentro de los pr
         addedAt: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
       };
       setConsultAttachments(prev => [...prev, newAtt]);
-      showToast(`${kind} "${file.name}" adjuntado al mensaje (${tokens.length} datos sensibles blindados en RAM).`);
+      showToast(`${kind} "${file.name}" incorporado al análisis (${tokens.length} datos sensibles protegidos en RAM).`);
     };
 
     if (kind === 'Imagen / Captura') {
-      const simulatedOcr = `Evidencia visual / captura adjunta ("${file.name}", ${(file.size / 1024).toFixed(1)} KB): Documento fotográfico aportado por el cliente conteniendo datos de partes, comprobante de pago o captura de mensajería.`;
+      const simulatedOcr = `Recaudo fotográfico / digital ("${file.name}", ${(file.size / 1024).toFixed(1)} KB): Documento aportado como soporte probatorio de las partes y de los hechos controvertidos.`;
       processExtractedText(simulatedOcr);
       return;
     }
@@ -889,16 +884,16 @@ El incumplimiento de la obligación principal de pagar el canon dentro de los pr
 
         const finalContent =
           cleaned && cleaned.length > 40
-            ? `Contenido extraído de "${file.name}": ${cleaned}`
-            : `Instrumento documental adjunto ("${file.name}", ${(file.size / 1024).toFixed(1)} KB): Cláusulas contractuales y estipulaciones de las partes sometidas a revisión con el RAG del despacho.`;
+            ? `Extracto documental de "${file.name}": ${cleaned}`
+            : `Instrumento documental ("${file.name}", ${(file.size / 1024).toFixed(1)} KB) incorporado para examen normativo y contractual.`;
         processExtractedText(finalContent);
       };
       reader.onerror = () => {
-        processExtractedText(`Instrumento documental adjunto ("${file.name}") cargado para dictamen jurídico.`);
+        processExtractedText(`Instrumento documental ("${file.name}") incorporado para examen jurídico.`);
       };
       reader.readAsText(file);
     } else {
-      processExtractedText(`Instrumento documental adjunto ("${file.name}") cargado para dictamen jurídico.`);
+      processExtractedText(`Instrumento documental ("${file.name}") incorporado para examen jurídico.`);
     }
   };
 
@@ -908,7 +903,7 @@ El incumplimiento de la obligación principal de pagar el canon dentro de los pr
     const { sanitized, tokens } = anonymizePiiText(raw, allProtectedNames);
     const newAtt: ConsultAttachment = {
       id: `att-${Date.now().toString().slice(-5)}`,
-      name: conversationTitleInput.trim() || 'Chat WhatsApp / Correo del Cliente',
+      name: conversationTitleInput.trim() || 'Comunicación / Recaudo del Cliente',
       kind: 'Conversación de Cliente (WhatsApp / Email)',
       rawContent: raw,
       sanitizedContent: sanitized,
@@ -918,16 +913,19 @@ El incumplimiento de la obligación principal de pagar el canon dentro de los pr
     setConsultAttachments(prev => [...prev, newAtt]);
     setConversationTextInput('');
     setShowConversationPasteBox(false);
-    showToast(`Conversación del cliente adjuntada al mensaje (${tokens.length} datos PII ocultados en RAM).`);
+    showToast(`Comunicación adjuntada al expediente (${tokens.length} datos PII ocultados en RAM).`);
   };
 
   const handleRemoveConsultAttachment = (attId: string) => {
     setConsultAttachments(prev => prev.filter(a => a.id !== attId));
-    showToast('Adjunto removido del mensaje.');
+    showToast('Recaudo removido de la consulta.');
   };
 
-  // Motor de Consultoría Jurídica Conversacional: Cero Alucinación (estrictamente anclado a ragDocs y templates),
-  // da diagnóstico normativo, ideas estratégicas y redacciones listas para usar
+  // Motor de Razonamiento Jurídico Forense estructurado en las 4 Fases del Ejercicio Profesional:
+  // I. Base Legal y Análisis de los Artículos Involucrados por cada Ley
+  // II. Opciones Jurídicas Disponibles
+  // III. Análisis de Escenarios y Consecuencias de cada Escenario
+  // IV. Decisión de Ejecución, Manera de Accionar y Redacción sobre el Modelo de Biblioteca
   const generateExpertLawyerAnalysis = (
     questionText: string,
     sanitizedPayload: string,
@@ -946,7 +944,6 @@ El incumplimiento de la obligación principal de pagar el canon dentro de los pr
   } => {
     const fullContext = `${questionText} ${attachments.map(a => a.rawContent).join(' ')}`.toLowerCase();
 
-    // 1. Selección estricta de las Leyes en el RAG del despacho
     let matchedLaws: RagLawDocument[] = [];
     if (selectedLawIdParam !== 'auto') {
       const explicitLaw = ragDocs.find(d => d.id === selectedLawIdParam);
@@ -982,15 +979,14 @@ El incumplimiento de la obligación principal de pagar el canon dentro de los pr
       });
     }
 
-    const primaryLaw = matchedLaws[0] || ragDocs[0] || { id: 'rag-gen', title: 'Normativa Vigente', type: 'Código / Ley', chunks: 100, status: 'Indexado', excerpt: '' }; // id: 'att-init-1'
+    const primaryLaw = matchedLaws[0] || ragDocs[0] || { id: 'rag-gen', title: 'Normativa Vigente', type: 'Código / Ley', chunks: 100, status: 'Indexado', excerpt: '' }; // id: 'att-init-1' id: 'sess-02' id: 'turn-init-2'
 
-    // 2. Selección estricta del Modelo en la Biblioteca del Despacho
     let matchedTemplate = templates[0];
     if (selectedTplIdParam !== 'auto') {
       matchedTemplate = templates.find(t => t.id === selectedTplIdParam) || templates[0];
     } else if (fullContext.includes('arrendamiento') || fullContext.includes('alquiler') || fullContext.includes('inquilin') || fullContext.includes('canon') || fullContext.includes('local')) {
       matchedTemplate = templates.find(t => t.id === 'tpl-arrendamiento') || templates[0];
-    } else if (fullContext.includes('poder') || fullContext.includes('mandato') || fullContext.includes('representaci') || fullContext.includes('demanda') || fullContext.includes('juicio') || fullContext.includes('tribunal') || fullContext.includes('laboral') || fullContext.includes('penal') || fullContext.includes('sucesi')) {
+    } else if (fullContext.includes('poder') || fullContext.includes('mandato') || fullContext.includes('representaci') || fullContext.includes('demanda') || fullContext.includes('juicio') || fullContext.includes('tribunal') || fullContext.includes('laboral') || fullContext.includes('penal') || fullContext.includes('sucesi') || fullContext.includes('asamblea') || fullContext.includes('accionista')) {
       matchedTemplate = templates.find(t => t.id === 'tpl-poder') || templates[0];
     } else {
       const customMatch = templates.find(t => {
@@ -1000,88 +996,211 @@ El incumplimiento de la obligación principal de pagar el canon dentro de los pr
       matchedTemplate = customMatch || templates[0];
     }
 
-    const attNote =
+    const attSection =
       attachments.length > 0
-        ? `\n📎 **Recaudos y Comunicaciones Analizados en esta Consulta (${attachments.length}):**\n` +
-          attachments.map(a => `• *${a.name}* (${a.kind} — ${a.piiProtectedCount} datos PII anonimizados en RAM): «${a.rawContent.slice(0, 140)}...»`).join('\n') +
-          '\n'
+        ? `RECAUDOS Y PIEZAS DOCUMENTALES EXAMINADAS (${attachments.length}):\n` +
+          attachments.map((a, i) => `   ${i + 1}. [${a.kind}] "${a.name}": ${a.rawContent.slice(0, 180)}${a.rawContent.length > 180 ? '...' : ''}`).join('\n') +
+          '\n\n'
         : '';
 
-    let matterTag = 'Civil / Contratos';
-    let baseNormativa = '';
-    let ideasEstrategicas = '';
-    let redaccionPropuesta = '';
+    let matterTag = 'Civil / Procesal';
+    let fase1BaseLegal = '';
+    let fase2Opciones = '';
+    let fase3Escenarios = '';
+    let fase4Ejecucion = '';
+    let redaccionForense = '';
     let respuestaCliente = '';
 
     if (fullContext.includes('arrendamiento') || fullContext.includes('alquiler') || fullContext.includes('inquilin') || fullContext.includes('canon') || fullContext.includes('local') || fullContext.includes('desalojo')) {
-      matterTag = 'Arrendamiento';
-      baseNormativa = `Ciñéndome estrictamente a tu repositorio RAG (**${primaryLaw.title}**: *"${primaryLaw.excerpt}"*) y a la matriz de tu biblioteca **«${matchedTemplate.name}»**, el arrendatario está obligado al pago puntual del canon convenido dentro de los primeros cinco (5) días de cada mes (Cláusula Segunda de tu modelo) y a conservar el inmueble para el uso pactado. La mora en el pago o el subarrendamiento no autorizado habilita la resolución contractual y la ejecución de las garantías.`;
-      ideasEstrategicas = `• **Idea 1 (Ejecución directa contra el Fiador Solidario):** Antes de un litigio largo, intimemos simultáneamente al inquilino y a su fiador solidario; el fiador suele presionar al inquilino para pagar de inmediato y proteger su propio patrimonio.
-• **Idea 2 (Reserva expresa en pagos parciales):** Si el inquilino ofrece un abono parcial, instrúyele a tu cliente no emitir recibo de solvencia, sino imputarlo a gastos de cobranza e intereses dejando constancia de que persiste la mora.
-• **Idea 3 (Blindaje en el modelo «${matchedTemplate.name}»):** Incluir cláusula de entrega material inmediata e indemnización diaria por ocupación indebida tras el vencimiento.`;
-      redaccionPropuesta = `CLÁUSULA ESPECIAL DE MORA, RESOLUCIÓN Y EJECUCIÓN DE GARANTÍAS (BASADA EN TU MODELO «${matchedTemplate.name.toUpperCase()}»):
-"La falta de pago de dos (02) mensualidades consecutivas del canon de arrendamiento (${matchedTemplate.variables.map(v => `{{${v.key}}}`).join(', ')}), así como el incumplimiento de cualquier obligación de conservación o solvencia de condominio, producirá de pleno derecho el vencimiento anticipado del plazo y facultará a EL ARRENDADOR para exigir la desocupación y entrega material inmediata del local comercial, ejecutando sin necesidad de requerimiento previo el depósito en garantía y la fianza solidaria constituida."`;
-      respuestaCliente = `Estimado cliente: Revisado tu caso de arrendamiento con nuestra base legal y el modelo de Contrato de Arrendamiento del despacho, procederemos hoy mismo con la intimación formal de pago y la activación de la garantía/fianza solidaria para recuperar los cánones insolutos y la posesión del local.`;
+      matterTag = 'Arrendamiento Comercial';
+      fase1BaseLegal = `1. ${primaryLaw.title}:
+   • Artículos 1.159, 1.160 y 1.167 (Código Civil): Consagran la fuerza obligatoria de las estipulaciones contractuales entre arrendador y arrendatario y la facultad de resolver el vínculo bilateral por incumplimiento culposo de las obligaciones principales.
+   • Artículos 1.579, 1.592 y 1.594 (Código Civil): Determinan las dos obligaciones esenciales del arrendatario: servirse de la cosa como un buen padre de familia para el uso determinado en el contrato, y pagar la pensión de arrendamiento en los términos convenidos.
+   • Artículos 1.804 y 1.813 (Código Civil): Regulan la naturaleza de la fianza solidaria; cuando el fiador se obliga como principal pagador, responde solidariamente frente al acreedor sin gozar de los beneficios de excusión ni de división.
+2. ${ragDocs.find(d => d.id === 'rag-02')?.title || 'Código de Procedimiento Civil'}:
+   • Artículo 599 (Ordinal 7º) y Artículo 585: Regulan la procedencia de la Medida Preventiva de Secuestro sobre la cosa arrendada cuando el demandado adeude pensiones de arrendamiento o haya vencido el término contractual, así como las medidas asegurativas sobre el patrimonio del deudor y su fiador.`;
+
+      fase2Opciones = `• Opción Primera: Intimación Extrajudicial Fehaciente de Pago y Constitución en Mora dirigida simultáneamente al arrendatario y a su fiador solidario, previo al ejercicio de la acción judicial.
+• Opción Segunda: Demanda de Resolución de Contrato de Arrendamiento por falta de pago y/o incumplimiento de cláusulas contractuales, acumulada con cobro de cánones insolutos, cláusula penal y solicitud de Medida Preventiva de Secuestro del inmueble.
+• Opción Tercera: Acción de Ejecución contra el Fiador Solidario y Principal Pagador con solicitud de Medida de Embargo Preventivo sobre bienes muebles y cuentas mercantiles.`;
+
+      fase3Escenarios = `• Escenario A (Ejecución de la Opción Primera — Intimación Previa y Ejecución de Garantía/Fianza):
+  - Supuesto: El contrato cuenta con depósito en garantía o fiador solidario solvente (personas jurídicas o naturales con activos identificables).
+  - Consecuencias Jurídicas y Patrimoniales: La intimación al fiador solidario traslada la presión financiera de forma inmediata sin esperar toda la articulación probatoria del juicio. Si la arrendataria ofrece pagos parciales, estos deben recibirse bajo expresa reserva de imputación a intereses moratorios y gastos de cobranza (Art. 1.303 CC), evitando que opere novación o purga de la mora.
+
+• Escenario B (Ejecución de la Opción Segunda — Litigio de Resolución y Secuestro del Local):
+  - Supuesto: Negativa absoluta de pago o abandono/subarrendamiento no autorizado del inmueble comercial.
+  - Consecuencias Jurídicas y Patrimoniales: La interposición del libelo (Art. 340 CPC) acompañado del Contrato de Arrendamiento y los recibos insolutos habilita solicitar el Secuestro Cautelar (Art. 599 CPC) para recuperar la tenencia material del local comercial y detener el lucro cesante del propietario, mientras continúa el proceso de cobro de los cánones vencidos y costas procesales.
+
+• Escenario C (Inacción o Recepción Simple de Abonos Parciales sin Reserva):
+  - Supuesto: El propietario recibe abonos parciales emitiendo recibos ordinarios sin salvedad jurídica.
+  - Consecuencias Jurídicas y Patrimoniales: La contraparte opondrá en juicio la extinción de la causal de mora o la prórroga tácita, dilatando la restitución del inmueble y causando mayor deterioro patrimonial.`;
+
+      redaccionForense = `"CLÁUSULA DE INCUMPLIMIENTO, VENCIMIENTO ANTICIPADO Y EJECUCIÓN SOLIDARIA (ESTRUCTURADA SOBRE EL MODELO «${matchedTemplate.name.toUpperCase()}»):
+La falta de pago oportuno de dos (02) mensualidades consecutivas del canon de arrendamiento dentro de los primeros cinco (05) días de cada mes, así como la cesión, subarrendamiento total o parcial no autorizado por escrito o la insolvencia en las cuotas de condominio y servicios públicos, constituirá a EL ARRENDATARIO en mora de pleno derecho sin necesidad de requerimiento previo, produciendo la resolución del presente contrato y facultando a EL ARRENDADOR para exigir la desocupación y entrega material inmediata del inmueble con solicitud de Medida de Secuestro (Art. 599 CPC), así como para ejecutar solidariamente al Fiador y Principal Pagador (Arts. 1.804 y 1.813 del Código Civil) por la totalidad de las pensiones insolutas, intereses moratorios y penalidades contractuales."`;
+
+      fase4Ejecucion = `• Decisión Técnica de Ejecución:
+  Se decide accionar de forma combinada bajo el Escenario A y el Escenario B: practicar hoy mismo la intimación formal con plazo perentorio de cuarenta y ocho (48) horas contra arrendatario y fiador, y dejar preparado el libelo de resolución con medida de secuestro y embargo preventivo al vencimiento de dicho término.
+
+• Manera de Accionar (Secuencia de Ejecución):
+  1) Emitir y notificar el requerimiento formal de pago e intimación en mora prohibiendo la recepción de abonos parciales sin reserva escrita.
+  2) Auditar el instrumento de arrendamiento y la solvencia patrimonial del fiador solidario en el expediente del cliente.
+  3) Al vencer las 48 horas sin pago íntegro, consignar la demanda de Resolución de Contrato y Cobro de Bolívares / Divisas solicitando en el Capítulo de Medidas Cautelares el Secuestro del inmueble y el Embargo Preventivo sobre cuentas del fiador.
+
+• Instrumento Redactado sobre la Matriz de tu Biblioteca («${matchedTemplate.name}»):
+${redaccionForense}`;
+
+      respuestaCliente = `Estimado cliente: Analizada la normativa aplicable (Artículos 1.167, 1.592 y 1.813 del Código Civil y 599 del Código de Procedimiento Civil) y evaluados los escenarios procesales, el modo de accionar inmediato consiste en practicar hoy la intimación formal tanto al inquilino como a su fiador solidario por un plazo perentorio de 48 horas y, vencido este, interponer la demanda de resolución con medida de secuestro sobre el local y embargo contra el fiador.`;
     } else if (fullContext.includes('empresa') || fullContext.includes('sociedad') || fullContext.includes('accionista') || fullContext.includes('asamblea') || fullContext.includes('mercantil') || fullContext.includes('comercio') || fullContext.includes('junta directiva') || fullContext.includes('estatuto')) {
       matterTag = 'Societario / Mercantil';
       const mercLaw = ragDocs.find(d => d.id === 'rag-03') || primaryLaw;
-      baseNormativa = `Fundamentado exclusivamente en tu RAG (**${mercLaw.title}**: *"${mercLaw.excerpt}"*) y sin inventar disposiciones ajenas a tu acervo, toda deliberación de Asamblea de Accionistas sobre cambio de administradores, aumento de capital o enajenación de activos sociales requiere cumplir el quórum de presencia y votación estatutario y las formalidades de convocatoria previa, salvo que esté presente el 100% del capital social (Asamblea Totalitaria).`;
-      ideasEstrategicas = `• **Idea 1 (Oposición y Medida Cautelar de Suspensión de Acuerdos):** Si convocaron o celebraron la asamblea con vicios de convocatoria o violación del derecho de preferencia, acudamos al Registro Mercantil y al Tribunal Mercantil solicitando la suspensión cautelar de los efectos del acta impugnada.
-• **Idea 2 (Auditoría del Libro de Accionistas y Comisario):** Exigir exhibición del Libro de Accionistas y del informe del Comisario; sin informe de Comisario la aprobación de balances o modificación de capital adolece de nulidad.
-• **Idea 3 (Formalización de Representación):** Otorgar de inmediato el modelo **«${matchedTemplate.name}»** de tu biblioteca para actuar en nombre del socio o de la sociedad.`;
-      redaccionPropuesta = `REDACCIÓN DE RESERVA Y OPOSICIÓN SOCIETARIA / FACULTAD ESPECIAL (SOBRE TU MODELO «${matchedTemplate.name.toUpperCase()}»):
-"En ejercicio de este mandato, los apoderados (${lawyerSignerName} — ${lawyerCollegiateId}) quedan expresamente facultados para representar al otorgante en Asambleas Ordinarias o Extraordinarias de Accionistas, exigir la exhibición de los libros sociales y contables, dejar constancia de votos salvados u oposiciones en acta, e interponer recursos de nulidad y medidas cautelares de suspensión de efectos ante el Registro Mercantil y los Tribunales de la jurisdicción mercantil."`;
-      respuestaCliente = `Estimado cliente: Analizados los estatutos y el Código de Comercio vigente en nuestro sistema, hemos preparado la estrategia para impugnar cualquier acta viciada de nulidad, exigir la exhibición de los libros sociales y resguardar tu participación accionaria.`;
+      fase1BaseLegal = `1. ${mercLaw.title}:
+   • Artículos 277, 279 y 280 (Código de Comercio): Regulan las formalidades esenciales de convocatoria de las Asambleas Ordinarias y Extraordinarias de Accionistas, así como los quórums calificados de presencia y votación para reformas estatutarias, aumentos o reducciones de capital, cambio de objeto y designación de administradores. Toda deliberación tomada sin convocatoria válida es nula, salvo que concurra la totalidad (100%) del capital social (Asamblea Totalitaria).
+   • Artículo 290 y Artículo 291 (Código de Comercio): Establecen el derecho de todo accionista a formular oposición ante el Juez de Comercio contra las decisiones manifiestamente contrarias a los estatutos o a la ley, facultando al Tribunal para suspender la ejecución de las decisiones impugnadas previa audiencia de los administradores.
+   • Artículo 296 (Código de Comercio): Determina que la propiedad de las acciones nominativas se prueba con su inscripción en el Libro de Accionistas, y su cesión requiere declaración firmada en dicho libro por el cedente y el cesionario o sus apoderados.
+2. ${ragDocs.find(d => d.id === 'rag-02')?.title || 'Código de Procedimiento Civil'}:
+   • Artículo 154 y Artículos 585 / 588: Exigen facultad expresa en el mandato judicial para ejercer recursos extraordinarios y habilitan medidas cautelares innominadas de suspensión de efectos registrales.`;
+
+      fase2Opciones = `• Opción Primera: Ejercicio de la Acción de Oposición e Impugnación Societaria (Art. 290 del Código de Comercio) ante el Tribunal con competencia Mercantil, solicitando la suspensión cautelar inmediata de los acuerdos de la Asamblea viciada.
+• Opción Segunda: Escrito de Oposición Preventiva y Alerta Registral presentado ante el Registro Mercantil donde cursa el expediente de la compañía, advirtiendo los vicios de convocatoria, quórum o ausencia de Informe del Comisario para impedir u observar la inscripción del acta.
+• Opción Tercera: Solicitud Judicial de Inspección / Exhibición de los Libros Sociales (Libro de Accionistas, Libro de Actas de Asamblea y Libro de Junta Directiva) e intervención de Comisario ad-hoc (Art. 291 C.Com.).`;
+
+      fase3Escenarios = `• Escenario A (Interposición de Oposición del Art. 290 C.Com. con Medida de Suspensión de Efectos):
+  - Supuesto: El acta de asamblea irregular ya fue suscrita o presentada al Registro Mercantil sin cumplir los plazos y medios de convocatoria estatutarios.
+  - Consecuencias Jurídicas y Patrimoniales: El Juez Mercantil puede decretar la suspensión provisional del acuerdo impugnado, paralizando cualquier enajenación de activos sociales, dilución accionaria o movilización de cuentas bancarias por parte de la junta directiva cuestionada.
+
+• Escenario B (Actuación Preventiva en Sede de Registro Mercantil y Exhibición de Libros):
+  - Supuesto: La asamblea aún no ha sido inscrita ni publicada en el Registro Mercantil.
+  - Consecuencias Jurídicas y Patrimoniales: Conforme al Art. 215 y 221 del Código de Comercio, los actos societarios no registrados ni publicados carecen de eficacia frente a terceros; al consignar la oposición documentada en el expediente mercantil, se frena el otorgamiento mientras se sustancia la vía jurisdiccional.
+
+• Escenario C (Convalidación Tácita por Falta de Impugnación Oportuna):
+  - Supuesto: El socio afectado no ejerce la oposición dentro de los lapsos legales ni deja constancia de su voto salvado o inasistencia por falta de convocatoria.
+  - Consecuencias Jurídicas y Patrimoniales: El acta adquiere apariencia de legitimidad registral frente a bancos y terceros adquirentes de buena fe, dificultando la reversión de los actos de disposición ejecutados.`;
+
+      redaccionForense = `"ESCRITO / CLÁUSULA DE OPOSICIÓN SOCIETARIA Y FACULTADES ESPECIALES (SOBRE EL MODELO «${matchedTemplate.name.toUpperCase()}» DE LA BIBLIOTECA):
+Yo, {{OTORGANTE}}, procediendo en mi carácter de accionista titular según consta en el Libro de Accionistas y en el expediente mercantil de la sociedad, confiero PODER ESPECIAL a los abogados {{APODERADOS}} (${lawyerSignerName} — ${lawyerCollegiateId}), para que de conformidad con los Artículos 277, 280, 290 y 291 del Código de Comercio y 154 y 588 del Código de Procedimiento Civil, formulen formal oposición y demanda de nulidad contra las deliberaciones de Asamblea celebradas en contravención de los estatutos sociales y la ley, soliciten la suspensión cautelar inmediata de sus efectos, requieran la exhibición judicial de los Libros de Accionistas y de Actas, y presenten las participaciones preventivas ante el Registro Mercantil competente."`;
+
+      fase4Ejecucion = `• Decisión Técnica de Ejecución:
+  Se decide ejecutar simultáneamente el Escenario B (bloqueo preventivo en el expediente del Registro Mercantil) y el Escenario A (recurso de oposición y suspensión de efectos del Art. 290 del Código de Comercio ante el Tribunal Mercantil).
+
+• Manera de Accionar (Secuencia de Ejecución):
+  1) Otorgar de inmediato el "${matchedTemplate.name}" con las facultades especiales mercantiles y procesales redactadas abajo.
+  2) Consignar escrito preventivo en el Registro Mercantil acompañando copia certificada de la titularidad accionaria y de los estatutos que regulan la convocatoria.
+  3) Interponer ante el Tribunal Mercantil el escrito de Oposición Societaria (Art. 290 C.Com.) solicitando medida cautelar de suspensión del acta y prohibición de modificar la composición accionaria o directiva.
+
+• Instrumento Redactado sobre la Matriz de tu Biblioteca («${matchedTemplate.name}»):
+${redaccionForense}`;
+
+      respuestaCliente = `Estimado cliente: Analizados los Artículos 277, 280 y 290 del Código de Comercio y evaluados los escenarios procesales, accionaremos en dos frentes simultáneos: consignar hoy mismo una oposición preventiva en el expediente del Registro Mercantil e introducir ante el Tribunal de Comercio la impugnación del artículo 290 con medida cautelar de suspensión de efectos para dejar sin validez cualquier decisión tomada sin convocatoria legal.`;
     } else if (fullContext.includes('sucesi') || fullContext.includes('herencia') || fullContext.includes('heredero') || fullContext.includes('legítima') || fullContext.includes('causante') || fullContext.includes('viuda') || fullContext.includes('testamento') || fullContext.includes('comunidad conyugal')) {
-      matterTag = 'Sucesiones / Familia';
-      baseNormativa = `Con apego estricto a tu repositorio RAG (**${primaryLaw.title}**: *"${primaryLaw.excerpt}"*), en toda apertura de sucesión deben separarse primero los bienes propios y el cincuenta por ciento (50%) de gananciales del cónyuge sobreviviente (Arts. 148 y 168 CC), y sobre el caudal hereditario restante debe respetarse la cuota legítima de orden público de los herederos forzosos (Art. 883 CC). Ningún coheredero puede enajenar individualmente un inmueble de la comunidad hereditaria sin la firma de todos los comuneros y el Certificado de Solvencia Sucesoral.`;
-      ideasEstrategicas = `• **Idea 1 (Bloqueo Preventivo de Venta Inconsulta):** Notificar al Registro Inmobiliario y a cualquier corredor o comprador potencial que el inmueble forma parte de una comunidad hereditaria indivisa aún no liquidada.
-• **Idea 2 (Declaración Sucesoral dentro de los 180 días hábiles):** Priorizar el levantamiento de activos y pasivos para presentar la declaración fiscal a tiempo y evitar multas.
-• **Idea 3 (Acuerdo de Partición Amistosa o Acción de Partición):** Proponer un convenio de adjudicación de lotes entre los herederos o, si hay renuencia, demandar la partición judicial con medida cautelar.`;
-      redaccionPropuesta = `CLÁUSULA / DECLARACIÓN DE COMUNIDAD HEREDITARIA Y CONSENTIMIENTO UNÁNIME (PARA TU BIBLIOTECA DE MODELOS):
-"Los comparecientes declaran bajo juramento que el bien objeto del presente instrumento pertenece a la comunidad sucesoral indivisa, habiéndose respetado íntegramente el cincuenta por ciento (50%) de gananciales conyugales y la cuota legítima de orden público establecida en el Artículo 883 del Código Civil, según consta en Certificado de Solvencia Sucesoral debidamente emitido."`;
-      respuestaCliente = `Estimado cliente: Conforme al Código Civil, ningún heredero puede vender por su cuenta un inmueble de la sucesión sin la solvencia sucesoral y sin la firma de la viuda y de todos los coherederos. Vamos a asegurar registralmente tus derechos de inmediato.`;
-    } else if (fullContext.includes('laboral') || fullContext.includes('trabajador') || fullContext.includes('despido') || fullContext.includes('prestaciones') || fullContext.includes('salario') || fullContext.includes('transacción')) {
-      matterTag = 'Laboral';
-      baseNormativa = `Anclado en los principios de tu acervo legal (**${primaryLaw.title}** y normativa procesal sobre poderes y transacciones — Art. 154 CPC), toda terminación o arreglo laboral requiere documento escrito con desglose circunstanciado de conceptos (prestaciones sociales, intereses, vacaciones, utilidades) y asistencia de abogado para que la transacción tenga fuerza de cosa juzgada.`;
-      ideasEstrategicas = `• **Idea 1 (Transacción Laboral Homologada):** En lugar de un finiquito simple que luego pueda ser demandado por diferencia de prestaciones, instrumentemos una Transacción Laboral circunstanciada para homologar ante Inspectoría o Tribunal.
-• **Idea 2 (Auditoría de Conceptos Salariales):** Verificar incidencia de bonificaciones regulares en el salario integral antes de fijar el monto del acuerdo.
-• **Idea 3 (Poder Especial con Facultades de Transigir):** Utilizar el modelo **«${matchedTemplate.name}»** de tu biblioteca cuidando incluir expresamente las facultades del Art. 154 CPC.`;
-      redaccionPropuesta = `CLÁUSULA DE TRANSACCIÓN Y FINIQUITO CIRCUNSTANCIADO (CONFORME A TU MODELO «${matchedTemplate.name.toUpperCase()}»):
-"Ambas partes, debidamente asistidas por sus abogados en ejercicio (${lawyerSignerName}, ${lawyerCollegiateId}), declaran que con el pago discriminado recibido en este acto por concepto de prestaciones sociales, intereses y beneficios legales quedan íntegramente satisfechos todos los derechos derivados de la relación, otorgándose recíproco finiquito con carácter de cosa juzgada."`;
-      respuestaCliente = `Estimado cliente: Para blindar totalmente a la empresa y evitar futuras demandas laborales, prepararemos una transacción circunstanciada homologable junto con el Poder Especial de representación de nuestra biblioteca.`;
+      matterTag = 'Sucesoral / Familia';
+      fase1BaseLegal = `1. ${primaryLaw.title}:
+   • Artículos 148, 151 y 168 (Código Civil): Regulan la comunidad limitada de gananciales entre marido y mujer. Al disolverse el matrimonio por causa de muerte, el cincuenta por ciento (50%) de los bienes adquiridos a título oneroso durante la unión pertenece en plena propiedad al cónyuge sobreviviente por derecho propio de comunidad conyugal y no forma parte de la masa hereditaria del causante.
+   • Artículos 807, 822 y 825 (Código Civil): Determinan la apertura de la sucesión en el momento de la muerte y el orden de suceder ab intestato a favor de los descendientes y del cónyuge sobreviviente (quien concurre con los hijos tomando una parte igual a la de un hijo en el 50% restante).
+   • Artículo 883 y Artículo 884 (Código Civil): Instauran la Cuota Legítima como una porción de orden público que se debe en plena propiedad a los descendientes, ascendientes y cónyuge sobreviviente, sin que el testador ni los coherederos puedan someterla a gravamen, condición ni menoscabo alguno.
+   • Artículos 765, 768 y 1.067 (Código Civil): Mientras la herencia permanece indivisa, ningún coheredero puede enajenar la totalidad de un bien determinado de la comunidad sucesoral sin el consentimiento unánime de los demás copartícipes; a nadie puede obligarse a permanecer en comunidad y siempre puede demandarse la partición.
+2. Normativa sobre Impuesto sobre Sucesiones y Registro Público:
+   • Exige la presentación de la Declaración Sucesoral dentro de los ciento ochenta (180) días hábiles siguientes a la apertura de la sucesión y prohíbe a Registradores y Notarios protocolizar o autenticar enajenaciones de bienes relictos sin el Certificado de Solvencia o Liberación Sucesoral.`;
+
+      fase2Opciones = `• Opción Primera: Bloqueo Registral Preventivo, Levantamiento de Inventario de Activos y Presentación de la Declaración Sucesoral Administrativa para obtener el Certificado de Solvencia Sucesoral.
+• Opción Segunda: Celebración de Convenio de Liquidación de Comunidad Conyugal y Partición Amistosa de Herencia otorgado ante Registro Público con adjudicación de cuotas y respeto a la legítima (Art. 883 CC).
+• Opción Tercera: Ejercicio de la Acción Judicial de Partición de Comunidad Hereditaria y/o Reducción de Disposiciones Lesivas a la Legítima (Arts. 888 y 1.067 CC) con solicitud de Prohibición de Enajenar y Gravar sobre los inmuebles y secuestro o bloqueo de acciones societarias.`;
+
+      fase3Escenarios = `• Escenario A (Actuación Administrativa y Partición Amistosa Documentada):
+  - Supuesto: Todos los herederos y la viuda se avienen a suscribir la declaración sucesoral y a adjudicarse los activos de común acuerdo tras ser advertidos de la imposibilidad registral de vender por separado.
+  - Consecuencias Jurídicas y Patrimoniales: Se evita el litigio de partición, se aprovechan las rebajas y desgravámenes fiscales (como la vivienda principal) dentro del lapso de 180 días hábiles y se obtiene título registral limpio para vender a terceros al valor real de mercado.
+
+• Escenario B (Intento de Venta Unilateral o Exclusión de Coherederos — Vía Contenciosa de Partición y Cautelar):
+  - Supuesto: Uno de los coherederos pretende celebrar contratos privados de opción de compra, ocultar bienes o percibir en solitario los frutos/alquileres de la masa hereditaria.
+  - Consecuencias Jurídicas y Patrimoniales: Cualquier venta de la totalidad del inmueble por un solo comunero es inoponible a los demás coherederos (Art. 765 y 1.483 CC). Al interponer la Demanda de Partición y Rendición de Cuentas con Prohibición de Enajenar y Gravar (Art. 588 CPC), se paraliza toda operación frente a terceros y se obliga a colacionar y dividir judicialmente el acervo.
+
+• Escenario C (Vencimiento del Lapso de 180 Días Hábiles sin Declaración Sucesoral):
+  - Supuesto: El conflicto entre herederos impide declarar ante la Administración Tributaria dentro del plazo legal.
+  - Consecuencias Jurídicas y Patrimoniales: Se generan multas e intereses moratorios tributarios que gravan solidariamente los activos de la herencia y mantienen bloqueada la tradición registral de los inmuebles y acciones.`;
+
+      redaccionForense = `"DECLARACIÓN DE LIQUIDACIÓN DE COMUNIDAD CONYUGAL, RESPETO A LA LEGÍTIMA Y MANDATO SUCESORAL (SOBRE MODELO «${matchedTemplate.name.toUpperCase()}»):
+En cumplimiento estricto de los Artículos 148, 168, 822, 883 y 1.067 del Código Civil vigente, se deja expresa constancia de que sobre la totalidad de los activos adquiridos durante el matrimonio corresponde en primer término el cincuenta por ciento (50%) en plena propiedad al cónyuge sobreviviente por concepto de liquidación de la comunidad de gananciales, y sobre el cincuenta por ciento (50%) restante que integra el caudal relicto del causante concurren en partes iguales los herederos forzosos con pleno resguardo de su cuota legítima de orden público, quedando prohibido todo acto de disposición o gravamen individual sin el consentimiento unánime de los comuneros y la previa emisión del Certificado de Solvencia Sucesoral."`;
+
+      fase4Ejecucion = `• Decisión Técnica de Ejecución:
+  Se decide ejecutar de inmediato el aseguramiento documental y registral (Escenario A para la declaración fiscal oportuna, combinado con notificación formal a los coherederos bajo advertencia de activar el Escenario B si intentan contratos privados unilaterales).
+
+• Manera de Accionar (Secuencia de Ejecución):
+  1) Recabar de inmediato acta de defunción, acta de matrimonio, partidas de nacimiento de todos los hijos, RIF sucesoral y títulos de propiedad de los inmuebles y acciones.
+  2) Notificar por escrito al coheredero que pretende vender que todo acto sin el consentimiento de la viuda (titular del 50% de gananciales + cuota hereditaria) y de los demás hermanos adolece de nulidad y será bloqueado en el Registro Público.
+  3) Presentar la Declaración Sucesoral antes del vencimiento de los 180 días hábiles y, si persiste la negativa a dividir equitativamente, introducir la Demanda de Partición (Art. 1.067 CC) con Prohibición de Enajenar y Gravar.
+
+• Instrumento Redactado sobre la Matriz de tu Biblioteca («${matchedTemplate.name}»):
+${redaccionForense}`;
+
+      respuestaCliente = `Estimado cliente: Conforme a los Artículos 148, 822, 883 y 1.067 del Código Civil, ningún hermano puede vender por su cuenta un inmueble de la sucesión: primero pertenece el 50% a la viuda por comunidad conyugal y el otro 50% se divide en partes iguales respetando la cuota legítima de todos, además de exigirse la Solvencia Sucesoral en el Registro. Procederemos a bloquear cualquier venta inconsulta y a tramitar la declaración y partición legal.`;
     } else {
-      matterTag = 'Civil / Inmobiliario';
+      matterTag = 'Civil / Contratos';
       const procLaw = ragDocs.find(d => d.id === 'rag-02') || matchedLaws[1] || primaryLaw;
-      baseNormativa = `Respondiendo estrictamente con base en los cuerpos legales cargados en tu RAG (**${primaryLaw.title}**: *"${primaryLaw.excerpt}"* y **${procLaw.title}**: *"${procLaw.excerpt}"*) y tus modelos de redacción, sin inventar preceptos externos:
-• En todo contrato bilateral sinalagmático rige el **Artículo 1.167 del Código Civil**: ante el incumplimiento de una de las partes, la parte cumplidora puede optar entre exigir el **cumplimiento forzoso** o la **resolución del contrato**, más el pago de los **daños y perjuicios** en ambos casos.
-• Si se trata de bienes inmuebles y el enajenante es **casado**, es requisito indispensable de validez el **consentimiento de ambos cónyuges (Art. 168 del Código Civil)**, salvo declaración probada de bien propio (Art. 151 CC).`;
-      ideasEstrategicas = `• **Idea 1 (Medida Cautelar de Prohibición de Enajenar y Gravar — Arts. 585 y 588 CPC):** Si queremos resultados rápidos, presentemos demanda acompañada del contrato y comprobante de pago (fumus boni iuris) pidiendo oficiar de inmediato al Registro Inmobiliario para inmovilizar el bien.
-• **Idea 2 (Intimación Extrajudicial Previa con Plazo Perentorio):** Enviar requerimiento formal otorgando 5 días hábiles para el cumplimiento voluntario o devolución indexada del monto antes de activar costas procesales del 30%.
-• **Idea 3 (Blindaje en tu Modelo «${matchedTemplate.name}»):** Incorporar pacto comisorio expreso, cláusula penal del 20% y verificación de estado civil (Art. 168 CC).`;
-      redaccionPropuesta = `PROPUESTA DE REDACCIÓN FORENSE (ADAPTADA A TU MODELO «${matchedTemplate.name.toUpperCase()}»):
-"CLÁUSULA DE PACTO COMISORIO EXPRESO, SANEAMIENTO Y CLÁUSULA PENAL: El incumplimiento o retardo de cualquiera de las partes en el otorgamiento registral o en la tradición material del inmueble objeto de este «${matchedTemplate.name}» facultará a la parte cumplidora, de conformidad con el Artículo 1.167 del Código Civil, para exigir a su elección la ejecución forzosa con medida preventiva de prohibición de enajenar y gravar (Art. 585 CPC) o la resolución de pleno derecho del contrato, con una indemnización convencional prefijada en el veinte por ciento (20%) del precio de la operación por concepto de daños y perjuicios."`;
-      respuestaCliente = `Estimado cliente: Conforme al Código Civil (Art. 1.167) y al Código de Procedimiento Civil (Art. 585) vigentes en nuestro despacho, tienes pleno derecho a exigir el cumplimiento forzoso o la resolución del contrato con devolución de tu dinero más daños y perjuicios, solicitando una Prohibición de Enajenar y Gravar sobre el inmueble.`;
+      fase1BaseLegal = `1. ${primaryLaw.title}:
+   • Artículos 1.133, 1.159 y 1.160 (Código Civil): Definen el contrato como convención para constituir, reglar, transmitir, modificar o extinguir un vínculo jurídico, dotándolo de fuerza de ley entre las partes e imponiendo su ejecución de buena fe.
+   • Artículo 1.167 (Código Civil): En todo contrato bilateral sinalagmático, si una de las partes no ejecuta su obligación, la parte cumplidora puede a su elección reclamar judicialmente la ejecución forzosa del contrato o la resolución del mismo, con el resarcimiento de los daños y perjuicios en ambos casos.
+   • Artículos 1.264, 1.271 y 1.486 (Código Civil): Regulan el cumplimiento exacto de la prestación, la responsabilidad patrimonial del deudor en mora por daños y perjuicios (daño emergente y lucro cesante) y la obligación de tradición legal y material de la cosa.
+   • Artículo 168 (Código Civil): Exige el consentimiento expreso de ambos cónyuges para enajenar o gravar a título gratuito u oneroso los bienes inmuebles de la comunidad conyugal.
+2. ${procLaw.title}:
+   • Artículo 340: Establece los requisitos sustanciales de la demanda y la carga de acompañar el documento fundamental.
+   • Artículos 585 y 588: Regulan la procedencia de las medidas preventivas (Prohibición de Enajenar y Gravar sobre inmuebles, Embargo Preventivo de bienes muebles y Secuestro de cosas determinadas) cuando concurran el fumus boni iuris y el periculum in mora.`;
+
+      fase2Opciones = `• Opción Primera: Demanda de Cumplimiento Forzoso de Contrato acumulada con Indemnización de Daños y Perjuicios Moratorios y solicitud de Medida Cautelar de Prohibición de Enajenar y Gravar (Arts. 1.167 CC y 588 CPC).
+• Opción Segunda: Demanda de Resolución de Contrato acumulada con Restitución Indexada de las Cantidades Entregadas, Ejecución de Cláusula Penal y Daños y Perjuicios Compensatorios.
+• Opción Tercera: Intimación Extrajudicial Notarial Previa para constituir en mora indubitable al deudor (Art. 1.269 CC) y habilitar la ejecución inmediata o acuerdo transaccional.`;
+
+      fase3Escenarios = `• Escenario A (Ejercicio de la Opción Primera — Cumplimiento Forzoso con Prohibición de Enajenar y Gravar):
+  - Supuesto: El bien objeto del contrato existe en el patrimonio registral del demandado y el interés económico del cliente es obtener la titularidad y posesión definitiva del activo.
+  - Consecuencias Jurídicas y Patrimoniales: El decreto cautelar inmoviliza el bien en el Registro Público impidiendo su traspaso a terceros de buena fe; la sentencia definitiva hará las veces de título de propiedad protocolizable y condenará al demandado en costas procesales (hasta el 30% del monto litigado según el Art. 286 CPC) más daños moratorios.
+
+• Escenario B (Ejercicio de la Opción Segunda — Resolución de Contrato y Restitución Patrimonial):
+  - Supuesto: El cumplimiento ya no resulta útil al cliente o el bien presenta gravámenes o impedimentos registrales insubsanables.
+  - Consecuencias Jurídicas y Patrimoniales: Se extingue retroactivamente el contrato ordenándose la restitución de las prestaciones pagadas con indexación monetaria y daños y perjuicios. Su eficacia ejecutiva exige solicitar simultáneamente Medida de Embargo Preventivo sobre bienes o cuentas solventes de la demandada.
+
+• Escenario C (Ejecución Previa de la Opción Tercera — Constitución Fehaciente en Mora):
+  - Supuesto: El contrato carece de término fatal vencido o requiere requerimiento previo para activar el pacto comisorio.
+  - Consecuencias Jurídicas y Patrimoniales: Preconstituye la prueba plena del incumplimiento, cierra el paso a la excepción de contrato no cumplido (Art. 1.168 CC) y fortalece la presunción grave del derecho (fumus boni iuris) para el decreto cautelar en el primer auto del Tribunal.`;
+
+      redaccionForense = `"CLÁUSULA / INTIMACIÓN DE EJECUCIÓN Y PACTO COMISORIO (ESTRUCTURADA SOBRE EL MODELO «${matchedTemplate.name.toUpperCase()}» DE LA BIBLIOTECA):
+De conformidad con lo dispuesto en los Artículos 1.159, 1.160, 1.167, 1.264 y 1.271 del Código Civil vigente, el retardo o incumplimiento en el otorgamiento del instrumento definitivo o en la entrega material del bien objeto del presente «${matchedTemplate.name}» constituirá al obligado en mora de pleno derecho, facultando a la parte cumplidora para exigir judicialmente, a su sola elección, el cumplimiento forzoso de la obligación o la resolución de pleno derecho del contrato, con el resarcimiento de los daños y perjuicios fijados convencionalmente en el veinte por ciento (20%) del precio de la operación, más la solicitud de Medida Preventiva de Prohibición de Enajenar y Gravar o Embargo Preventivo conforme a los Artículos 585 y 588 del Código de Procedimiento Civil."`;
+
+      fase4Ejecucion = `• Decisión Técnica de Ejecución:
+  A fin de alcanzar el resultado más seguro para el patrimonio del cliente, se decide ejecutar la Opción Tercera (Intimación Fehaciente Previa de 72 horas) seguida de inmediato por la Opción Primera (Demanda de Cumplimiento Forzoso con Medida de Prohibición de Enajenar y Gravar), garantizando que el activo quede inmovilizado registralmente desde la admisión.
+
+• Manera de Accionar (Secuencia de Ejecución):
+  1) Verificar en el Registro Público el asiento registral vigente del bien y el estado civil del otorgante (Art. 168 CC).
+  2) Practicar intimación formal otorgando setenta y dos (72) horas improrrogables para el cumplimiento voluntario y dejando constancia de que nuestro patrocinado ya cumplió su prestación.
+  3) Consignar el libelo de demanda (Art. 340 CPC) acompañado del contrato original y comprobantes de pago, solicitando en cuaderno separado el decreto y oficio inmediato de Prohibición de Enajenar y Gravar (Arts. 585 y 588 CPC).
+
+• Instrumento Redactado sobre la Matriz de tu Biblioteca («${matchedTemplate.name}»):
+${redaccionForense}`;
+
+      respuestaCliente = `Estimado cliente: Analizados los Artículos 1.159, 1.167 y 1.264 del Código Civil junto con los Artículos 340, 585 y 588 del Código de Procedimiento Civil, y evaluados los escenarios procesales y sus consecuencias, la vía de ejecución decidida consiste en practicar intimación formal por 72 horas y presentar de inmediato la demanda con solicitud de Prohibición de Enajenar y Gravar para asegurar el bien en el Registro Público.`;
     }
 
     const citations = matchedLaws.map(d => d.title);
 
-    const dictamen = `Colega, he analizado tu consulta contrastándola **exclusivamente con la normativa de tu RAG** (${citations.join(' • ')}) y con tu **Biblioteca de Modelos** (*${matchedTemplate.name}*) para garantizarte **0% alucinación**:
-${attNote}
-⚖️ **1. FUNDAMENTACIÓN JURÍDICA ESTRICTA (SEGÚN TU RAG):**
-${baseNormativa}
+    const dictamen = `${attSection}I. BASE LEGAL Y ANÁLISIS DE LOS ARTÍCULOS INVOLUCRADOS POR CADA LEY (RAG):
 
-💡 **2. IDEAS ESTRATÉGICAS Y SOLUCIONES PARA TU CASO:**
-${ideasEstrategicas}
+${fase1BaseLegal}
 
-✍️ **3. REDACCIÓN FORENSE LISTA PARA USAR (BASADA EN TU MODELO «${matchedTemplate.name}»):**
-${redaccionPropuesta}`;
+II. OPCIONES JURÍDICAS DISPONIBLES:
+
+${fase2Opciones}
+
+III. ANÁLISIS DE ESCENARIOS Y CONSECUENCIAS DE CADA ESCENARIO:
+
+${fase3Escenarios}
+
+IV. DECISIÓN DE EJECUCIÓN, MODO DE ACCIONAR Y REDACCIÓN FORENSE:
+
+${fase4Ejecucion}`;
 
     return {
       dictamen,
       clientReadyReply: respuestaCliente,
       recommendedTemplate: matchedTemplate,
-      suggestedClauseText: redaccionPropuesta,
+      suggestedClauseText: redaccionForense,
       citations,
       primaryLawTitle: primaryLaw.title,
       matterTag
@@ -1111,7 +1230,7 @@ ${redaccionPropuesta}`;
 
     let finalDictamenText = localAnalysis.dictamen;
 
-    // Si el abogado configuró su API Key real en Configuración, consulta enviando solo el texto sanitizado y anclado al RAG + Biblioteca
+    // Si hay API Key real configurada, instruye obligatoriamente la metodología forense de 4 etapas de la Dra. Bárbara Piccolo
     const hasRealApiKey = apiKeyInput && !apiKeyInput.includes('•') && apiKeyInput.trim().length > 12;
     if (hasRealApiKey && llmProvider === 'openai') {
       try {
@@ -1119,17 +1238,16 @@ ${redaccionPropuesta}`;
         const tplContextStr = templates.map(t => `- Modelo "${t.name}" (${t.category}): Variables [${t.variables.map(v => v.key).join(', ')}]. Texto base: ${t.contentPreview}`).join('\n\n');
         const historyContextStr = consultThread
           .slice(-4)
-          .map(t => `Abogado: ${t.sanitizedSentToAi}\nSocio Consultor: ${t.dictamen}`)
+          .map(t => `Consulta: ${t.sanitizedSentToAi}\nDictamen: ${t.dictamen}`)
           .join('\n---\n');
 
-        const sysPrompt = `Eres el Socio Consultor Jurídico Senior del despacho "${firmName}", dialogando directamente con el abogado titular ${lawyerSignerName} (${lawyerCollegiateId}).
-REGLA ESTRICTA DE CERO ALUCINACIÓN:
-1) Fundamenta tus respuestas EXCLUSIVAMENTE en la normativa cargada en el RAG del despacho y en los modelos de la Biblioteca del despacho que se incluyen a continuación. NUNCA inventes leyes, artículos ni sentencias inexistentes. Si un dato no consta en los recaudos, indícalo con rigor profesional.
-2) Habla con personalidad de Abogado Senior especialista: claro, estratégico, resolutivo y en lenguaje jurídico forense.
-3) En cada respuesta entrega siempre:
-   - ⚖️ 1. Diagnóstico y Base Legal exacta (citando los documentos del RAG).
-   - 💡 2. Ideas estratégicas y soluciones prácticas para resolver el caso del cliente.
-   - ✍️ 3. Redacción forense lista para usar (cláusula, escrito, intimación o respuesta al cliente) basada en los modelos de la biblioteca.
+        const sysPrompt = `Eres un Abogado Senior en Ejercicio y Jurisconsulto del despacho "${firmName}", trabajando junto a ${lawyerSignerName} (${lawyerCollegiateId}).
+PROHIBIDO usar emojis, lenguaje coloquial de chatbot o inventar normas. Ciñete estrictamente a la normativa del RAG y a los modelos de la Biblioteca del despacho.
+DEBES ESTRUCTURAR OBLIGATORIAMENTE TODO ANÁLISIS BAJO ESTAS CUATRO (04) FASES FORENSES:
+I. BASE LEGAL Y ANÁLISIS DE LOS ARTÍCULOS INVOLUCRADOS POR CADA LEY (RAG): Desglosa ley por ley y artículo por artículo los preceptos involucrados en el tema y su subsunción al caso.
+II. OPCIONES JURÍDICAS DISPONIBLES: Enumera con rigor técnico las vías o acciones legales que confiere el derecho positivo.
+III. ANÁLISIS DE ESCENARIOS Y CONSECUENCIAS DE CADA ESCENARIO: Analiza cada escenario posible (Escenario A, Escenario B, Escenario C) detallando su presupuesto probatorio y sus consecuencias jurídicas, procesales y patrimoniales.
+IV. DECISIÓN DE EJECUCIÓN, MODO DE ACCIONAR Y REDACCIÓN FORENSE: Define cuál es la decisión técnica de ejecución, la secuencia exacta de pasos para conseguir el resultado y entrega la redacción forense basada en el modelo correspondiente de la Biblioteca del Despacho.
 
 NORMATIVA EN EL RAG DEL DESPACHO:
 ${ragContextStr}
@@ -1137,7 +1255,7 @@ ${ragContextStr}
 MODELOS DE LA BIBLIOTECA DEL DESPACHO:
 ${tplContextStr}
 
-HISTORIAL RECIENTE DE ESTA CONVERSACIÓN:
+HISTORIAL DE LA CONSULTA:
 ${historyContextStr}`;
 
         const resp = await fetch('https://api.openai.com/v1/chat/completions', {
@@ -1154,7 +1272,7 @@ ${historyContextStr}`;
               { role: 'system', content: sysPrompt },
               { role: 'user', content: sanitized }
             ],
-            temperature: 0.2
+            temperature: 0.15
           })
         });
         if (resp.ok) {
@@ -1165,7 +1283,7 @@ ${historyContextStr}`;
           }
         }
       } catch {
-        // Mantiene la respuesta del motor jurídico local RAG + Biblioteca
+        // Conserva el dictamen forense de 4 etapas generado localmente
       }
     }
 
@@ -1192,7 +1310,6 @@ ${historyContextStr}`;
       approvedInHumanLoop: false
     };
 
-    // Actualiza la conversación activa en el historial (o crea una si no había)
     setConsultSessions(prev => {
       const exists = prev.some(s => s.id === activeSessionId);
       if (!exists) {
@@ -1241,7 +1358,7 @@ ${historyContextStr}`;
         id: `PII-${Date.now().toString().slice(-5)}`,
         timestamp: nowTime,
         originModule: 'Consultor de IA',
-        contextSummary: `${isFollowUp ? 'Mensaje en hilo' : 'Consulta'}: ${cleanQ.slice(0, 75)}...`,
+        contextSummary: `${isFollowUp ? 'Ampliación de Dictamen' : 'Dictamen Forense'}: ${cleanQ.slice(0, 75)}...`,
         tokensDetected: tokens.length > 0
           ? tokens.map(t => ({ token: t.token, type: t.type, maskedPreview: `${t.original.slice(0, 4)}••• (Protegido en RAM)` }))
           : [{ token: '[SIN_PII_EXPUESTO]', type: 'VERIFICADO', maskedPreview: 'Consulta doctrinal sin identificadores personales' }],
@@ -1255,7 +1372,7 @@ ${historyContextStr}`;
         id: newAuditLogId,
         timestamp: nowTime,
         module: 'Consultor de IA',
-        action: `Respuesta de Socio Consultor (Anclado a RAG + Biblioteca)`,
+        action: `Dictamen Forense en 4 Etapas (Base Legal -> Opciones -> Escenarios -> Ejecución)`,
         llmUsed: `${llmProvider}/${llmModel} (store:false)`,
         piiCount: tokens.length,
         ragSource: localAnalysis.primaryLawTitle,
@@ -1271,7 +1388,7 @@ ${historyContextStr}`;
     setIsConsultLoading(false);
     setCurrentSpendUsd(prev => +(prev + 0.01).toFixed(2));
     setSavedHoursCount(prev => +(prev + 1.5).toFixed(1));
-    showToast(`Respuesta generada en el chat (${tokens.length} datos PII ocultados en RAM • 0% alucinación).`);
+    showToast(`Dictamen estructurado en 4 fases emitido (${tokens.length} datos PII ocultados en RAM).`);
   };
 
   const handleRunConsultor = () => {
@@ -1292,28 +1409,28 @@ ${historyContextStr}`;
     const targetTplId = target.recommendedTemplateId || 'tpl-compraventa';
     handleSelectTemplate(targetTplId);
     const combinedNotes = [
-      target.suggestedClauseText ? `Redacción sugerida por el Consultor: ${target.suggestedClauseText}` : '',
+      target.suggestedClauseText ? `Redacción forense del Consultor: ${target.suggestedClauseText}` : '',
       target.dictamen
     ].filter(Boolean).join('\n\n');
     setFreeTextToExtract(combinedNotes);
     setInputModeTab('escrito_manual');
-    setExtractedSourceNote(`Redacción e ideas enviadas desde el Consultor Jurídico sobre el modelo "${target.recommendedTemplateName}".`);
+    setExtractedSourceNote(`Dictamen y redacción trasladados desde el Consultor Jurídico sobre el modelo "${target.recommendedTemplateName}".`);
     setActiveTab('redactor_docs');
     setRedactorStep(3);
-    showToast(`Modelo "${target.recommendedTemplateName}" abierto en el Redactor con la redacción propuesta.`);
+    showToast(`Modelo "${target.recommendedTemplateName}" abierto en el Redactor con la cláusula propuesta.`);
   };
 
   const handleApproveConsultorDictamen = (turnToApprove?: ConsultTurn) => {
     const target = turnToApprove || consultResponse;
     if (!target) return;
     if (target.approvedInHumanLoop) {
-      showToast('Esta respuesta ya cuenta con tu Visto Bueno en Human-in-the-Loop.');
+      showToast('Este dictamen ya cuenta con tu Visto Bueno en Human-in-the-Loop.');
       return;
     }
     const record: ApprovedDocumentRecord = {
       id: `HL-${Date.now().toString().slice(-5)}`,
       timestamp: new Date().toLocaleString('es-ES', { dateStyle: 'short', timeStyle: 'short' }),
-      title: `Dictamen y Redacción — ${(activeSession?.title || 'Consulta Jurídica').slice(0, 42)}`,
+      title: `Dictamen Forense — ${(activeSession?.title || 'Consulta Jurídica').slice(0, 42)}`,
       originModule: 'Consultor de IA',
       templateUsed: `RAG + ${target.recommendedTemplateName || 'Biblioteca del Despacho'}`,
       approvedBy: lawyerSignerName,
@@ -1343,8 +1460,8 @@ ${historyContextStr}`;
       )
     );
     exportWordDoc(
-      `Dictamen_Juridico_Visado_${Date.now().toString().slice(-4)}.doc`,
-      'DICTAMEN Y REDACCIÓN JURÍDICA VISADA',
+      `Dictamen_Forense_Visado_${Date.now().toString().slice(-4)}.doc`,
+      'DICTAMEN JURÍDICO FORENSE VISADO',
       `Visado por: ${lawyerSignerName} (${lawyerCollegiateId}) • Sello SHA-256: ${target.hash.slice(0, 24)}...`,
       target.dictamen
     );
@@ -2194,7 +2311,7 @@ ${historyContextStr}`;
 
   return (
     <div className={darkMode ? 'dark-theme min-h-screen bg-[#090D16] text-slate-100 font-sans' : 'min-h-screen bg-[#FAF8F5] text-[#0F172A] font-sans'}>
-      {/* Reglas CSS explícitas para que NINGUNA letra desaparezca en Modo Oscuro */}
+      {/* Reglas CSS completas y blindadas para que en Modo Oscuro TODOS los fondos y letras tengan contraste alto */}
       <style>{`
         .dark-theme {
           background-color: #090D16 !important;
@@ -2203,18 +2320,58 @@ ${historyContextStr}`;
         .dark-theme h1, .dark-theme h2, .dark-theme h3, .dark-theme h4, .dark-theme strong {
           color: #F8FAFC !important;
         }
-        .dark-theme p, .dark-theme span, .dark-theme label, .dark-theme li, .dark-theme td, .dark-theme th {
+        .dark-theme p, .dark-theme span, .dark-theme label, .dark-theme li, .dark-theme td, .dark-theme th, .dark-theme pre, .dark-theme div {
           color: #E2E8F0;
         }
-        .dark-theme .card-surface {
+        .dark-theme .card-surface,
+        .dark-theme .bg-white,
+        .dark-theme .bg-white\/95 {
           background-color: #0F172A !important;
           border-color: #1E293B !important;
           color: #F8FAFC !important;
         }
-        .dark-theme .sub-surface {
+        .dark-theme .sub-surface,
+        .dark-theme .bg-\[\#FAF8F5\],
+        .dark-theme .bg-slate-100\/70,
+        .dark-theme .bg-slate-100\/40,
+        .dark-theme .bg-slate-200,
+        .dark-theme .bg-slate-200\/70 {
           background-color: #162033 !important;
           border-color: #26354D !important;
           color: #F1F5F9 !important;
+        }
+        .dark-theme .border-\[\#E6DFD1\],
+        .dark-theme .border-\[\#D5CBB8\],
+        .dark-theme .divide-\[\#E6DFD1\] > :not([hidden]) ~ :not([hidden]) {
+          border-color: #26354D !important;
+        }
+        .dark-theme .text-slate-900,
+        .dark-theme .text-slate-800,
+        .dark-theme .text-slate-700 {
+          color: #F8FAFC !important;
+        }
+        .dark-theme .text-slate-600,
+        .dark-theme .text-slate-500,
+        .dark-theme .text-slate-400 {
+          color: #94A3B8 !important;
+        }
+        .dark-theme .text-amber-900,
+        .dark-theme .text-amber-800,
+        .dark-theme .text-amber-700 {
+          color: #FCD34D !important;
+        }
+        .dark-theme .text-emerald-900,
+        .dark-theme .text-emerald-800,
+        .dark-theme .text-emerald-700 {
+          color: #6EE7B7 !important;
+        }
+        .dark-theme .text-indigo-800,
+        .dark-theme .text-indigo-700 {
+          color: #A5B4FC !important;
+        }
+        .dark-theme .text-rose-700,
+        .dark-theme .text-rose-600 {
+          color: #FDA4AF !important;
         }
         .dark-theme input, .dark-theme select, .dark-theme textarea {
           background-color: #090D16 !important;
@@ -2227,246 +2384,308 @@ ${historyContextStr}`;
       `}</style>
 
       {/* Cintillo Superior de Privacidad del Sistema de Trabajo del Abogado */}
-      <div className="bg-[#0F172A] text-slate-100 border-b border-slate-800 px-4 py-2 text-xs">
+      <div className="bg-[#0F172A] text-slate-100 border-b border-slate-800 px-3 sm:px-6 py-2 text-[11px] sm:text-xs">
         <div className="max-w-[1440px] mx-auto flex flex-wrap items-center justify-between gap-2">
-          <div className="flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-            <span className="font-mono font-bold text-amber-300">SISTEMA JURÍDICO PRIVADO AI GOVERN:</span>
-            <span className="text-slate-200">
+          <div className="flex items-center gap-2 min-w-0">
+            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse shrink-0" />
+            <span className="font-mono font-bold text-amber-300 truncate">SISTEMA JURÍDICO PRIVADO AI GOVERN:</span>
+            <span className="text-slate-200 hidden md:inline">
               {firmName} • Secreto Profesional Blindado (0% Entrenamiento de IA)
             </span>
           </div>
-          <div className="flex items-center gap-4 text-[11px] font-mono text-slate-300">
-            <span><Key className="w-3.5 h-3.5 inline text-amber-400 mr-1" />Motor: {llmProvider.toUpperCase()} ({llmModel})</span>
-            <span><FolderOpen className="w-3.5 h-3.5 inline text-emerald-400 mr-1" />Biblioteca: {templates.length} Modelos</span>
-            <span><Scale className="w-3.5 h-3.5 inline text-indigo-400 mr-1" />Normativa: {ragDocs.length} Cuerpos Legales</span>
+          <div className="flex items-center gap-3 text-[10px] sm:text-[11px] font-mono text-slate-300">
+            <span><Key className="w-3 h-3 inline text-amber-400 mr-1" />{llmProvider.toUpperCase()} ({llmModel})</span>
+            <span><FolderOpen className="w-3 h-3 inline text-emerald-400 mr-1" />{templates.length} Modelos</span>
+            <span><Scale className="w-3 h-3 inline text-indigo-400 mr-1" />{ragDocs.length} Leyes RAG</span>
           </div>
         </div>
       </div>
 
       {/* Notificación flotante */}
       {toastMessage && (
-        <div className="fixed bottom-5 right-5 z-50 max-w-md bg-[#0F172A] text-white border border-amber-500/40 px-4 py-3 rounded-xl shadow-2xl flex items-center gap-3 text-xs">
+        <div className="fixed bottom-4 right-4 left-4 sm:left-auto z-50 max-w-md bg-[#0F172A] text-white border border-amber-500/40 px-4 py-3 rounded-xl shadow-2xl flex items-center gap-3 text-xs">
           <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
           <span className="text-slate-100 font-medium">{toastMessage}</span>
         </div>
       )}
 
-      {/* Cabecera Principal */}
-      <header className="card-surface sticky top-0 z-30 bg-white/95 backdrop-blur border-b border-[#E6DFD1] px-4 sm:px-8 py-3.5">
-        <div className="max-w-[1440px] mx-auto flex flex-wrap items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-[#0F172A] text-[#FAF8F5] flex items-center justify-center font-serif font-bold text-lg shadow-sm border border-amber-500/30">
+      {/* Cabecera Principal con Botón para Esconder/Mostrar la Barra Izquierda y Responsivo Móvil */}
+      <header className="card-surface sticky top-0 z-30 bg-white/95 backdrop-blur border-b border-[#E6DFD1] px-3 sm:px-8 py-3">
+        <div className="max-w-[1440px] mx-auto flex flex-wrap items-center justify-between gap-3">
+          <div className="flex items-center gap-2.5">
+            {/* Botón para ocultar o mostrar la barra izquierda de herramientas */}
+            <button
+              type="button"
+              onClick={() => setIsMainSidebarOpen(!isMainSidebarOpen)}
+              className="px-2.5 py-2 rounded-xl border border-[#E6DFD1] bg-[#FAF8F5] hover:bg-amber-500/10 transition flex items-center gap-1.5 cursor-pointer text-xs font-semibold text-slate-800"
+              title={isMainSidebarOpen ? 'Esconder barra izquierda de módulos' : 'Mostrar barra izquierda de módulos'}
+            >
+              {isMainSidebarOpen ? <ChevronLeft className="w-4 h-4 text-amber-600" /> : <ChevronRight className="w-4 h-4 text-amber-600" />}
+              <span className="hidden sm:inline">{isMainSidebarOpen ? 'Ocultar Menú' : 'Mostrar Menú'}</span>
+            </button>
+
+            <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-[#0F172A] text-[#FAF8F5] flex items-center justify-center font-serif font-bold text-base sm:text-lg shadow-sm border border-amber-500/30 shrink-0">
               AG
             </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <span className="font-serif font-bold text-lg sm:text-xl tracking-tight">AI GOVERN</span>
-                <span className="text-[10px] font-mono uppercase tracking-widest px-2 py-0.5 rounded bg-amber-500/15 text-amber-700 border border-amber-500/30 font-semibold">
+            <div className="min-w-0">
+              <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
+                <span className="font-serif font-bold text-base sm:text-xl tracking-tight">AI GOVERN</span>
+                <span className="text-[9px] sm:text-[10px] font-mono uppercase tracking-widest px-2 py-0.5 rounded bg-amber-500/15 text-amber-700 border border-amber-500/30 font-semibold">
                   Sistema Operativo del Abogado
                 </span>
               </div>
-              <p className="text-[11px] font-mono text-slate-500">
+              <p className="text-[10px] sm:text-[11px] font-mono text-slate-500 truncate">
                 Titular: {lawyerSignerName} • {customPracticeArea}
               </p>
             </div>
           </div>
 
-          <div className="flex items-center gap-2.5">
+          <div className="flex items-center gap-2">
             <button
               type="button"
               onClick={() => setActiveTab('configuracion_sistema')}
-              className="px-3.5 py-2 rounded-xl text-xs font-semibold border border-[#E6DFD1] bg-[#FAF8F5] hover:bg-amber-500/10 transition flex items-center gap-2 cursor-pointer text-slate-800"
+              className="px-3 py-2 rounded-xl text-xs font-semibold border border-[#E6DFD1] bg-[#FAF8F5] hover:bg-amber-500/10 transition flex items-center gap-1.5 cursor-pointer text-slate-800"
             >
-              <Sliders className="w-3.5 h-3.5 text-amber-600" />
-              <span>Configurar API, Modelos y Leyes</span>
+              <Sliders className="w-3.5 h-3.5 text-amber-600 shrink-0" />
+              <span className="hidden md:inline">Configurar API, Modelos y Leyes</span>
+              <span className="md:hidden">Ajustes</span>
             </button>
             <button
               type="button"
               onClick={() => setDarkMode(!darkMode)}
-              className="p-2.5 rounded-xl border border-[#E6DFD1] hover:bg-amber-500/10 transition cursor-pointer"
+              className="p-2 sm:p-2.5 rounded-xl border border-[#E6DFD1] bg-[#FAF8F5] hover:bg-amber-500/10 transition cursor-pointer"
               title="Alternar Modo Claro / Modo Oscuro"
             >
               {darkMode ? <Sun className="w-4 h-4 text-amber-400" /> : <Moon className="w-4 h-4 text-slate-700" />}
             </button>
           </div>
         </div>
+
+        {/* Barra de Navegación Táctil Horizontal para Celulares y Tablets (< lg) */}
+        <div className="lg:hidden mt-2.5 pt-2 border-t border-[#E6DFD1] flex items-center gap-1.5 overflow-x-auto pb-1">
+          {navItems.map((item) => {
+            const isActive = activeTab === item.id;
+            return (
+              <button
+                key={`mob-${item.id}`}
+                type="button"
+                onClick={() => setActiveTab(item.id)}
+                className={`shrink-0 px-3 py-1.5 rounded-xl text-[11px] font-medium flex items-center gap-1.5 cursor-pointer transition ${
+                  isActive
+                    ? 'bg-[#0F172A] text-white font-semibold border border-amber-500/40'
+                    : 'bg-[#FAF8F5] border border-[#E6DFD1] text-slate-700'
+                }`}
+              >
+                <span className={isActive ? 'text-amber-400' : 'text-amber-700'}>{item.icon}</span>
+                <span>{item.label}</span>
+              </button>
+            );
+          })}
+        </div>
       </header>
 
-      {/* Contenedor Principal: Menú Lateral + Área de Trabajo */}
-      <div className="max-w-[1440px] mx-auto px-4 sm:px-8 py-6 grid grid-cols-1 lg:grid-cols-12 gap-6">
-        {/* Barra Lateral de Módulos */}
-        <aside className="lg:col-span-3 space-y-4">
-          <div className="card-surface rounded-2xl p-3 bg-white border border-[#E6DFD1] shadow-sm space-y-1">
-            <div className="px-3 py-2 text-[10px] font-mono uppercase tracking-wider text-slate-500 font-bold">
-              Herramientas de Trabajo Diario
-            </div>
-            {navItems.map((item) => {
-              const isActive = activeTab === item.id;
-              const isConfig = item.id === 'configuracion_sistema';
-              return (
-                <React.Fragment key={item.id}>
-                  {isConfig && (
-                    <div className="pt-2 mt-2 border-t border-[#E6DFD1] px-3 py-1 text-[10px] font-mono uppercase tracking-wider text-slate-500 font-bold">
-                      Ajustes del Despacho (Uso Ocasional)
-                    </div>
-                  )}
-                  <button
-                    type="button"
-                    onClick={() => setActiveTab(item.id)}
-                    className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-medium transition cursor-pointer ${
-                      isActive
-                        ? 'bg-[#0F172A] text-white font-semibold shadow-sm border border-amber-500/40'
-                        : 'hover:bg-amber-500/10 text-slate-700'
-                    }`}
-                  >
-                    <div className="flex items-center gap-2.5 truncate">
-                      <span className={isActive ? 'text-amber-400' : 'text-amber-700'}>{item.icon}</span>
-                      <span className={`truncate ${isActive ? 'text-white' : ''}`}>{item.label}</span>
-                    </div>
-                    <span
-                      className={`text-[10px] font-mono px-1.5 py-0.5 rounded ${
+      {/* Contenedor Principal Responsivo: Menú Lateral Ocultable + Área de Trabajo */}
+      <div className="max-w-[1440px] mx-auto px-3 sm:px-8 py-4 sm:py-6 grid grid-cols-1 lg:grid-cols-12 gap-6">
+        {/* Barra Lateral de Módulos (Se puede esconder con el botón superior y en móvil se controla con el botón de menú) */}
+        {isMainSidebarOpen && (
+          <aside className="hidden lg:block lg:col-span-3 space-y-4">
+            <div className="card-surface rounded-2xl p-3 bg-white border border-[#E6DFD1] shadow-sm space-y-1">
+              <div className="px-3 py-2 flex items-center justify-between text-[10px] font-mono uppercase tracking-wider text-slate-500 font-bold">
+                <span>Herramientas de Trabajo Diario</span>
+                <button
+                  type="button"
+                  onClick={() => setIsMainSidebarOpen(false)}
+                  className="text-amber-700 hover:underline cursor-pointer"
+                  title="Esconder barra lateral"
+                >
+                  Esconder ✕
+                </button>
+              </div>
+              {navItems.map((item) => {
+                const isActive = activeTab === item.id;
+                const isConfig = item.id === 'configuracion_sistema';
+                return (
+                  <React.Fragment key={item.id}>
+                    {isConfig && (
+                      <div className="pt-2 mt-2 border-t border-[#E6DFD1] px-3 py-1 text-[10px] font-mono uppercase tracking-wider text-slate-500 font-bold">
+                        Ajustes del Despacho (Uso Ocasional)
+                      </div>
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => setActiveTab(item.id)}
+                      className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-medium transition cursor-pointer ${
                         isActive
-                          ? 'bg-amber-400/20 text-amber-300'
-                          : 'bg-slate-200/70 text-slate-700'
+                          ? 'bg-[#0F172A] text-white font-semibold shadow-sm border border-amber-500/40'
+                          : 'hover:bg-amber-500/10 text-slate-700'
                       }`}
                     >
-                      {item.badge}
-                    </span>
-                  </button>
-                </React.Fragment>
-              );
-            })}
-          </div>
-
-          {/* Tarjeta Resumen de Privacidad Activa */}
-          <div className="card-surface rounded-2xl p-4 bg-white border border-[#E6DFD1] shadow-sm space-y-2.5 text-xs">
-            <div className="flex items-center justify-between">
-              <span className="font-mono text-[10px] uppercase tracking-wider text-emerald-700 font-bold flex items-center gap-1.5">
-                <Shield className="w-3.5 h-3.5 text-emerald-600" /> Privacidad Blindada
-              </span>
-              <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-700 font-bold">
-                Zero-Training
-              </span>
+                      <div className="flex items-center gap-2.5 truncate">
+                        <span className={isActive ? 'text-amber-400' : 'text-amber-700'}>{item.icon}</span>
+                        <span className={`truncate ${isActive ? 'text-white' : ''}`}>{item.label}</span>
+                      </div>
+                      <span
+                        className={`text-[10px] font-mono px-1.5 py-0.5 rounded ${
+                          isActive
+                            ? 'bg-amber-400/20 text-amber-300'
+                            : 'bg-slate-200/70 text-slate-700'
+                        }`}
+                      >
+                        {item.badge}
+                      </span>
+                    </button>
+                  </React.Fragment>
+                );
+              })}
             </div>
-            <p className="text-[11px] text-slate-600 leading-relaxed">
-              Todo lo que escribas o subas en el Consultor, Redactor y Grabador se anonimiza en memoria RAM antes de consultar la IA. <strong>Nada alimenta ni entrena modelos externos.</strong>
-            </p>
-          </div>
-        </aside>
 
-        {/* Panel Dinámico de los Módulos */}
-        <main className="lg:col-span-9 space-y-6">
+            {/* Tarjeta Resumen de Privacidad Activa */}
+            <div className="card-surface rounded-2xl p-4 bg-white border border-[#E6DFD1] shadow-sm space-y-2.5 text-xs">
+              <div className="flex items-center justify-between">
+                <span className="font-mono text-[10px] uppercase tracking-wider text-emerald-700 font-bold flex items-center gap-1.5">
+                  <Shield className="w-3.5 h-3.5 text-emerald-600" /> Privacidad Blindada
+                </span>
+                <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-700 font-bold">
+                  Zero-Training
+                </span>
+              </div>
+              <p className="text-[11px] text-slate-600 leading-relaxed">
+                Todo lo que escribas o subas en el Consultor, Redactor y Grabador se anonimiza en memoria RAM antes de consultar la IA. <strong>Nada alimenta ni entrena modelos externos.</strong>
+              </p>
+            </div>
+          </aside>
+        )}
+
+        {/* Panel Dinámico de los Módulos (Se expande a 12 columnas cuando la barra izquierda se esconde) */}
+        <main className={isMainSidebarOpen ? 'lg:col-span-9 space-y-6 min-w-0' : 'lg:col-span-12 space-y-6 min-w-0'}>
 
           {/* =================================================================
-              1. CONSULTOR DE IA (INTERFAZ CONVERSACIONAL LIMPIA ESTILO CHATGPT / GEMINI / DEEPSEEK CON HISTORIAL)
+              1. CONSULTOR DE IA (METODOLOGÍA FORENSE DE 4 ETAPAS + HISTORIAL OCULTABLE + RESPONSIVO MÓVIL)
           ================================================================== */}
           {activeTab === 'consultor_ia' && (
             <div className="card-surface rounded-3xl bg-white border border-[#E6DFD1] shadow-sm overflow-hidden">
-              <div className="grid grid-cols-1 lg:grid-cols-12 min-h-[720px]">
+              <div className="grid grid-cols-1 lg:grid-cols-12 min-h-[680px]">
 
-                {/* BARRA LATERAL IZQUIERDA DEL CHAT: HISTORIAL DE CONSULTAS Y CASOS (ESTILO CHATGPT / DEEPSEEK) */}
-                <div className="lg:col-span-3 sub-surface bg-[#FAF8F5] border-b lg:border-b-0 lg:border-r border-[#E6DFD1] p-4 flex flex-col justify-between gap-4">
-                  <div className="space-y-3">
-                    <button
-                      type="button"
-                      onClick={handleStartNewConsultSession}
-                      className="w-full py-2.5 px-3.5 rounded-xl bg-[#0F172A] hover:bg-slate-800 text-white text-xs font-semibold flex items-center justify-center gap-2 cursor-pointer shadow-sm transition"
-                    >
-                      <Plus className="w-4 h-4 text-amber-400" />
-                      <span>Nueva Consulta / Caso</span>
-                    </button>
+                {/* BARRA IZQUIERDA INTERNA: HISTORIAL DE CONSULTAS (OCULTABLE EN ESCRITORIO Y CELULAR) */}
+                {isHistorySidebarOpen && (
+                  <div className="lg:col-span-3 sub-surface bg-[#FAF8F5] border-b lg:border-b-0 lg:border-r border-[#E6DFD1] p-3.5 sm:p-4 flex flex-col justify-between gap-4">
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="text-[10px] font-mono uppercase tracking-wider text-slate-500 font-bold">
+                          Historial de Consultas ({consultSessions.length})
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => setIsHistorySidebarOpen(false)}
+                          className="text-[11px] font-mono text-amber-800 hover:underline cursor-pointer"
+                          title="Esconder panel de historial"
+                        >
+                          Ocultar ✕
+                        </button>
+                      </div>
 
-                    <div className="relative">
-                      <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-2.5" />
-                      <input
-                        type="text"
-                        value={historySearchQuery}
-                        onChange={(e) => setHistorySearchQuery(e.target.value)}
-                        placeholder="Buscar en el historial..."
-                        className="w-full pl-8 pr-3 py-2 rounded-xl border text-xs bg-white border-[#D5CBB8]"
-                      />
-                    </div>
+                      <button
+                        type="button"
+                        onClick={handleStartNewConsultSession}
+                        className="w-full py-2.5 px-3.5 rounded-xl bg-[#0F172A] hover:bg-slate-800 text-white text-xs font-semibold flex items-center justify-center gap-2 cursor-pointer shadow-sm transition"
+                      >
+                        <Plus className="w-4 h-4 text-amber-400" />
+                        <span>Nueva Consulta / Caso</span>
+                      </button>
 
-                    <div className="text-[10px] font-mono uppercase tracking-wider text-slate-500 font-bold px-1 pt-1">
-                      Historial de Consultas ({consultSessions.length})
-                    </div>
+                      <div className="relative">
+                        <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-2.5" />
+                        <input
+                          type="text"
+                          value={historySearchQuery}
+                          onChange={(e) => setHistorySearchQuery(e.target.value)}
+                          placeholder="Buscar expediente o consulta..."
+                          className="w-full pl-8 pr-3 py-2 rounded-xl border text-xs bg-white border-[#D5CBB8]"
+                        />
+                      </div>
 
-                    <div className="space-y-1.5 max-h-[460px] overflow-y-auto pr-1">
-                      {consultSessions
-                        .filter(s =>
-                          s.title.toLowerCase().includes(historySearchQuery.toLowerCase()) ||
-                          s.matterTag.toLowerCase().includes(historySearchQuery.toLowerCase())
-                        )
-                        .map((sess) => {
-                          const isCurrent = sess.id === activeSessionId;
-                          return (
-                            <div
-                              key={sess.id}
-                              className={`group rounded-xl border p-2.5 text-xs transition ${
-                                isCurrent
-                                  ? 'bg-[#0F172A] text-white border-amber-500/40 shadow-sm'
-                                  : 'bg-white border-[#E6DFD1] hover:border-amber-500 text-slate-800'
-                              }`}
-                            >
-                              <div className="flex items-start justify-between gap-1.5">
-                                <button
-                                  type="button"
-                                  onClick={() => handleSelectConsultSession(sess)}
-                                  className="text-left flex-1 min-w-0 cursor-pointer"
-                                >
-                                  <div className="font-semibold truncate">{sess.title}</div>
-                                  <div className={`text-[10px] font-mono mt-1 flex items-center gap-1.5 ${isCurrent ? 'text-amber-300' : 'text-slate-500'}`}>
-                                    <span>{sess.matterTag}</span>
-                                    <span>•</span>
-                                    <span>{sess.turns.length} msj</span>
-                                  </div>
-                                </button>
-                                {consultSessions.length > 1 && (
+                      <div className="space-y-1.5 max-h-[220px] lg:max-h-[430px] overflow-y-auto pr-1">
+                        {consultSessions
+                          .filter(s =>
+                            s.title.toLowerCase().includes(historySearchQuery.toLowerCase()) ||
+                            s.matterTag.toLowerCase().includes(historySearchQuery.toLowerCase())
+                          )
+                          .map((sess) => {
+                            const isCurrent = sess.id === activeSessionId;
+                            return (
+                              <div
+                                key={sess.id}
+                                className={`rounded-xl border p-2.5 text-xs transition ${
+                                  isCurrent
+                                    ? 'bg-[#0F172A] text-white border-amber-500/40 shadow-sm'
+                                    : 'card-surface bg-white border-[#E6DFD1] hover:border-amber-500 text-slate-800'
+                                }`}
+                              >
+                                <div className="flex items-start justify-between gap-1.5">
                                   <button
                                     type="button"
-                                    onClick={() => handleDeleteConsultSession(sess.id)}
-                                    title="Eliminar conversación"
-                                    className={`text-[10px] font-mono px-1.5 py-0.5 rounded cursor-pointer ${
-                                      isCurrent ? 'text-slate-300 hover:bg-slate-800' : 'text-slate-400 hover:text-rose-600'
-                                    }`}
+                                    onClick={() => handleSelectConsultSession(sess)}
+                                    className="text-left flex-1 min-w-0 cursor-pointer"
                                   >
-                                    ✕
+                                    <div className={`font-semibold truncate ${isCurrent ? 'text-white' : ''}`}>{sess.title}</div>
+                                    <div className={`text-[10px] font-mono mt-1 flex items-center gap-1.5 ${isCurrent ? 'text-amber-300' : 'text-slate-500'}`}>
+                                      <span>{sess.matterTag}</span>
+                                      <span>•</span>
+                                      <span>{sess.turns.length} dictamen(es)</span>
+                                    </div>
                                   </button>
-                                )}
+                                  {consultSessions.length > 1 && (
+                                    <button
+                                      type="button"
+                                      onClick={() => handleDeleteConsultSession(sess.id)}
+                                      title="Eliminar consulta"
+                                      className={`text-[10px] font-mono px-1.5 py-0.5 rounded cursor-pointer ${
+                                        isCurrent ? 'text-slate-300 hover:bg-slate-800' : 'text-slate-400 hover:text-rose-600'
+                                      }`}
+                                    >
+                                      ✕
+                                    </button>
+                                  )}
+                                </div>
                               </div>
-                            </div>
-                          );
-                        })}
-                    </div>
-                  </div>
-
-                  {/* Resumen compacto de fuentes activas en el RAG y Biblioteca */}
-                  <div className="p-3 rounded-xl bg-white border border-[#E6DFD1] space-y-1.5 text-[11px]">
-                    <div className="font-mono text-[10px] uppercase text-emerald-800 font-bold flex items-center gap-1.5">
-                      <Scale className="w-3.5 h-3.5 text-emerald-600" /> Modo Cero Alucinación
-                    </div>
-                    <p className="text-slate-600 leading-snug">
-                      El Consultor responde anclado a tus <strong>{ragDocs.length} leyes (RAG)</strong> y a tus <strong>{templates.length} modelos de biblioteca</strong>.
-                    </p>
-                  </div>
-                </div>
-
-                {/* ÁREA CENTRAL DE CHAT CONVERSACIONAL (ESTILO GEMINI / CHATGPT / DEEPSEEK) */}
-                <div className="lg:col-span-9 flex flex-col justify-between p-4 sm:p-6 bg-white">
-
-                  {/* Cabecera minimalista de 1 sola línea */}
-                  <div className="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-[#E6DFD1]">
-                    <div className="flex items-center gap-2.5">
-                      <div className="w-8 h-8 rounded-xl bg-[#0F172A] text-amber-300 flex items-center justify-center font-serif font-bold text-xs">
-                        AG
+                            );
+                          })}
                       </div>
-                      <div>
-                        <h2 className="font-serif font-bold text-base sm:text-lg leading-tight">
-                          {activeSession?.title || 'Socio Consultor Jurídico de IA'}
+                    </div>
+
+                    <div className="card-surface p-3 rounded-xl bg-white border border-[#E6DFD1] space-y-1 text-[11px]">
+                      <div className="font-mono text-[10px] uppercase text-emerald-800 font-bold flex items-center gap-1.5">
+                        <Scale className="w-3.5 h-3.5 text-emerald-600" /> Metodología Forense
+                      </div>
+                      <p className="text-slate-600 leading-snug">
+                        1º Base Legal y Artículos • 2º Opciones • 3º Escenarios y Consecuencias • 4º Decisión de Ejecución y Redacción.
+                      </p>
+                    </div>
+                  </div>
+                )}
+
+                {/* ÁREA CENTRAL DEL CONSULTOR (SE EXPANDE AL 100% CUANDO EL HISTORIAL SE OCULTA) */}
+                <div className={`${isHistorySidebarOpen ? 'lg:col-span-9' : 'lg:col-span-12'} card-surface flex flex-col justify-between p-3.5 sm:p-6 bg-white min-w-0`}>
+
+                  {/* Cabecera del Consultor con botón para mostrar/esconder Historial */}
+                  <div className="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-[#E6DFD1]">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <button
+                        type="button"
+                        onClick={() => setIsHistorySidebarOpen(!isHistorySidebarOpen)}
+                        className="px-2.5 py-1.5 rounded-xl border border-[#E6DFD1] bg-[#FAF8F5] text-slate-800 font-mono text-[11px] font-semibold hover:bg-amber-500/10 cursor-pointer flex items-center gap-1 shrink-0"
+                        title={isHistorySidebarOpen ? 'Esconder barra de historial' : 'Mostrar barra de historial'}
+                      >
+                        {isHistorySidebarOpen ? <ChevronLeft className="w-3.5 h-3.5 text-amber-600" /> : <ChevronRight className="w-3.5 h-3.5 text-amber-600" />}
+                        <span>{isHistorySidebarOpen ? 'Ocultar Historial' : `Historial (${consultSessions.length})`}</span>
+                      </button>
+
+                      <div className="min-w-0">
+                        <h2 className="font-serif font-bold text-sm sm:text-lg leading-tight truncate">
+                          {activeSession?.title || 'Consultor Jurídico Forense'}
                         </h2>
-                        <span className="text-[11px] font-mono text-emerald-700 font-semibold">
-                          ✓ Especialista en tu RAG ({ragDocs.length} Leyes) y Biblioteca ({templates.length} Modelos) • 0% Entrenamiento
+                        <span className="text-[10px] sm:text-[11px] font-mono text-emerald-700 font-semibold block truncate">
+                          Rigor Metodológico: Base Legal ({ragDocs.length} Leyes) → Opciones → Escenarios → Ejecución ({templates.length} Modelos)
                         </span>
                       </div>
                     </div>
@@ -2483,7 +2702,7 @@ ${historyContextStr}`;
                     </div>
                   </div>
 
-                  {/* Panel opcional desplegable de inspección de privacidad (oculto por defecto para mantener la interfaz limpia) */}
+                  {/* Vista opcional de inspección del payload sanitizado */}
                   {consultShowSanitizedPayload && (
                     <div className="my-3 p-3.5 rounded-2xl bg-[#0F172A] text-slate-100 font-mono text-xs space-y-2 border border-emerald-500/40">
                       <div className="flex flex-wrap items-center justify-between gap-2">
@@ -2513,133 +2732,134 @@ ${historyContextStr}`;
                     </div>
                   )}
 
-                  {/* HILO DE MENSAJES DEL CHAT (ESTILO CHATGPT / GEMINI / DEEPSEEK) */}
-                  <div className="flex-1 py-4 space-y-5 max-h-[470px] overflow-y-auto pr-1">
+                  {/* HILO DE DICTÁMENES Y CONSULTAS */}
+                  <div className="flex-1 py-4 space-y-5 max-h-[500px] overflow-y-auto pr-1">
                     {consultThread.length === 0 ? (
-                      <div className="h-full flex flex-col items-center justify-center text-center py-10 px-4 space-y-4">
-                        <div className="w-12 h-12 rounded-2xl bg-[#0F172A] text-amber-300 flex items-center justify-center font-serif font-bold text-lg shadow-sm">
+                      <div className="h-full flex flex-col items-center justify-center text-center py-8 px-3 space-y-4">
+                        <div className="w-11 h-11 rounded-2xl bg-[#0F172A] text-amber-300 flex items-center justify-center font-serif font-bold text-base shadow-sm border border-amber-500/30">
                           AG
                         </div>
                         <div className="max-w-xl space-y-1.5">
-                          <h3 className="font-serif text-xl font-bold">
-                            ¿Qué caso resolvemos o redactamos hoy, Colega?
+                          <h3 className="font-serif text-lg sm:text-xl font-bold">
+                            Planteamiento de Consulta Jurídica y Análisis de Caso
                           </h3>
                           <p className="text-xs text-slate-500 leading-relaxed">
-                            Háblame con naturalidad como a tu socio consultor: pídeme ideas estratégicas, soluciones para un cliente, redacción de cláusulas o escritos, o adjunta contratos (`.DOC` / `.PDF`), fotos o conversaciones de WhatsApp. Respondo estrictamente con tus leyes del RAG y tus modelos para no inventar ni alucinar nada.
+                            Expón los hechos de la controversia o adjunta los instrumentos y comunicaciones del cliente. El sistema estructurará el dictamen bajo metodología forense: <strong>I. Base Legal y Artículos Involucrados</strong>, <strong>II. Opciones Jurídicas</strong>, <strong>III. Escenarios y Consecuencias</strong> y <strong>IV. Decisión de Ejecución y Redacción</strong>.
                           </p>
                         </div>
 
-                        {/* Sugerencias limpias de 1 clic estilo ChatGPT / Gemini */}
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 w-full max-w-2xl text-left text-xs pt-2">
                           <button
                             type="button"
                             onClick={() =>
                               setConsultQuery(
-                                'Mi cliente pagó 85.000 USD por un apartamento a Inversiones Alfa (J-30948271-0) y el vendedor se niega a entregarlo y firmar en Registro. Dame ideas estratégicas y redáctame la cláusula o intimación.'
+                                'Necesito evaluar las acciones legales por incumplimiento en la entrega de un inmueble vendido por 85.000 USD por parte de Inversiones Alfa (ID J-30948271-0), correo legal@alfa.com. ¿Procede resolución de contrato con daños y perjuicios o cumplimiento forzoso?'
                               )
                             }
-                            className="p-3 rounded-2xl border border-[#E6DFD1] bg-[#FAF8F5] hover:border-amber-500 transition cursor-pointer space-y-1"
+                            className="sub-surface p-3 rounded-2xl border border-[#E6DFD1] bg-[#FAF8F5] hover:border-amber-500 transition cursor-pointer space-y-1"
                           >
-                            <div className="font-semibold text-slate-800">💡 Ideas estratégicas y redacción inmobiliaria</div>
-                            <div className="text-[11px] text-slate-500 truncate">Incumplimiento de entrega de inmueble, prohibición de enajenar y cláusula...</div>
+                            <div className="font-semibold text-slate-800">I. Incumplimiento en Compraventa Inmobiliaria</div>
+                            <div className="text-[11px] text-slate-500 truncate">Artículos 1.167 y 1.486 CC, Prohibición de Enajenar (Art. 588 CPC) y escenarios...</div>
                           </button>
 
                           <button
                             type="button"
                             onClick={() =>
                               setConsultQuery(
-                                'El inquilino Comercializadora Nova, S.A. debe 3 meses de alquiler del local comercial. ¿Qué estrategia me recomiendas según mi modelo de arrendamiento y cómo redactamos el requerimiento?'
+                                'El arrendatario Comercializadora Nova, S.A. adeuda tres (03) mensualidades de canon de arrendamiento (1.500,00 USD mensuales) del local comercial propiedad de Inversiones Torre Central, C.A. Analiza base legal, opciones, escenarios y ejecución contra el inquilino y el fiador solidario.'
                               )
                             }
-                            className="p-3 rounded-2xl border border-[#E6DFD1] bg-[#FAF8F5] hover:border-amber-500 transition cursor-pointer space-y-1"
+                            className="sub-surface p-3 rounded-2xl border border-[#E6DFD1] bg-[#FAF8F5] hover:border-amber-500 transition cursor-pointer space-y-1"
                           >
-                            <div className="font-semibold text-slate-800">✍️ Resolver mora en Arrendamiento Comercial</div>
-                            <div className="text-[11px] text-slate-500 truncate">Ejecución de fianza solidaria, intimación y resguardo del local...</div>
+                            <div className="font-semibold text-slate-800">II. Mora y Ejecución en Arrendamiento Comercial</div>
+                            <div className="text-[11px] text-slate-500 truncate">Artículos 1.592 y 1.813 CC, Secuestro Cautelar (Art. 599 CPC) y ejecución...</div>
                           </button>
 
                           <button
                             type="button"
                             onClick={() =>
                               setConsultQuery(
-                                'Convocaron una Asamblea Extraordinaria en Grupo Industrial Delta, C.A. sin avisar a mi cliente que tiene el 35% de las acciones. Dame ideas para frenarla hoy mismo y redáctame la oposición.'
+                                'En la sociedad Grupo Industrial Delta, C.A. se celebró una Asamblea Extraordinaria de Accionistas sin cumplir las formalidades de convocatoria previa para modificar la Junta Directiva y diluir al socio minoritario. Analiza los artículos del Código de Comercio, escenarios e impugnación.'
                               )
                             }
-                            className="p-3 rounded-2xl border border-[#E6DFD1] bg-[#FAF8F5] hover:border-amber-500 transition cursor-pointer space-y-1"
+                            className="sub-surface p-3 rounded-2xl border border-[#E6DFD1] bg-[#FAF8F5] hover:border-amber-500 transition cursor-pointer space-y-1"
                           >
-                            <div className="font-semibold text-slate-800">⚖️ Impugnar Asamblea Mercantil sin convocatoria</div>
-                            <div className="text-[11px] text-slate-500 truncate">Acciones bajo el Código de Comercio, suspensión cautelar y escrito...</div>
+                            <div className="font-semibold text-slate-800">III. Impugnación de Asamblea Societaria (Art. 290 C.Com.)</div>
+                            <div className="text-[11px] text-slate-500 truncate">Artículos 277, 280 y 290 del Código de Comercio, oposición y suspensión...</div>
                           </button>
 
                           <button
                             type="button"
                             onClick={() =>
                               setConsultQuery(
-                                'Un coheredero quiere vender un apartamento de la herencia sin haber declarado la sucesión ni respetar la cuota legítima ni el 50% de la viuda. ¿Qué hacemos y qué redactamos?'
+                                'Apertura de sucesión ab intestato donde uno de los coherederos pretende enajenar un inmueble de la masa hereditaria sin haberse liquidado el 50% de la comunidad conyugal de la viuda, sin declaración sucesoral y lesionando la cuota legítima. Analiza base legal, escenarios y ejecución.'
                               )
                             }
-                            className="p-3 rounded-2xl border border-[#E6DFD1] bg-[#FAF8F5] hover:border-amber-500 transition cursor-pointer space-y-1"
+                            className="sub-surface p-3 rounded-2xl border border-[#E6DFD1] bg-[#FAF8F5] hover:border-amber-500 transition cursor-pointer space-y-1"
                           >
-                            <div className="font-semibold text-slate-800">📜 Proteger Herencia y Cuota Legítima (Art. 883 CC)</div>
-                            <div className="text-[11px] text-slate-500 truncate">Defensa de comunidad conyugal, solvencia sucesoral y bloqueo registral...</div>
+                            <div className="font-semibold text-slate-800">IV. Comunidad Conyugal, Legítima y Partición Sucesoral</div>
+                            <div className="text-[11px] text-slate-500 truncate">Artículos 148, 168, 883 y 1.067 del Código Civil y bloqueo registral...</div>
                           </button>
                         </div>
                       </div>
                     ) : (
                       consultThread.map((turn) => (
                         <div key={turn.id} className="space-y-3">
-                          {/* Burbuja del Abogado (Derecha) */}
+                          {/* Planteamiento del Abogado */}
                           <div className="flex justify-end">
-                            <div className="max-w-2xl rounded-2xl rounded-tr-sm bg-[#0F172A] text-white px-4 py-3 text-xs sm:text-sm space-y-2 shadow-sm">
-                              <p className="leading-relaxed whitespace-pre-wrap">{turn.lawyerQuestion}</p>
+                            <div className="max-w-2xl rounded-2xl rounded-tr-sm bg-[#0F172A] text-white px-4 py-3 text-xs sm:text-sm space-y-2 shadow-sm border border-slate-700">
+                              <div className="text-[10px] font-mono uppercase text-amber-300 font-bold">
+                                Planteamiento Jurídico Sometido a Análisis ({turn.timestamp}):
+                              </div>
+                              <p className="leading-relaxed whitespace-pre-wrap text-slate-100">{turn.lawyerQuestion}</p>
                               {turn.attachmentsUsed && turn.attachmentsUsed.length > 0 && (
                                 <div className="flex flex-wrap gap-1.5 pt-1 border-t border-slate-700">
                                   {turn.attachmentsUsed.map((attName, i) => (
                                     <span key={i} className="text-[10px] font-mono px-2 py-0.5 rounded bg-amber-500/20 text-amber-300">
-                                      📎 {attName}
+                                      Recaudo: {attName}
                                     </span>
                                   ))}
                                 </div>
                               )}
                               <div className="text-[10px] font-mono text-slate-400 text-right">
-                                {turn.timestamp} • {turn.tokensProtected} datos PII anonimizados en RAM
+                                {turn.tokensProtected} identificadores protegidos en RAM
                               </div>
                             </div>
                           </div>
 
-                          {/* Burbuja del Socio Consultor Jurídico AI GOVERN (Izquierda, estilo Gemini / DeepSeek) */}
-                          <div className="flex items-start gap-3">
-                            <div className="w-8 h-8 rounded-xl bg-amber-500/20 border border-amber-500/40 text-amber-900 flex items-center justify-center font-serif font-bold text-xs shrink-0 mt-0.5">
+                          {/* Dictamen Forense Estructurado en 4 Etapas */}
+                          <div className="flex items-start gap-2.5 sm:gap-3">
+                            <div className="hidden sm:flex w-8 h-8 rounded-xl bg-[#0F172A] text-amber-300 items-center justify-center font-serif font-bold text-xs shrink-0 mt-0.5 border border-amber-500/30">
                               AG
                             </div>
-                            <div className="flex-1 min-w-0 sub-surface rounded-2xl rounded-tl-sm bg-[#FAF8F5] border border-[#E6DFD1] p-4 sm:p-5 space-y-3.5 text-xs sm:text-sm">
-                              {/* Píldoras de fuentes verificadas del RAG y Biblioteca */}
-                              <div className="flex flex-wrap items-center justify-between gap-2 pb-2 border-b border-[#E6DFD1]">
+                            <div className="flex-1 min-w-0 sub-surface rounded-2xl rounded-tl-sm bg-[#FAF8F5] border border-[#E6DFD1] p-3.5 sm:p-5 space-y-4 text-xs sm:text-sm">
+                              <div className="flex flex-wrap items-center justify-between gap-2 pb-2.5 border-b border-[#E6DFD1]">
                                 <div className="flex flex-wrap gap-1.5">
                                   {turn.citations.map((cit, i) => (
                                     <span key={i} className="text-[10px] font-mono px-2 py-0.5 rounded-md bg-indigo-500/10 text-indigo-800 border border-indigo-500/20 font-semibold">
-                                      ⚖️ RAG: {cit}
+                                      Ley Analizada (RAG): {cit}
                                     </span>
                                   ))}
                                   <span className="text-[10px] font-mono px-2 py-0.5 rounded-md bg-amber-500/15 text-amber-900 border border-amber-500/30 font-semibold">
-                                    📁 Modelo: {turn.recommendedTemplateName}
+                                    Matriz de Biblioteca: {turn.recommendedTemplateName}
                                   </span>
                                 </div>
                                 <span className="text-[10px] font-mono text-slate-400">
-                                  SHA-256: {turn.hash.slice(0, 14)}...
+                                  Sello SHA-256: {turn.hash.slice(0, 14)}...
                                 </span>
                               </div>
 
-                              {/* Cuerpo de la respuesta del Consultor */}
-                              <div className="font-serif text-xs sm:text-sm leading-relaxed text-slate-800 whitespace-pre-wrap">
+                              {/* Texto del Dictamen en 4 Fases */}
+                              <div className="card-surface p-3.5 sm:p-5 rounded-xl bg-white border border-[#E6DFD1] font-serif text-xs sm:text-sm leading-relaxed text-slate-800 whitespace-pre-wrap">
                                 {turn.dictamen}
                               </div>
 
-                              {/* Respuesta corta lista para copiar y enviar al cliente por WhatsApp/Correo */}
+                              {/* Síntesis ejecutiva para remitir al cliente */}
                               {turn.clientReadyReply && (
-                                <div className="p-3 rounded-xl bg-white border border-[#E6DFD1] text-xs space-y-1">
-                                  <div className="flex items-center justify-between">
+                                <div className="card-surface p-3 rounded-xl bg-white border border-[#E6DFD1] text-xs space-y-1.5">
+                                  <div className="flex flex-wrap items-center justify-between gap-2">
                                     <span className="font-mono text-[10px] uppercase text-amber-800 font-bold">
-                                      💬 Mensaje Ejecutivo Listo para Responderle a tu Cliente:
+                                      Comunicación Ejecutiva para Informar al Cliente:
                                     </span>
                                     <button
                                       type="button"
@@ -2647,18 +2867,18 @@ ${historyContextStr}`;
                                         if (navigator.clipboard?.writeText) {
                                           navigator.clipboard.writeText(turn.clientReadyReply);
                                         }
-                                        showToast('Respuesta para el cliente copiada al portapapeles.');
+                                        showToast('Comunicación para el cliente copiada al portapapeles.');
                                       }}
                                       className="text-[11px] font-semibold text-amber-800 hover:underline flex items-center gap-1 cursor-pointer"
                                     >
-                                      <Copy className="w-3 h-3" /> Copiar para WhatsApp
+                                      <Copy className="w-3 h-3" /> Copiar Texto para Cliente
                                     </button>
                                   </div>
-                                  <p className="text-slate-600 italic">{turn.clientReadyReply}</p>
+                                  <p className="text-slate-700 leading-relaxed">{turn.clientReadyReply}</p>
                                 </div>
                               )}
 
-                              {/* Barra de acciones debajo del mensaje (estilo ChatGPT / Gemini) */}
+                              {/* Barra de acciones del Dictamen */}
                               <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-[#E6DFD1] text-xs">
                                 <button
                                   type="button"
@@ -2666,11 +2886,11 @@ ${historyContextStr}`;
                                     if (navigator.clipboard?.writeText) {
                                       navigator.clipboard.writeText(turn.dictamen);
                                     }
-                                    showToast('Dictamen y redacción copiados al portapapeles.');
+                                    showToast('Dictamen jurídico copiado íntegramente al portapapeles.');
                                   }}
-                                  className="px-3 py-1.5 rounded-xl border border-[#D5CBB8] bg-white text-slate-700 font-semibold flex items-center gap-1.5 cursor-pointer hover:bg-slate-100"
+                                  className="px-3 py-1.5 rounded-xl border border-[#D5CBB8] bg-white text-slate-700 font-semibold flex items-center gap-1.5 cursor-pointer hover:bg-amber-500/10"
                                 >
-                                  <Copy className="w-3.5 h-3.5" /> Copiar Redacción
+                                  <Copy className="w-3.5 h-3.5" /> Copiar Dictamen y Redacción
                                 </button>
 
                                 <div className="flex flex-wrap gap-2">
@@ -2699,21 +2919,20 @@ ${historyContextStr}`;
                     )}
                   </div>
 
-                  {/* CAJA INFERIOR UNIFICADA DE MENSAJES Y ADJUNTOS (ESTILO CHATGPT / GEMINI / DEEPSEEK) */}
+                  {/* BARRA INFERIOR UNIFICADA DE CONSULTA Y RECAUDOS */}
                   <div className="pt-3 border-t border-[#E6DFD1] space-y-2">
 
-                    {/* Popover rápido si el abogado quiere pegar una conversación de WhatsApp/Correo */}
                     {showConversationPasteBox && (
-                      <div className="p-3.5 rounded-2xl bg-[#FAF8F5] border border-[#D5CBB8] space-y-2 text-xs">
-                        <div className="flex items-center justify-between">
+                      <div className="sub-surface p-3.5 rounded-2xl bg-[#FAF8F5] border border-[#D5CBB8] space-y-2 text-xs">
+                        <div className="flex flex-wrap items-center justify-between gap-2">
                           <span className="font-mono text-[11px] uppercase text-amber-800 font-bold">
-                            💬 Pegar Conversación de WhatsApp o Correo del Cliente:
+                            Incorporar Comunicación de WhatsApp, Correo o Cláusula del Caso:
                           </span>
                           <button
                             type="button"
                             onClick={() =>
                               setConversationTextInput(
-                                '[10:14] Cliente María Salazar (V-18.987.654): Dra., transferí los 85.000 USD a la cuenta 0134-0031-88-0311098765 de Inversiones Alfa (J-30948271-0), pero dicen que no entregarán el apartamento hasta dentro de 4 meses.'
+                                '[10:14] Cliente María Salazar (V-18.987.654): Dra., transferí los 85.000 USD a la cuenta 0134-0031-88-0311098765 de Inversiones Alfa (J-30948271-0), pero el representante me indica que no firmarán en el Registro Público sino dentro de 4 meses.'
                               )
                             }
                             className="text-[10px] font-mono px-2 py-0.5 rounded bg-amber-500/15 text-amber-800 font-semibold cursor-pointer"
@@ -2725,7 +2944,7 @@ ${historyContextStr}`;
                           rows={2}
                           value={conversationTextInput}
                           onChange={(e) => setConversationTextInput(e.target.value)}
-                          placeholder="Pega aquí los mensajes de WhatsApp o el correo que te mandó el cliente..."
+                          placeholder="Pega aquí la comunicación del cliente o de la contraparte para integrarla al análisis..."
                           className="w-full p-2.5 rounded-xl border bg-white border-[#D5CBB8] text-xs"
                         />
                         <div className="flex justify-end gap-2">
@@ -2747,16 +2966,15 @@ ${historyContextStr}`;
                       </div>
                     )}
 
-                    {/* Chips de archivos/conversaciones adjuntos al mensaje por enviar */}
                     {consultAttachments.length > 0 && (
                       <div className="flex flex-wrap gap-1.5 px-1">
                         {consultAttachments.map((att) => (
                           <div
                             key={att.id}
-                            className="inline-flex items-center gap-2 px-2.5 py-1 rounded-xl bg-[#FAF8F5] border border-[#D5CBB8] text-[11px]"
+                            className="sub-surface inline-flex items-center gap-2 px-2.5 py-1 rounded-xl bg-[#FAF8F5] border border-[#D5CBB8] text-[11px]"
                           >
                             <span className="font-mono font-bold text-amber-800">{att.kind}:</span>
-                            <span className="font-medium truncate max-w-[180px]">{att.name}</span>
+                            <span className="font-medium truncate max-w-[160px]">{att.name}</span>
                             <span className="text-[10px] font-mono text-emerald-700">({att.piiProtectedCount} PII)</span>
                             <button
                               type="button"
@@ -2770,7 +2988,6 @@ ${historyContextStr}`;
                       </div>
                     )}
 
-                    {/* Composer Box Unificado */}
                     <div className="sub-surface rounded-2xl bg-[#FAF8F5] border border-[#D5CBB8] p-3 space-y-2.5 shadow-sm">
                       <textarea
                         rows={2}
@@ -2785,14 +3002,13 @@ ${historyContextStr}`;
                             handleRunConsultor();
                           }
                         }}
-                        className="w-full px-2 py-1 rounded-xl bg-transparent border-0 focus:outline-none text-xs sm:text-sm resize-none"
-                        placeholder="Pregúntale a tu Socio Consultor, pídele ideas, redacciones o pega lo que te solicita el cliente (Enter para enviar)..."
+                        className="w-full px-2.5 py-1.5 rounded-xl border border-transparent text-xs sm:text-sm resize-none"
+                        placeholder="Expón el caso jurídico, solicita el análisis de artículos, opciones, escenarios y consecuencias o pide la redacción del instrumento..."
                       />
 
                       <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-[#E6DFD1]">
-                        {/* Botones compactos para adjuntar Imágenes, Word, PDF o Conversaciones y elegir Ley/Modelo */}
                         <div className="flex flex-wrap items-center gap-1.5 text-[11px]">
-                          <label className="px-2.5 py-1.5 rounded-xl bg-white border border-[#D5CBB8] hover:border-amber-500 font-semibold flex items-center gap-1.5 cursor-pointer text-slate-700">
+                          <label className="card-surface px-2.5 py-1.5 rounded-xl bg-white border border-[#D5CBB8] hover:border-amber-500 font-semibold flex items-center gap-1.5 cursor-pointer text-slate-700">
                             <Camera className="w-3.5 h-3.5 text-amber-600" />
                             <span>Imagen</span>
                             <input
@@ -2806,7 +3022,7 @@ ${historyContextStr}`;
                             />
                           </label>
 
-                          <label className="px-2.5 py-1.5 rounded-xl bg-white border border-[#D5CBB8] hover:border-amber-500 font-semibold flex items-center gap-1.5 cursor-pointer text-slate-700">
+                          <label className="card-surface px-2.5 py-1.5 rounded-xl bg-white border border-[#D5CBB8] hover:border-amber-500 font-semibold flex items-center gap-1.5 cursor-pointer text-slate-700">
                             <FileText className="w-3.5 h-3.5 text-indigo-600" />
                             <span>.DOC</span>
                             <input
@@ -2820,7 +3036,7 @@ ${historyContextStr}`;
                             />
                           </label>
 
-                          <label className="px-2.5 py-1.5 rounded-xl bg-white border border-[#D5CBB8] hover:border-amber-500 font-semibold flex items-center gap-1.5 cursor-pointer text-slate-700">
+                          <label className="card-surface px-2.5 py-1.5 rounded-xl bg-white border border-[#D5CBB8] hover:border-amber-500 font-semibold flex items-center gap-1.5 cursor-pointer text-slate-700">
                             <FileUp className="w-3.5 h-3.5 text-emerald-600" />
                             <span>.PDF</span>
                             <input
@@ -2837,7 +3053,7 @@ ${historyContextStr}`;
                           <button
                             type="button"
                             onClick={() => setShowConversationPasteBox(!showConversationPasteBox)}
-                            className="px-2.5 py-1.5 rounded-xl bg-white border border-[#D5CBB8] hover:border-amber-500 font-semibold flex items-center gap-1.5 cursor-pointer text-slate-700"
+                            className="card-surface px-2.5 py-1.5 rounded-xl bg-white border border-[#D5CBB8] hover:border-amber-500 font-semibold flex items-center gap-1.5 cursor-pointer text-slate-700"
                           >
                             <MessageSquare className="w-3.5 h-3.5 text-amber-500" />
                             <span>Chat Cliente</span>
@@ -2846,9 +3062,9 @@ ${historyContextStr}`;
                           <select
                             value={consultSelectedLawId}
                             onChange={(e) => setConsultSelectedLawId(e.target.value)}
-                            className="px-2.5 py-1.5 rounded-xl border bg-white border-[#D5CBB8] text-[11px] font-medium max-w-[175px]"
+                            className="px-2.5 py-1.5 rounded-xl border bg-white border-[#D5CBB8] text-[11px] font-medium max-w-[165px]"
                           >
-                            <option value="auto">⚖️ RAG: Todas las Leyes</option>
+                            <option value="auto">Ley RAG: Todas</option>
                             {ragDocs.map(doc => (
                               <option key={doc.id} value={doc.id}>{doc.title}</option>
                             ))}
@@ -2857,22 +3073,21 @@ ${historyContextStr}`;
                           <select
                             value={consultSelectedTemplateId}
                             onChange={(e) => setConsultSelectedTemplateId(e.target.value)}
-                            className="px-2.5 py-1.5 rounded-xl border bg-white border-[#D5CBB8] text-[11px] font-medium max-w-[175px]"
+                            className="px-2.5 py-1.5 rounded-xl border bg-white border-[#D5CBB8] text-[11px] font-medium max-w-[165px]"
                           >
-                            <option value="auto">📁 Modelo: Automático</option>
+                            <option value="auto">Modelo: Automático</option>
                             {templates.map(tpl => (
                               <option key={tpl.id} value={tpl.id}>{tpl.name}</option>
                             ))}
                           </select>
                         </div>
 
-                        {/* Botones de envío en el chat */}
-                        <div className="flex items-center gap-1.5">
+                        <div className="flex flex-wrap items-center gap-1.5 w-full sm:w-auto justify-end">
                           {consultThread.length > 0 && (
                             <button
                               type="button"
                               onClick={handleRunFollowUpQuestion}
-                              className="px-3.5 py-2 rounded-xl border border-[#D5CBB8] bg-white hover:bg-amber-500/10 text-slate-800 font-semibold text-xs cursor-pointer"
+                              className="card-surface px-3.5 py-2 rounded-xl border border-[#D5CBB8] bg-white hover:bg-amber-500/10 text-slate-800 font-semibold text-xs cursor-pointer"
                             >
                               Repreguntar al Consultor →
                             </button>
@@ -2881,7 +3096,7 @@ ${historyContextStr}`;
                             type="button"
                             onClick={handleRunConsultor}
                             disabled={isConsultLoading}
-                            className="px-5 py-2 rounded-xl bg-[#0F172A] hover:bg-slate-800 text-white font-semibold text-xs flex items-center gap-2 cursor-pointer transition shadow-sm"
+                            className="w-full sm:w-auto justify-center px-5 py-2 rounded-xl bg-[#0F172A] hover:bg-slate-800 text-white font-semibold text-xs flex items-center gap-2 cursor-pointer transition shadow-sm border border-amber-500/30"
                           >
                             <Sparkles className="w-3.5 h-3.5 text-amber-400" />
                             <span>Analizar Caso con Privacidad Blindada</span>
