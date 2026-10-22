@@ -899,7 +899,7 @@ function searchRagAndAnswerQuestion(
   // 1) Si el abogado adjuntó documentos (.PDF, .DOCX, .TXT) en este turno, convertirlos en documentos prioritarios de análisis
   const attachmentDocs: RagLawDocument[] = attachments
     .filter(a => a.rawContent && a.rawContent.trim().length > 20)
-    .map((a, idx) => {
+    .map((a, idx): RagLawDocument => {
       let body = a.rawContent;
       if (isCorruptedPdfBinaryText(body)) {
         body = getBuiltInLawCorpusByTitle(a.name) || body;
@@ -907,9 +907,9 @@ function searchRagAndAnswerQuestion(
       return {
         id: `att-rag-${idx}`,
         title: a.name.replace(/\.[^/.]+$/, ''),
-        type: 'Código / Ley',
+        type: 'Código / Ley' as const,
         chunks: Math.max(1, Math.ceil(body.length / 400)),
-        status: 'Indexado',
+        status: 'Indexado' as const,
         excerpt: body.slice(0, 280),
         fullText: body
       };
@@ -928,9 +928,9 @@ function searchRagAndAnswerQuestion(
     {
       id: 'rag-universal-encyclopedia',
       title: 'Corpus Integral de Derecho Venezolano y Comparado (Civil, Mercantil, Procesal CPC, Laboral LOTTT, Arrendamientos, LOPNNA, Penal y Administrativo)',
-      type: 'Código / Ley',
+      type: 'Código / Ley' as const,
       chunks: 850,
-      status: 'Indexado',
+      status: 'Indexado' as const,
       excerpt: UNIVERSAL_LEGAL_ENCYCLOPEDIA_CORPUS.slice(0, 280),
       fullText: UNIVERSAL_LEGAL_ENCYCLOPEDIA_CORPUS
     }
@@ -3790,15 +3790,17 @@ ${historyStr ? `HISTORIAL:\n${historyStr}` : ''}`;
               t.dictamen.includes('RECAUDOS EXAMINADOS') &&
               t.dictamen.includes('Artículo 257. El proceso constituye un instrumento fundamental');
             if (isCorruptedPdfBinaryText(t.dictamen) || hasOldBrokenSummary) {
-              const fakeAtts: ConsultAttachment[] = (t.attachmentsUsed || []).map((attLabel, idx) => ({
-                id: `rep-att-${idx}`,
-                name: attLabel.split(' (')[0] || attLabel,
-                kind: 'Archivo .PDF',
-                rawContent: getBuiltInLawCorpusByTitle(attLabel) || '',
-                sanitizedContent: '',
-                piiProtectedCount: 0,
-                addedAt: ''
-              })).filter(a => a.rawContent.length > 20);
+              const fakeAtts: ConsultAttachment[] = (t.attachmentsUsed || [])
+                .map((attLabel: string, idx: number): ConsultAttachment => ({
+                  id: `rep-att-${idx}`,
+                  name: attLabel.split(' (')[0] || attLabel,
+                  kind: 'Archivo .PDF' as const,
+                  rawContent: getBuiltInLawCorpusByTitle(attLabel) || '',
+                  sanitizedContent: '',
+                  piiProtectedCount: 0,
+                  addedAt: ''
+                }))
+                .filter((a: ConsultAttachment) => a.rawContent.length > 20);
               const repaired = searchRagAndAnswerQuestion(
                 t.lawyerQuestion,
                 repairedRagList,
