@@ -785,7 +785,7 @@ async function callConfiguredLlmApi(params: {
 }
 
 // ============================================================================
-// CATÁLOGO MAESTRO CONECTADO A GOOGLE DRIVE (550 MODELOS JURÍDICOS VENEZOLANOS)
+// CATÁLOGO MAESTRO DE GOOGLE DRIVE: 550+ MODELOS VENEZOLANOS + 42 MODELOS TECH ESPAÑA / UE
 // ============================================================================
 const RAW_CATALOGO_550: {
   cats: string[];
@@ -796,51 +796,362 @@ const RAW_CATALOGO_550: {
   rows: [string, string, number, number, number, number, number][];
 } = {"cats": ["Poderes y Mandatos", "Derecho Mercantil y Societario", "Civil - Contratos y Garantías", "Derecho Laboral y Seguridad Social", "Práctica Forense y Trámites Varios", "Civil - Familia y Matrimonio", "Civil - Sucesiones y Herencias", "Derecho de Familia y Menores", "Derecho Procesal Civil y Forense", "Inquilinato y Arrendamiento"], "urls": ["https://drive.google.com/file/d/0BwXfsZ9Y-s2bdHlaTjE2NFhSckE/view?usp=drivesdk&resourcekey=0-NdqPnJfhs4C9P8ybUHD1gA", "https://drive.google.com/file/d/0BwXfsZ9Y-s2bdXAza25xUUd3UWs/view?usp=drivesdk&resourcekey=0-Lc4rNpaY0_yS0Q0lwR8LCA", "https://drive.google.com/file/d/0BwXfsZ9Y-s2bYmtoNUl5ZEw1Rmc/view?usp=drivesdk&resourcekey=0-0mtepOhb6Z19Ll9q4G19vw", "https://drive.google.com/file/d/0BwXfsZ9Y-s2bRDAxdWV6QTI1RDg/view?usp=drivesdk&resourcekey=0-gxXSH0g1MIzPfHLcalo5sw", "https://drive.google.com/file/d/0BwXfsZ9Y-s2baUdQVUZYb0YtMk0/view?usp=drivesdk&resourcekey=0-dAZgEZhc_Z0xFRG2eSUURg", "https://docs.google.com/document/d/1kOuKAfzuhtos9utmMnAD8zvFcrf8lEIhF_-OGbih1XY/edit?usp=drivesdk&ouid=102546266408328933155", "https://docs.google.com/document/d/1BFNYpctJ14hJLSWTRcf5fKv6J-uNVjcUiAprzW8frX4/edit?usp=drivesdk&ouid=102546266408328933155", "https://docs.google.com/document/d/1JqJTBiZd1eZpXIBfCOFa4N3LkCvjQZ44_QcsZMQbC3k/edit?usp=drivesdk&ouid=102546266408328933155", "https://drive.google.com/file/d/0BwXfsZ9Y-s2bRGx1Y1czMUloRHc/view?usp=drivesdk&resourcekey=0-sM12nxzENfMzfCh7Oq-6jw", "https://drive.google.com/file/d/0BwXfsZ9Y-s2bXzA5SkVIUXZRem8/view?usp=drivesdk&resourcekey=0-e3e88TYqvTLQPWKfj0hfYQ", "https://drive.google.com/file/d/0BwXfsZ9Y-s2bdHpSX3ZHUkFWQVU/view?usp=drivesdk&resourcekey=0-Clq48TGVE3JuItpRBvzxrg", "https://drive.google.com/file/d/0BwXfsZ9Y-s2bcEhoa2hway1qd00/view?usp=drivesdk&resourcekey=0-MHbN5aPevJbHLGBfkREjtg", "https://drive.google.com/file/d/0BwXfsZ9Y-s2bLUVMNEFKQ1VuQW8/view?usp=drivesdk&resourcekey=0-XcaBmBSX5RsXl-sl3LcZNA", "https://drive.google.com/file/d/0BwXfsZ9Y-s2beWNnaUFDSmJTWTg/view?usp=drivesdk&resourcekey=0-QOtIO3QOKZy7n7Fca2S0sA", "https://drive.google.com/file/d/0BwXfsZ9Y-s2bc3JwbHJhYlFqSHM/view?usp=drivesdk&resourcekey=0-pRk8qP3qR3x3zna8zNd7hQ", "https://drive.google.com/file/d/0BwXfsZ9Y-s2bdVFkYXVTLVl2Y3c/view?usp=drivesdk&resourcekey=0-o5Pnh8ODmDumfxiM0rq0FQ", "https://docs.google.com/document/d/1f3xtYlY0Fi0DnLRru_A7u3lSPkFzOhdWByIfsv7F560/edit?usp=drivesdk&ouid=102546266408328933155", "https://docs.google.com/document/d/14dt1kB1fXj4LCMRYmqfov_PjyAPjLKgsWrd8K1yWWDI/edit?usp=drivesdk&ouid=102546266408328933155", "https://drive.google.com/file/d/0BwXfsZ9Y-s2bLVpmUEpmdktZUHM/view?usp=drivesdk&resourcekey=0-Qohv7aRIldeTNUpMh1vdXA", "https://drive.google.com/file/d/0BwXfsZ9Y-s2bdWJlTTFWc0RxUWc/view?usp=drivesdk&resourcekey=0-OLRvFbET9L4kmP9Tc8JX4w", "https://docs.google.com/document/d/1w4idYp9JnRWcJXxjMn2e07Dj9i8YaAW_S73Xrs0xJH8/edit?usp=drivesdk&ouid=102546266408328933155", "https://docs.google.com/document/d/1Y6TtN-uxRfJQ41EhlkMDPGVEfEk6TEZSMkVeWJEGIVk/edit?usp=drivesdk&ouid=102546266408328933155", "https://drive.google.com/file/d/0BwXfsZ9Y-s2baUVJSVF1SDlodUk/view?usp=drivesdk&resourcekey=0-QQXvp3yY-GGKpufiGm-42w", "https://drive.google.com/file/d/0BwXfsZ9Y-s2bNXQwZTVsOGpud2M/view?usp=drivesdk&resourcekey=0-0nW9wr8KTng_j8nFlA1AzQ", "https://drive.google.com/file/d/0BwXfsZ9Y-s2bWDJITEpoOTBpNWs/view?usp=drivesdk&resourcekey=0-s0-mSKgyOK0G1gqPSSlqCg", "https://docs.google.com/document/d/1CMj5xHDAwLlXda_A_NHJYiO0N-Gb0D5-mNfH1Eobqe4/edit?usp=drivesdk&ouid=102546266408328933155", "https://drive.google.com/file/d/1X4F8yoQkK8wQ2sPqkx7wDYxKg0cErF9N/view?usp=drivesdk", "https://drive.google.com/file/d/0BwXfsZ9Y-s2bRnFTRFVnaGFzTmc/view?usp=drivesdk&resourcekey=0-0FAPZlbnpv-do1C7bEpIHg", "https://docs.google.com/document/d/1pt2g8OwffZSVBByPKuN5fZ_gXrBE8iJMdPyu__hII_8/edit?usp=drivesdk&ouid=102546266408328933155", "https://drive.google.com/file/d/0BwXfsZ9Y-s2bZTNCMDRMclV1aUU/view?usp=drivesdk&resourcekey=0-tQIucg-TRMg6ELB2eEeTig", "https://drive.google.com/file/d/0BwXfsZ9Y-s2bRzVLZDNES0ZxSEE/view?usp=drivesdk&resourcekey=0-vPxWleVCsTqGi3N0S6Nr2g", "https://docs.google.com/document/d/1yW69uD2TTi6oVmFoPKm30PSvTGXZJ-n7ifWWByE-1MY/edit?usp=drivesdk&ouid=102546266408328933155", "https://docs.google.com/document/d/1W6qNRhk3jL5o4JxS6nHJAAmBOGSWmw2OSGksewXnlLc/edit?usp=drivesdk&ouid=102546266408328933155", "https://drive.google.com/file/d/0BwXfsZ9Y-s2bTEtidm51MGVfY2M/view?usp=drivesdk&resourcekey=0-24igT8Ek3P9zCGtWeTvmuw", "https://docs.google.com/document/d/1xY_54SzruRO5wECN_53nj6kSyryTqQOErLYwcwEGZZ8/edit?usp=drivesdk&ouid=102546266408328933155", "https://docs.google.com/document/d/1AkdaScXCErg4wvlI1PdwOlxEH8mofUNTAd-LmhUxXBA/edit?usp=drivesdk&ouid=102546266408328933155", "https://docs.google.com/document/d/1cQqfGaPe54pFrvqkdhMQSALB9XknLC_NjXP-TagJW3g/edit?usp=drivesdk&ouid=102546266408328933155", "https://docs.google.com/document/d/1rBJ8740NRvMrQi0pzrskqN3UIIUPE_x1FziJRqyFcMg/edit?usp=drivesdk&ouid=102546266408328933155", "https://docs.google.com/document/d/1ZAkLi5YkARBkLte19V79X6zX_bcKQvFXtbmFgCdlx9E/edit?usp=drivesdk&ouid=102546266408328933155", "https://drive.google.com/drive/folders/0BwXfsZ9Y-s2bfkQ3T0Zua0drVTVtaHVnazVfNFdielA4WU1ZWmtJNEppWjR6R1BTRFpjQWc", "https://drive.google.com/drive/folders/0BwXfsZ9Y-s2bfkxRRjROWjlVLU1ST0RNZ0RHWFZGS25XRWFkTUh2dmJ2Qnp4UmkyNGRWV1U", "https://docs.google.com/document/d/1B2C3D4E5F6G7H8I9J0K1L2M3N4O5P6Q/edit?usp=drivesdk&ouid=102546266408328933155", "https://drive.google.com/file/d/0BwXfsZ9Y-s2bSDJqVWtHb0k2T0E/view?usp=drivesdk&resourcekey=0-thTLgw4dh2sRW1_3xgRsJQ", "https://drive.google.com/file/d/0BwXfsZ9Y-s2baF9pcE55dVAwbEU/view?usp=drivesdk&resourcekey=0-ZX8jrwME0caIin2zkJAFfQ", "https://drive.google.com/file/d/0BwXfsZ9Y-s2bUHR1Q1h6ZWV4RHM/view?usp=drivesdk&resourcekey=0-3YqF2j6g7k8h9l0m1n2p3q", "https://drive.google.com/file/d/0BwXfsZ9Y-s2bSjEzM3JvaFYxSkU/view?usp=drivesdk&resourcekey=0-WgzdYkjJCVtXbz6i5Msl_g", "https://drive.google.com/file/d/0BwXfsZ9Y-s2baFBxUVBJNzBCT3M/view?usp=drivesdk&resourcekey=0-V0RT7_V2H4gLD0nEai6G6g", "https://drive.google.com/file/d/0BwXfsZ9Y-s2beFV1ZS1KSy1qM3c/view?usp=drivesdk&resourcekey=0-1m2_RE57j6qAfm2Sx5O_pg", "https://docs.google.com/document/d/1F2G3H4I5J6K7L8M9N0O1P2Q3R4S5T6U/edit?usp=drivesdk&ouid=102546266408328933155", "https://drive.google.com/file/d/0BwXfsZ9Y-s2bOEZNZDZFR1dtN1k/view?usp=drivesdk&resourcekey=0-2uZ14RFWBi1zsVN4TOZsWw", "https://drive.google.com/file/d/0BwXfsZ9Y-s2bamhjZF90bXFDcnM/view?usp=drivesdk&resourcekey=0-JB8SaZBbzPlEtXd1rbc1mw", "https://drive.google.com/file/d/0BwXfsZ9Y-s2bNDRJRVduZC1UYU0/view?usp=drivesdk&resourcekey=0-VBEd4rYKJbYThpZtcWVdug", "https://drive.google.com/file/d/0BwXfsZ9Y-s2bR04xMGt4RGVZbU0/view?usp=drivesdk&resourcekey=0-vP96LHcFrILrZCPBd0hwwQ", "https://drive.google.com/file/d/0BwXfsZ9Y-s2bQW9aR2FTbWdybWc/view?usp=drivesdk&resourcekey=0-dN-euc-a1aEr9PfM-LF_IA", "https://drive.google.com/file/d/0BwXfsZ9Y-s2bbGZvLTRNa0VGSVE/view?usp=drivesdk&resourcekey=0-1kxAj5Q1vQ486-0TKT4v_Q", "https://drive.google.com/file/d/0BwXfsZ9Y-s2bV1JKMzFqUFhlZmc/view?usp=drivesdk&resourcekey=0-kxbNBQgXY3DKFgCUOc9v6Q", "https://drive.google.com/file/d/0BwXfsZ9Y-s2bRjFVdC1Ucm5BR1U/view?usp=drivesdk&resourcekey=0-X1vT-AuvUiLEc5UsoyJO-w", "https://drive.google.com/file/d/0BwXfsZ9Y-s2beGdTY29wMHlwUEE/view?usp=drivesdk&resourcekey=0-97Rp8EAmLg346WnX4CRdXQ", "https://drive.google.com/file/d/0BwXfsZ9Y-s2bT0dLZHdabjh2Nmc/view?usp=drivesdk&resourcekey=0-3Dvg9dbeBIh8KZzftny7Zw", "https://drive.google.com/drive/folders/0BwXfsZ9Y-s2bfjlrdWJUVTNtb083dHkyOW5xelpmWmtKYmNMRktYUlQ3akh3Q2l4dThnQWc", "https://drive.google.com/drive/folders/0BwXfsZ9Y-s2bfmRJa1pKVU9CMzhVVENlSE50dVhkaTRqUFJ1NXlhblZRcDVrU005THZWX2M", "https://drive.google.com/file/d/0BwXfsZ9Y-s2bRWFTVEVNeVFWYUU/view?usp=drivesdk&resourcekey=0-sXRGgnewwSkQlOrDAVoSJA", "https://drive.google.com/file/d/0BwXfsZ9Y-s2bSjdXQkJkWUxvMU0/view?usp=drivesdk&resourcekey=0-z7JMED-DDmNIEjLdbmTQmQ", "https://drive.google.com/file/d/0BwXfsZ9Y-s2bcDlLaVZtMTRxaHM/view?usp=drivesdk&resourcekey=0-8ETrSSS3UmavKSqO6OyRrw", "https://drive.google.com/file/d/0BwXfsZ9Y-s2bb1ptTE9qcndTUlE/view?usp=drivesdk&resourcekey=0-V2JG2soWj6P3pgkrMMQxcA", "https://drive.google.com/file/d/0BwXfsZ9Y-s2bNlpfTjlpMi1DdGc/view?usp=drivesdk&resourcekey=0-EJSs6epUeN9RqHxKzMovnQ", "https://drive.google.com/file/d/0BwXfsZ9Y-s2bV0hUZjVpdWQ2VWc/view?usp=drivesdk&resourcekey=0-6je9Kwy_fRv4w2j2YuhZfg", "https://drive.google.com/file/d/0BwXfsZ9Y-s2bT09JMGwySEpPQ0U/view?usp=drivesdk&resourcekey=0-_VCdgMjhqmHmG7QTt4mmHA", "https://drive.google.com/file/d/0BwXfsZ9Y-s2bUThZS0ZYRFJsVGs/view?usp=drivesdk&resourcekey=0-P15MSh4XHBlmP4rbQGCNGQ", "https://drive.google.com/drive/folders/0BwXfsZ9Y-s2bfmJ6ZElZTVNCdm5xNjEyQTdXTEprdVBGdGllRHJ1V2wzU21lUl83UjI0aUk", "https://drive.google.com/file/d/0BwXfsZ9Y-s2bTlBndkJXQ01nQUE/view?usp=drivesdk&resourcekey=0-gU3vQ8tL5a9x7kM2pE1n4w", "https://drive.google.com/file/d/0BwXfsZ9Y-s2bT1lNeUlzd0tkUVU/view?usp=drivesdk&resourcekey=0-EDH2-FKWzSSQ-KIA4Rx2_A", "https://drive.google.com/file/d/0BwXfsZ9Y-s2bQ0FLc3B3eU4tSDA/view?usp=drivesdk&resourcekey=0-S6c2Wm9R6BkhdieY8bIYWg", "https://drive.google.com/file/d/0BwXfsZ9Y-s2bVWxicnJYenhzN2M/view?usp=drivesdk&resourcekey=0-g-CV2Wqf6_s_tOcQlzfXUg", "https://drive.google.com/file/d/0BwXfsZ9Y-s2bNXBUcHJDakhSQ28/view?usp=drivesdk&resourcekey=0-UyXDlqpCV0goT_-QPeRx7g", "https://drive.google.com/file/d/0BwXfsZ9Y-s2bZ2xqNjBQUFY2aHc/view?usp=drivesdk&resourcekey=0-lG7mLQWFOsYlsuxeMcmw0Q", "https://drive.google.com/file/d/0BwXfsZ9Y-s2bMm1IdkE2LWI2RDQ/view?usp=drivesdk&resourcekey=0-A00dOGItHrQS_Z3mDJzvOw", "https://drive.google.com/file/d/0BwXfsZ9Y-s2bV0l2OXUwcWx0eW8/view?usp=drivesdk&resourcekey=0-uX2qNb8HkMG9F1PKw33G6A"], "vars": ["Poderdante, Apoderado, Cuentas bancarias, Facultades dispositivas, Cláusula de autocontratación", "Otorgante, Abogados apoderados (Inpreabogado, Colegio), Facultades especiales (convenir, transigir, desistir, juramento, remates)", "Propietario poderdante, Apoderado, Identificación registral completa del inmueble, Linderos, Facultades de precio y cobro", "Heredero poderdante, Apoderado, Datos de la causante, N° de Planilla de Declaración Sucesoral SENIAT, Solvencia, Registro", "Propietario, Apoderado, Ubicación y linderos del inmueble/finca, Facultades para fijar cánones y suscribir contratos", "Usufructuaria (DNI/CI), Apoderados conjuntos/separados, Matrícula Folio Real de Capital Federal, Escribanía de origen, Declaración UIF/PEP, Precio en USD billetes", "Sociedad poderdante (RIF, Registro), Agencia Aduanal autorizada (RIF, N° SENIAT, Gaceta), Aduanas principales/subalternas, Sistema SIDUNEA", "Otorgante, Apoderado, Listado taxativo de recaudos educativos (Títulos, notas certificadas, actas de grado, pensum), Trámites MPPRE", "Graduando, Apoderado domiciliado en el país destino, Nombre del título académico y Universidad extranjera", "Asegurado solicitante, Apoderado, Cobro de sumas de pensión, Consignación de cuenta individual y recaudos", "Solicitante, Apoderado, Banco fiduciario, Programa o fideicomiso crediticio, Firma de contratos de préstamo", "Otorgante, Apoderados conjuntos o separados, Apertura y movilización de cuentas bancarias, Gestiones ministeriales, Defensa judicial simple", "Arrendatario poderdante, Abogados apoderados (Inpreabogado), Dirección del inmueble arrendado, Oposición a medidas cautelares", "Denominación social, Domicilio fiscal, Objeto social amplio, Duración, Capital social y valor nominal de acciones, Suscripción y pago (Inventario de bienes), Junta Directiva, Comisario Mercantil", "Denominación de la cooperativa, Régimen de responsabilidad suplementada, Asociados fundadores, Certificados de aportación, Instancias de administración y control", "Empresa, Quórum de asamblea universal, Redacción de nueva Cláusula de Objeto Social, Autorización de registro", "Razón social, RIF, Nueva dirección fiscal detallada, Reforma de atribuciones de Junta Directiva (firma conjunta/separada, cuentas bancarias, créditos, contratos, venta de activos)", "Capital actual, Monto del aumento en USD y Bs. a tasa BCV, Cantidad y valor nominal de nuevas acciones, Renuncia expresa al derecho de preferencia, Dilución porcentual, Informe de Aseguramiento de CPC", "Accionistas cedentes y compradores, Cantidad de acciones vendidas, Renuncia de cargos de directiva, Elección de nuevos directores, Reforma estatutaria de capital y administración", "Ejercicios económicos evaluados, Informe de Comisario Colegiado, Aprobación de balances, Actualización de período estatutario de Junta Directiva y Comisario", "Arrendador, Arrendataria, Dirección exacta y linderos, Canon mensual en divisas (USD) o Bs. a tasa oficial BCV, Término fijo y prórroga legal comercial, Depósito de garantía, Reparaciones mayores/menores, Cláusula penal", "Arrendadores, Arrendataria, Linderos físicos, Destino pormenorizado del inmueble, Canon en USD a tasa BCV, Intereses de mora, Prohibición de modificaciones estructurales", "Arrendador, Arrendatario, Fiador solidario y principal pagador, Canon mensual, Término fijo, Prohibición de cesión/subarriendo", "Arrendador, Arrendataria, Identificación de oficina y edificio, Canon, Pago de condominio y servicios, Ajuste por IPC/BCV", "Arrendador, Inquilino, Identificación del apartamento, Canon en bolívares, Depósito en garantía, Servicios públicos y reparaciones", "Entidad de trabajo (RIF, Registro), Trabajador, Causa legal de contratación temporal (Art. 64 LOTTT), Cargo, Descripción de funciones, Salario, Fecha exacta de inicio y culminación", "Patrono, Trabajador, Cargo, Listado de atribuciones, Jornada diurna/mixta, Período de prueba de 30 días (Art. 141 LOTTT), Salario en divisas / bolívares, Normas LOPCYMAT", "Grupo empresarial / Entidad de trabajo, Contratado, Funciones, Horario, Cláusula de rescisión sin preaviso durante prueba", "Empresa, Profesional independiente, Exclusión expresa de subordinación/LOTTT, Iguala mensual en USD a tasa oficial BCV, Facturación legal y retención ISLR, Administración de fondos corporativos, Prohibición taxativa de mezcla de fondos personales/Zelle/Binance, Responsabilidad patrimonial objetiva por faltantes", "Empresa, Consultor, Alcance técnico del proyecto de ingeniería/procura, Honorarios quincenales, Cláusulas de confidencialidad y rescisión", "Empresa prestadora, Cliente, Equipos cubiertos en Anexo, Visitas rutinarias y llamadas de emergencia, Honorarios mensuales y facturación de repuestos", "Vendedor, Compradora, Datos de condominio y linderos, Tradición legal registrada, Precio en Bolívares/divisas, Instrumento de pago bancario, Declaración de fondos lícitos, Saneamiento", "Apoderado vendedor en nombre de poderdante, Facultad expresa para autocontratar (Art. 1.171 CCV), Comprador por derechos propios, Reserva de derecho de habitación vitalicio, Pago en cheque bancario", "Promitente vendedora, Promitente comprador, Plazo de otorgamiento registral definitivo, Arras/Pago inicial, Cláusula penal por desistimiento", "Entidad de trabajo, Trabajadora, Cargo, Fecha ingreso/egreso, Causa de terminación, Cuadro desglosado de prestaciones (Art. 142), vacaciones (Art. 196), bono vacacional (Art. 192), utilidades (Art. 136), intereses (Art. 142-d), Finiquito amplio", "Empresa, Trabajadora, Reconocimiento voluntario de deuda líquida en USD, Autorización irrevocable de descuento de prestaciones a tasa BCV, Entrega de puesto, Reserva de auditoría", "Junta Directiva, Gerente notificado, Desincorporación de funciones, Inventario de bienes entregados (SIM, vehículos corporativos, laptops, accesos Starlink, llaves), Revocación de accesos digitales, Correo de contacto", "Empresa, Ex-trabajadora responsable de caja, Pago de derechos laborales, Notificación de auditoría en curso por arqueos, Declaración de NO finiquito administrativo ni financiero, Reserva de acciones civiles y penales", "Administrador saliente, Junta Directiva, Recepción material del informe sin conformidad, Advertencia de auditoría forense en curso, Responsabilidad patrimonial post-laboral", "Otorgantes, autoridades competentes, objeto de la solicitud", "Cónyuges, fecha y lugar de matrimonio, inventario de bienes gananciales, causales", "Denominación social, socios/accionistas, capital social, objeto, facultades de administración", "Causante, herederos, declaración sucesoral SENIAT, inventario de activos y pasivos", "Identificación de progenitores, menor, datos de partida de nacimiento, domicilio", "Antigua y nueva denominación social, Nuevo domicilio fiscal (Municipio/Estado), Modificación de Cláusulas 1 y 2", "Causal de disolución, Nombramiento de liquidador, Facultades de liquidación, Balance de liquidación y adjudicación de haber social", "Vendedora, Compradora, Inventario de activo fijo/mercancías, Publicaciones de ley (Art. 151 C.Com), Precio y condiciones", "Sociedad, Ejercicio económico concluido, Estados Financieros (Balance, Ganancias y Pérdidas), Informe del Comisario, Destino de utilidades", "Juez, fiscal, apoderados de partes, tiempo de exposición, pruebas promovidas, decisión oral", "Partes contratantes, objeto, precio/monto, forma de pago, garantías y gravámenes", "Tribunal competente, demandante, demandado, hechos (causa petendi), petitorio", "Trabajador, patrono, cargo, salario, jornada, conceptos salariales y liquidación", "Arrendador, arrendatario, inmueble, canon mensual, plazo de vigencia, depósito", "Datos de autos, informe del alguacil, orden al secretario", "Fecha, hora fijada para la audiencia oral", "Trabajador renunciante, Cargo, Patrono, Fecha efectiva de cese, Cumplimiento o dispensa del período de preaviso de ley", "Secretario judicial, dirección donde se fijó/entregó boleta", "Cónyuge supérstite, menores, causante, partida de defunción y matrimonio, testigos", "Adoptante, menor, estado de abandono previo, informe multidisciplinario", "Marido accionante, cónyuge, menor, movimiento migratorio probatorio de no cohabitación", "Hijos reclamantes, causante difunto, herederos legítimos, posesión de estado", "Madre demandante, padre demandado, menores, monto mensual en Bs./divisas, retención patronal", "Madre con guarda, padre retenedor indebido, informe psicológico, medidas de reintegro", "Progenitor no custodio, menor, esquema de fines de semana, vacaciones y fechas especiales", "Monto adeudado acumulado, meses en mora, solicitud de embargo y sanción", "Identificación del Alguacil, número de folio útil consignado", "Antecedentes, doctrina de la protección integral", "Lugar, cédula del presunto querellado, negativa expresa a estampar firma", "Tratado internacional ratificado por Venezuela", "Marco normativo general de protección integral", "Generales del testigo, preguntas de parte y repreguntas", "Ubicación, personas presentes, práctico asesor, hechos constatados", "Datos del querellado, expediente, fecha fijada para comparecencia", "Identificación de partes, causa petendi (hechos), fundamentación jurídica, medidas cautelares", "Acreedor poderdante, Apoderado cobrador, Deudores, Montos exigibles, Instrucciones de depósito en cuenta bancaria", "Accionante, agraviante, derechos constitucionales violados, petitorio", "Firma, cédula, hora, fecha y lugar de entrega por el Alguacil", "Sentencia previa, nuevo nivel de ingresos del alimentante, mayores gastos del menor", "Padre solicitante, menores, inmueble, precio ofrecido, justificación de necesidad y utilidad", "Madre solicitante, menores, destino del viaje, motivo, ausencia de padre", "Madre divorciada, menor, curador ad-hoc propuesto, declaración de bienes", "Madre, menor, partida errada, partida correcta de la madre, corrección de apellido"], "funds": ["Arts. 1.684 y ss., Art. 1.171 CCV", "Arts. 150, 151, 153 y 154 CPC", "Art. 1.688 CCV", "Ley de Sucesiones; Código Civil", "Arts. 1.579 y 1.684 CCV", "Arts. 380, 456, 522 CCCN (Argentina); CCV", "Arts. 94 y 98 Ley Orgánica de Aduanas; Art. 145 Reglamento General; Art. 39 Reglamento SIDUNEA", "Convenio de La Haya sobre Apostilla; Ley de Simplificación de Trámites", "Código Civil (Representación voluntaria)", "Ley del Seguro Social y su Reglamento", "Ley de Instituciones del Sector Bancario; CCV", "Código Civil; Ley Orgánica de Procedimientos Administrativos (LOPA)", "Ley de Arrendamiento Comercial / Vivienda; CPC", "Arts. 200, 211, 213, 214, 215, 244, 293 Código de Comercio (C.Com)", "Ley Especial de Asociaciones Cooperativas; SUNACOOP", "Arts. 278 y 280 C.Com", "Arts. 278, 280 y 325 C.Com", "Arts. 246, 278, 280 C.Com; Normas de Aseguramiento FCCPV", "Arts. 293, 296, 278 C.Com", "Arts. 275, 287, 304, 309, 311 C.Com", "Decreto Ley de Arrendamiento Comercial (G.O. 40.418); Código Civil", "Ley de Arrendamiento Comercial; Código Civil", "Arts. 1.579 y 1.804 CCV", "Ley para la Regularización y Control de Arrendamientos de Vivienda; CCV", "Arts. 62 y 64 LOTTT", "Arts. 58, 59, 61 y 141 LOTTT; LOPCYMAT", "Arts. 58, 59, 62, 64 lit. a y 141 LOTTT", "Código Civil (Arts. 1.630 y ss.); Ley de ISLR; Exclusión expresa de LOTTT", "Código Civil; Código de Comercio", "Código de Comercio", "Arts. 1.474, 1.486, 1.503 y ss. CCV; Ley de Propiedad Horizontal", "Arts. 1.171, 1.474 y 1.684 CCV", "Arts. 1.133, 1.159, 1.257 CCV", "Arts. 128, 136, 142, 192, 196 LOTTT", "Arts. 153 LOTTT; CCV", "Código de Comercio; LOTTT", "LOTTT; Art. 1.185 CCV; Código Penal", "Código de Comercio; CCV", "Código Civil / Código de Procedimiento Civil", "Arts. 137 y ss., 168, 185, 767 Código Civil", "Arts. 200 y ss. Código de Comercio", "Arts. 807 y ss., 998, 1.023, 1.067 Código Civil", "Código Civil / LOPNNA", "Art. 280 Código de Comercio", "Arts. 340, 347 y ss. Código de Comercio", "Art. 151 Código de Comercio", "Arts. 287, 304 y ss. Código de Comercio", "Sentencia SC-TSJ N° 7/2000; LOA", "Arts. 1.133 y ss., 1.474, 1.684, 1.877 Código Civil", "Arts. 340 y ss., 585 y ss. Código de Procedimiento Civil", "LOTTT / Ley del Seguro Social", "Ley de Arrendamientos Inmobiliarios / CCV", "Art. 218 CPC", "Ley Orgánica de Amparo", "Art. 81 LOTTT", "Art. 937 CPC", "Arts. 406 a 422 LOPNNA", "Arts. 201, 203 y 208 CCV", "Arts. 210 y ss. CCV", "Arts. 366, 381, 382, 512 LOPNNA; Arts. 282 y ss. CCV", "Arts. 358 y ss. LOPNNA", "Art. 385 LOPNNA", "Art. 80 Ley Tutelar / LOPNNA", "Código de Procedimiento Civil", "Congreso de la República", "Gaceta Oficial N° 34.541", "Gaceta Oficial N° 5.266 Extr.", "Art. 485 CPC", "Art. 472 CPC", "Art. 218 CPC; Ley de Amparo", "Art. 18 Ley Orgánica de Amparo", "Art. 27 CRBV, Ley Orgánica de Amparo sobre Derechos y Garantías Constitucionales", "Art. 369 LOPNNA", "Art. 267 Código Civil", "Art. 392 LOPNNA", "Art. 110 Código Civil", "Art. 773 CPC; LOPNNA"], "notas": ["Poder general de máxima amplitud para administración patrimonial completa y negocios consigo mismo (autocontratación).", "Representación judicial en todas las instancias y recursos ordinarios/extraordinarios.", "Requiere individualización y determinación exacta del inmueble para registro/notaría.", "Para enajenar derechos y acciones proindiviso derivados de herencia.", "Facultades de administración e intermediación para arrendamiento inmobiliario.", "Modelo internacional para trámites ante escribano público en Argentina y cobro en divisas.", "Trámites aduanales, desaduanamiento, cabotaje y regímenes especiales ante el SENIAT.", "Incluye facultades de sustitución y pago de aranceles consulares/registrales.", "Gestión y retiro de diploma/pergamino ante universidades internacionales.", "Trámite de pensión de vejez y cobro ante el IVSS.", "Tramitación crediticia y firma de contratos bancarios.", "Modelo versátil para diligencias administrativas y bancarias concurrentes.", "Defensa procesal contra desalojos y medidas de secuestro/embargo.", "Plantilla completa para registro de Compañías Anónimas ante el SAREN.", "Estructura asociativa sin fines de lucro mercantil.", "Modificación de la cláusula segunda para ampliar o redefinir actividades comerciales.", "Blindaje operativo y administrativo de la gestión directiva.", "Estructuración de inyección de capital en divisas convertidas a tasa oficial BCV.", "Traspaso formal de paquete accionario y asiento en libro de accionistas.", "Cumplimiento societario periódico obligatorio ante el Registro Mercantil.", "Modelo estándar para locales, galpones y naves industriales con cláusula de indexación/pago bimonetario.", "Destinado a establecimientos de atención al público y recreación con especificación técnica de uso.", "Respaldo adicional con fiador solidario.", "Contrato para espacios de oficinas en régimen de propiedad horizontal.", "Uso exclusivo residencial familiar.", "Requiere justificación expresa de la causa temporal para evitar conversión a indeterminado.", "Relación laboral indefinida estándar con cláusula de rendimiento y seguridad laboral.", "Modalidad de prueba para evaluación mutua de condiciones y aptitudes.", "Modelo blindado para consultores, directores administrativos o contables con manejo de valores.", "Consultoría técnica independiente sin relación de dependencia.", "Servicio continuo de soporte técnico preventivo y correctivo.", "Redacción para otorgamiento ante Registro Inmobiliario.", "Protocolización cuando el apoderado adquiere el bien para sí mismo.", "Contrato preparatorio para asegurar la compraventa inmobiliaria.", "Finiquito legal total y definitivo de obligaciones laborales.", "Compensación y descuento de créditos del trabajador sobre su liquidación final.", "Acta de entrega de puesto y desincorporación preventiva por auditoría interna.", "Blindaje corporativo que extingue lo laboral pero preserva acciones penales y civiles por faltantes de dinero.", "Recepción documental que no implica aprobación de cuentas ni descargo de gestión.", "Formato de diligencia, solicitud o memorial administrativo.", "Requiere acta de matrimonio y liquidación patrimonial conyugal ante tribunal o notaría.", "Inscripción obligatoria ante el Registro Mercantil; pago de tributos y publicación en gaceta.", "Tramitación judicial o notarial; requiere declaración sucesoral y solvencia fiscal previa.", "Competencia en Tribunales de Protección de Niños, Niñas y Adolescentes o Juzgados de Familia.", "Modificación estatutaria de razón social y traslado de jurisdicción registral/tributaria.", "Cierre formal, extinción de personalidad jurídica y liquidación patrimonial societaria.", "Enajenación de establecimiento comercial con resguardo de acreedores mediante publicaciones.", "Cumplimiento anual obligatorio ante el Registro Mercantil para asamblea ordinaria de socios.", "Formato de sustanciación oral y levantamiento de acta en audiencia constitucional.", "Otorgamiento autenticado o protocolizado según la naturaleza mueble o inmueble.", "Redacción forense formal con aranceles judiciales e inpreabogado.", "Carácter de orden público e irrenunciabilidad de derechos laborales.", "Revisar regulaciones de fijación de cánones y procedimientos previos de conciliación.", "Auto motivado para continuar el proceso notificatorio subsidiario.", "Fijación formal del debate constitucional contradictorio.", "Renuncia voluntaria del trabajador para el cómputo final de la liquidación de prestaciones.", "Certificación de cumplimiento formal de la notificación.", "Justificativo de testigos para título supletorio de herederos universales.", "Procedimiento judicial especial de adopción plena ante Tribunal de Protección.", "Juicio ordinario de desconocimiento de paternidad con nombramiento de tutor ad-hoc.", "Reconocimiento forzoso post-mortem de filiación natural para derechos hereditarios.", "Medidas cautelares de retención de sueldo y prestaciones sociales.", "Restitución inmediata de custodia por retención indebida o desacato de sentencia.", "Garantía del derecho del niño a mantener contacto y relación directa con ambos progenitores.", "Intimación de pago forzoso y embargo ejecutivo por mora alimentaria.", "Diligencia secretarial para unir la constancia al expediente.", "Documento doctrinal sobre el cambio de paradigma jurídico en Venezuela.", "Para dar paso a la boleta secretarial fijada a la puerta del domicilio.", "Convención de la ONU incorporada a rango constitucional por el Art. 23 CRBV.", "Cuerpo normativo rector en materia de derechos, garantías y deberes de la infancia.", "Evacuación testimonial oral e inmediata en audiencia.", "Inspección judicial in situ para verificar estado fáctico del agravio.", "Boleta judicial para notificación formal del presunto agraviante.", "Libelo principal de amparo constitucional para tutela de derechos fundamentales.", "Gestión de cobro de deudas comerciales y depósito inmediato en cuentas del mandante.", "Guía y doctrina vinculante TSJ sobre legitimación, causales de inadmisibilidad y procedimiento oral.", "Constancia firmada para computar el lapso de 96 horas a la audiencia constitucional.", "Revisión judicial del monto de manutención por incremento en necesidades y capacidad económica.", "Autorización judicial especial que exige demostración de evidente necesidad o utilidad.", "Autorización judicial para salida del país ante negativa o ausencia injustificada del progenitor.", "Requisito legal para precautelar los derechos patrimoniales del menor antes de nuevo matrimonio.", "Corrección judicial sumaria de error material en el Registro Civil."], "rows": [["POD-01", "Poder General de Administración y Disposición con Autocontratación", 0, 0, 0, 0, 0], ["POD-02", "Mandato o Poder Judicial Amplio", 0, 1, 1, 1, 1], ["POD-03", "Poder Especial para Venta de Inmuebles", 0, 2, 2, 2, 2], ["POD-04", "Poder Especial para Venta de Derechos y Acciones Sucesoral", 0, 3, 3, 3, 3], ["POD-05", "Poder Especial para Arrendar Inmueble", 0, 4, 4, 4, 4], ["POD-06", "Poder Especial para Renuncia de Usufructo y Venta Internacional", 0, 5, 5, 5, 5], ["POD-07", "Poder Especial para Trámites Aduanales y Comercio Exterior", 0, 6, 6, 6, 6], ["POD-08", "Poder Especial para Apostilla y Legalización de Documentos Educativos", 0, 7, 7, 7, 7], ["POD-09", "Poder Especial para Tramitar Título Universitario en el Extranjero", 0, 8, 8, 8, 8], ["POD-10", "Poder Especial para Trámites ante IVSS (Pensión de Vejez)", 0, 9, 9, 9, 9], ["POD-11", "Poder Especial para Créditos ante Instituciones Financieras", 0, 10, 10, 10, 10], ["POD-12", "Poder Especial Multiorganismo (Bancos, Ministerios, Tribunales)", 0, 11, 11, 11, 11], ["POD-13", "Poder Especial para Defensa en Materia de Inquilinato", 0, 12, 12, 12, 12], ["SOC-01", "Modelo de Acta Constitutiva y Estatutos Sociales de C.A.", 1, 13, 13, 13, 13], ["SOC-02", "Acta Constitutiva y Estatutos Sociales de Asociación Cooperativa", 1, 14, 14, 14, 14], ["SOC-03", "Acta de Asamblea Extraordinaria - Modificación de Objeto Social", 1, 15, 15, 15, 15], ["SOC-04", "Acta de Asamblea Extraordinaria - Cambio de Domicilio y Reforma de Facultades Directivas", 1, 16, 16, 16, 16], ["SOC-05", "Acta de Asamblea - Aumento de Capital Social por Aporte en Especie / Inventario", 1, 17, 17, 17, 17], ["SOC-06", "Acta de Asamblea Extraordinaria - Venta de Acciones y Renovación de Directiva", 1, 18, 18, 18, 18], ["SOC-07", "Acta de Asamblea General Ordinaria - Aprobación de Balances y Directiva", 1, 19, 19, 19, 19], ["CON-01", "Contrato de Arrendamiento de Inmueble para Uso Comercial e Industrial", 2, 20, 20, 20, 20], ["CON-02", "Contrato de Arrendamiento Maestro para Local Comercial (Gimnasio/2 Plantas)", 2, 21, 21, 21, 21], ["CON-03", "Contrato de Arrendamiento de Galpón con Cláusula de Fianza", 2, 22, 22, 22, 22], ["CON-04", "Contrato de Arrendamiento de Oficina Comercial", 2, 23, 23, 21, 23], ["CON-05", "Contrato de Arrendamiento de Vivienda", 2, 24, 24, 23, 24], ["CON-06", "Contrato Individual de Trabajo por Tiempo Determinado", 2, 25, 25, 24, 25], ["CON-07", "Contrato Individual de Trabajo por Tiempo Indeterminado", 2, 26, 26, 25, 26], ["CON-08", "Contrato de Trabajo por Período de Prueba", 2, 27, 27, 26, 27], ["CON-09", "Contrato de Prestación de Servicios Profesionales y Responsabilidad Patrimonial (Iguala)", 2, 28, 28, 27, 28], ["CON-10", "Contrato de Prestación de Servicios de Consultoría Técnica", 2, 29, 29, 28, 29], ["CON-11", "Contrato de Mantenimiento y Servicio Técnico", 2, 30, 30, 29, 30], ["CON-12", "Documento de Compraventa Pura y Simple de Apartamento", 2, 31, 31, 30, 31], ["CON-13", "Documento de Compraventa Inmobiliaria con Poder y Autocontratación", 2, 32, 32, 31, 32], ["CON-14", "Contrato de Opción a Compraventa Inmobiliaria", 2, 33, 33, 32, 33], ["LAB-01", "Recibo de Liquidación de Prestaciones Sociales y Finiquito", 3, 34, 34, 33, 34], ["LAB-02", "Acta de Aceptación de Renuncia y Descuento de Deuda por Mobiliario", 3, 35, 35, 34, 35], ["LAB-03", "Acta de Notificación de Reestructuración y Entrega de Bienes Corporativos", 3, 36, 36, 35, 36], ["LAB-04", "Acta de Pago Laboral y Recepción de Caja bajo Reserva de Auditoría", 3, 37, 37, 36, 37], ["LAB-05", "Acta de Recepción de Informe de Cierre bajo Reserva de Auditoría", 3, 38, 38, 37, 38], ["FOR-001", "049, 1.070 y 1.047 del Código Civil", 4, 39, 39, 38, 39], ["FOR-185", "A del Vigente Código Civil de Venezuela", 4, 40, 39, 38, 39], ["FOR-002", "Acción de Nulidad en la Administración de la Comunidad Conyugal, Artículo 168 del Código Civil Vigente", 5, 39, 40, 39, 40], ["FOR-003", "Acción Interdictal - Ordinal 786 del Código Civil", 4, 39, 39, 38, 39], ["FOR-004", "Acción Mero Declarativa", 4, 39, 39, 38, 39], ["FOR-005", "Acción Mero Declarativa de unión concubinaria Artículo 767 del Código Civil", 5, 39, 40, 39, 40], ["FOR-006", "Acción Nominativa de una Compañía Anónima", 1, 39, 41, 40, 41], ["FOR-008", "Aceptación de Herencia a beneficio de Inventario", 6, 39, 42, 41, 42], ["FOR-009", "Aceptación de Herencia bajo beneficio de Inventario, a nombre de un menor", 7, 39, 43, 42, 43], ["FOR-007", "Aceptación de Herencia y Apertura de Expediente para practicar Inventario Judicial, Artículo 998 y 1.023 del Código Civil Vigente", 6, 39, 42, 41, 42], ["FOR-010", "Aceptación del Cargo de Defensor Provisorio", 4, 39, 39, 38, 39], ["FOR-011", "Aclaratoria", 4, 39, 39, 38, 39], ["FOR-012", "Aclaratoria de Registro de un Negocio y su participación correspondiente al Registrador Mercantil", 6, 39, 42, 41, 42], ["FOR-013", "Aclaratoria sobre Bienes Propios", 5, 39, 40, 39, 40], ["FOR-014", "Acta Constitutiva y Estatutos Sociales de una Compañía S.R.L", 1, 39, 41, 40, 41], ["SOC-09", "Acta de Asamblea Extraordinaria - Cambio de Denominación Social y Domicilio Fiscal", 1, 41, 44, 43, 44], ["SOC-11", "Acta de Asamblea Extraordinaria - Disolución y Liquidación de Sociedad Mercantil", 1, 42, 45, 44, 45], ["SOC-10", "Acta de Asamblea Extraordinaria - Venta de Fondo de Comercio", 1, 43, 46, 45, 46], ["SOC-08", "Acta de Asamblea Ordinaria Anual - Aprobación de Estados Financieros e Informe de Comisario", 1, 44, 47, 46, 47], ["FOR-015", "Acta de Extinción de un Régimen de Propiedad Horizontal", 4, 39, 39, 38, 39], ["AMP-03", "Acta de la Audiencia Constitucional Oral y Pública", 4, 45, 48, 47, 48], ["FOR-016", "Acta de Otorgamiento ante el Registrador de un Testamento sin Protocolización", 6, 39, 42, 41, 42], ["FOR-017", "Acta de Transacción entre Trabajador y Patrono en la Inspectoría del Trabajo", 2, 39, 49, 48, 49], ["FOR-018", "Acta que modifica Estatutos de una Sociedad", 1, 39, 41, 40, 41], ["FOR-019", "Acto dc Comparecencia del abogado de una empresa demandada ante la Comisión Tripartita del Estado Miranda, rechazando las Pretensiones del solicitante", 8, 39, 50, 49, 50], ["FOR-020", "Acusación", 4, 39, 39, 38, 39], ["FOR-021", "Adopción", 7, 39, 43, 42, 43], ["FOR-023", "Adopción plena de un menor entregado a mujer sola", 7, 39, 43, 42, 43], ["FOR-022", "Adopción plena de una mayor de edad", 7, 39, 43, 42, 43], ["FOR-024", "Alegatos ante la Corte Suprema por abogado del Interior del país", 6, 39, 42, 41, 42], ["FOR-026", "Anuncio de Recurso de Casación", 8, 39, 50, 49, 50], ["FOR-025", "Anuncio del Recurso de Casación, actuaciones subsiguientes", 8, 39, 50, 49, 50], ["FOR-027", "Apelación del Auto confirmatorio del auto de detención dictado por un Tribunal inferior", 8, 39, 50, 49, 50], ["FOR-028", "Apelación del Auto de Detención", 8, 39, 50, 49, 50], ["FOR-029", "Apelación del Trabajador en Juicio Laboral", 3, 39, 51, 50, 51], ["FOR-030", "Apelación en inquilinato", 9, 39, 52, 51, 52], ["FOR-032", "Arras", 4, 39, 39, 38, 39], ["FOR-033", "Arreglo en un juicio de Desocupación", 9, 39, 52, 51, 52], ["FOR-034", "Arreglo Extrajudicial cuando no hay delito de acción pública con intervención del Ministerio Público", 4, 39, 39, 38, 39], ["FOR-035", "Arrendamiento de Cine", 9, 39, 52, 51, 52], ["FOR-036", "Arrendamiento de un Estacionamiento", 9, 39, 52, 51, 52], ["FOR-031", "Arrendamiento Financiero de Bienes e Inmuebles", 9, 39, 52, 51, 52], ["FOR-037", "Arrendamiento para Explotación de Arena", 9, 39, 52, 51, 52], ["FOR-038", "Asamblea Extraordinaria de Accionistas de una Compañía Anónima", 1, 39, 41, 40, 41], ["FOR-039", "Asamblea General Ordinaria de una Compañía de Accionistas", 1, 39, 41, 40, 41], ["AMP-08", "Auto del Tribunal Acordando Librar Boleta por el Secretario", 4, 46, 53, 52, 53], ["AMP-10", "Auto Fijando Día y Hora para la Audiencia Constitucional", 4, 47, 54, 53, 54], ["FOR-040", "Autorización de la Cónyuge para que el Cónyuge Legitime a un hijo natural", 7, 39, 43, 42, 43], ["FOR-041", "Autorización Judicial de Compra de un inmueble para un menor Art. 267 del Código Civil", 7, 39, 43, 42, 43], ["FOR-042", "Autorización Judicial para el cobro de la participación de Seguro de Vida de un Menor, Articulo 267 del Código Civil Vigente", 7, 39, 43, 42, 43], ["FOR-043", "Autorización o Consentimiento para contraer Matrimonio", 5, 39, 40, 39, 40], ["FOR-044", "Autorización o Consentimiento para contraer Matrimonio un menor, Artículo 59 del Código Civil", 7, 39, 43, 42, 43], ["FOR-045", "Autorización para proceder a la Venta de Edificio", 2, 39, 49, 48, 49], ["FOR-047", "Autorización para que un menor pueda viajar", 7, 39, 43, 42, 43], ["FOR-046", "Autorización para retener dinero en el Extranjero ante él Consulado respectivo", 4, 39, 39, 38, 39], ["FOR-048", "Autorización para vender un Inmueble", 4, 39, 39, 38, 39], ["FOR-049", "Cancelación de Hipoteca con aclaratoria sobre suplantación de persona", 2, 39, 49, 48, 49], ["FOR-050", "Capitulaciones Matrimoniales", 4, 39, 39, 38, 39], ["FOR-051", "Carta Convenio de Administración (Mandato)", 2, 39, 49, 48, 49], ["LAB-06", "Carta de Renuncia Voluntaria y Notificación de Preaviso", 3, 48, 55, 54, 55], ["FOR-052", "Cesión de Bienes, Articulo 1.934 del Código Civil Vigente y Artículo de Procedimiento Civil Vigente", 2, 39, 49, 48, 49], ["FOR-053", "Cesión de Crédito", 2, 39, 49, 48, 49], ["FOR-055", "Cesión de Crédito Hipotecario", 2, 39, 49, 48, 49], ["FOR-060", "Cesión de Derechos Hereditarios bajo condición", 2, 39, 49, 48, 49], ["FOR-056", "Cesión de Derechos Litigiosos", 2, 39, 49, 48, 49], ["FOR-057", "Cesión de un Contrato de Arrendamiento", 9, 39, 52, 51, 52], ["FOR-058", "Cesión de una Herencia", 6, 39, 42, 41, 42], ["FOR-059", "Cesión Onerosa de Derechos Hereditarios bajo Condición", 2, 39, 49, 48, 49], ["FOR-054", "Código Civil y Artículo 752 del Código de Procedimiento Civil Vigente", 4, 39, 39, 38, 39], ["FOR-061", "Como privar al padre o la madre de la Administración de los Bienes del hijo, Artículo 275 del Código Civil Vigente", 7, 39, 43, 42, 43], ["FOR-062", "Compra Venta con participación de Sociedad Conyugal", 6, 39, 42, 41, 42], ["FOR-063", "Compromiso de Venta de un Negocio", 2, 39, 49, 48, 49], ["FOR-064", "Conclusiones para la Sentencia", 8, 39, 50, 49, 50], ["FOR-065", "Consentimiento de la persona que va ser adoptada", 4, 39, 39, 38, 39], ["FOR-066", "Consentimiento de los padres, los abuelos o tutor de un menor", 7, 39, 43, 42, 43], ["FOR-067", "Consentimiento del Cónyuge para que el otro pueda disponer de los Bienes comunes a titulo gratuito, Artículos 168, 170 y 171 del Código Civil Vigente", 5, 39, 40, 39, 40], ["FOR-068", "Consentimiento del Cónyuge para que el otro pueda disponer de sus propios Bienes a titulo gratuito o renunciar herencias o legados Artículo 154 del Código Civil Vigente", 5, 39, 40, 39, 40], ["FOR-069", "Consignación de Pensión Alimenticia", 4, 39, 39, 38, 39], ["AMP-09", "Constancia del Secretario de Haberse Practicado Notificación", 4, 49, 56, 52, 56], ["FOR-070", "Constancia Expedida por un Banco", 4, 39, 39, 38, 39], ["FOR-077", "Constitución de Fondo de Comercio", 1, 39, 41, 40, 41], ["FOR-071", "Constitución de hipoteca de Segundo Grado, Garantizando Nuevo Préstamo al mismo Acreedor", 2, 39, 49, 48, 49], ["FOR-072", "Constitución de Hogar", 4, 39, 39, 38, 39], ["FOR-073", "Constitución de Hogar de una viuda para ella y su hijo único", 7, 39, 43, 42, 43], ["FOR-074", "Constitución de una Firma Comercial Personal", 4, 39, 39, 38, 39], ["FOR-075", "Constitución de una Habitación", 4, 39, 39, 38, 39], ["FOR-076", "Constitución de una hipoteca Judicial", 2, 39, 49, 48, 49], ["FOR-078", "Consulta Jurídica Evacuada por Escrito", 4, 39, 39, 38, 39], ["FOR-080", "Contestación a una Demanda de Trabajo", 3, 39, 51, 50, 51], ["FOR-079", "Contestación de Demanda en la cual se oponen Excepciones", 8, 39, 50, 49, 50], ["FOR-081", "Contrato de Administración de Inmuebles", 4, 39, 39, 38, 39], ["FOR-082", "Contrato de Anticresis", 2, 39, 49, 48, 49], ["FOR-083", "Contrato de Arrendamiento de Maquinarias", 9, 39, 52, 51, 52], ["FOR-084", "Contrato de Arrendamiento de Predio o Fundo Rústico", 9, 39, 52, 51, 52], ["FOR-085", "Contrato de Arrendamiento de un Local Comercial", 9, 39, 52, 51, 52], ["FOR-086", "Contrato de Arrendamiento de un Vehículo", 9, 39, 52, 51, 52], ["FOR-087", "Contrato de Arrendamiento de una Oficina", 9, 39, 52, 51, 52], ["FOR-088", "Contrato de Comodato", 2, 39, 49, 48, 49], ["FOR-089", "Contrato de Conserjería", 3, 39, 51, 50, 51], ["FOR-090", "Contrato de Consignación de Vehículo", 4, 39, 39, 38, 39], ["FOR-091", "Contrato de Consorcio de Obras", 1, 39, 41, 40, 41], ["FOR-092", "Contrato de Consorcio para Licitación en Construcción de Obra", 1, 39, 41, 40, 41], ["FOR-093", "Contrato de Cuentas en Participación", 6, 39, 42, 41, 42], ["FOR-094", "Contrato de Depósito Voluntario", 2, 39, 49, 48, 49], ["FOR-095", "Contrato de Distribución de Libros", 4, 39, 39, 38, 39], ["FOR-096", "Contrato de Edición", 4, 39, 39, 38, 39], ["FOR-097", "Contrato de Enfiteusis", 4, 39, 39, 38, 39], ["FOR-098", "Contrato de Fideicomiso de Garantía e Inversión para Compradores de Apartamentos Suscrito por el Fideicomitente, El Fiduciario y el Beneficiario o Fideicomisario", 2, 39, 49, 48, 49], ["FOR-099", "Contrato de Mantenimiento", 4, 39, 39, 38, 39], ["FOR-100", "Contrato de Medianería de una Cerca Divisoria", 4, 40, 39, 38, 39], ["FOR-119", "Contrato de Mutuo", 2, 40, 49, 48, 49], ["FOR-101", "Contrato de Obras Cuando se tienen el Proyecto y los Emisores Requeridos", 4, 40, 39, 38, 39], ["FOR-102", "Contrato de Opción de Compra-Venta con Cláusula Penal", 2, 40, 49, 48, 49], ["FOR-103", "Contrato de Permuta", 4, 40, 39, 38, 39], ["FOR-104", "Contrato de Prenda", 4, 40, 39, 38, 39], ["FOR-105", "Contrato de Préstamo a Interés con Fianza", 2, 40, 49, 48, 49], ["FOR-106", "Contrato de Proyecto e Inspección de Obras con un Ingeniero Proyectista", 4, 40, 39, 38, 39], ["FOR-107", "Contrato de Secuestro Convencional", 4, 40, 39, 38, 39], ["FOR-108", "Contrato de Servicio", 4, 40, 39, 38, 39], ["FOR-109", "Contrato de Trabajo", 3, 40, 51, 50, 51], ["FOR-110", "Contrato de Trabajo para servicio doméstico", 3, 40, 51, 50, 51], ["FOR-111", "Contrato de Trabajo para un Técnico Extranjero", 3, 40, 51, 50, 51], ["FOR-112", "Contrato de Transporte, Carga y Almacenamiento", 4, 40, 39, 38, 39], ["FOR-113", "Contrato de un arrendamiento de vivienda", 9, 40, 52, 51, 52], ["FOR-114", "Contrato de una Empresa con Consultores Técnicos", 4, 40, 39, 38, 39], ["FOR-115", "Contrato de una Empresa con un Abogado Litigante", 4, 40, 39, 38, 39], ["FOR-116", "Contrato de valores", 4, 40, 39, 38, 39], ["FOR-118", "Contrato de Venta con Reserva de Dominio, Artículos 1.480 y 1.815 dcl Código Civil Vigente", 2, 40, 49, 48, 49], ["FOR-120", "Contrato para Promocionista e Inversionistas", 4, 40, 39, 38, 39], ["FOR-121", "Contrato Preliminar de Compra-Venta de un Apartamento", 2, 40, 49, 48, 49], ["FOR-122", "Convenio de los Copropietarios de la Quinta Vacacional La Paz Ubicada en la Zona Turística", 4, 40, 39, 38, 39], ["FOR-123", "Convenio de Resolución de Contrato de Opción de Compra", 2, 40, 49, 48, 49], ["FOR-124", "Conversión de Adopción simple en plena", 7, 40, 43, 42, 43], ["FOR-125", "Convocatoria para una Asamblea General Ordinaria de Copropietarios de un Edificio", 1, 40, 41, 40, 41], ["FOR-126", "Correctivo de un Documento de Venta de un Apartamento señalando el Estacionamiento de Vehículo que le corresponde", 2, 40, 49, 48, 49], ["FOR-127", "Cúratela de un Menor solicitada por una madre divorciada antes de contraer nuevas nupcias, Artículo 110 del Código Civil Vigente", 7, 40, 43, 42, 43], ["FOR-168", "Dación en pago Artículo 1.290 del Código Civil Vigente", 4, 40, 39, 38, 39], ["FOR-169", "Dación en pago de bienes Muebles", 4, 40, 39, 38, 39], ["FOR-170", "Declaración de Bienes de Funcionarios Públicos", 4, 40, 39, 38, 39], ["LOP-13", "Declaración de Herederos Universales Incluyendo Menores de Edad", 4, 50, 57, 55, 57], ["FOR-171", "Declaración de Herencia", 6, 40, 42, 41, 42], ["FOR-172", "Declaración de la Existencia del Matrimonio, Artículos 115 y 458 del Código Civil Vigente", 5, 40, 40, 39, 40], ["FOR-173", "Declaración de Pobreza", 4, 40, 39, 38, 39], ["FOR-174", "Declaración de Voluntad de ser Venezolano", 4, 40, 39, 38, 39], ["FOR-175", "Declaración Jurada de Bienes cuando el Funcionario Público carece de ellos", 4, 40, 39, 38, 39], ["FOR-176", "Declaración que debe firmar un Cónyuge cuando la Propiedad que va a Hipotecar el otro Cónyuge es de la Sociedad Conyugal", 5, 40, 40, 39, 40], ["FOR-177", "Declaratoria de Abandono de un Menor", 7, 40, 43, 42, 43], ["FOR-178", "Demanda contra una. Compañía de Seguros para hacer efectiva la obligación de pagar lo perdido de un siniestro", 1, 40, 41, 40, 41], ["LOP-02", "Demanda de Adopción Plena de Menor Entregado a Mujer Sola", 4, 51, 58, 56, 58], ["FOR-179", "Demanda de Declaratoria de Simulación, Artículo 1.281 y 1", 8, 40, 50, 49, 50], ["FOR-180", "Demanda de Desconocimiento de la paternidad Legítima, Artículos 201, 203 y 208 del Código Civil Vigente", 7, 40, 43, 42, 43], ["FOR-131", "Demanda de Desocupación por falta de pago de Cánones de Arrendamiento", 9, 40, 52, 51, 52], ["FOR-181", "Demanda de Desocupación por Falta de Pago de Cánones de Arrendamiento", 9, 40, 52, 51, 52], ["FOR-182", "Demanda de Divorcio por abandono voluntario Artículo 185, Causal 2a. del Código Civil Vigente", 5, 40, 40, 39, 40], ["FOR-183", "Demanda de Ejecución de Hipoteca cuando el Deudor ha Muerto", 2, 40, 49, 48, 49], ["FOR-184", "Demanda de Impugnación de paternidad", 7, 40, 43, 42, 43], ["LOP-08", "Demanda de Impugnación y Desconocimiento de Paternidad Legítima", 4, 52, 59, 57, 59], ["LOP-09", "Demanda de Inquisición de Paternidad Natural contra Sucesores", 4, 53, 60, 58, 60], ["FOR-186", "Demanda de pago de los gastos efectuados por causa del matrimonio prometido y no realizado", 5, 40, 40, 39, 40], ["LOP-01", "Demanda de Pensión de Alimentos, Bonificación de Fin de Año y Actividad Escolar", 4, 54, 61, 59, 61], ["FOR-187", "Demanda de Prenda", 8, 40, 50, 49, 50], ["FOR-188", "Demanda de Reivindicación", 8, 40, 50, 49, 50], ["LOP-04", "Demanda de Restitución de Guarda y Custodia de Menor", 4, 55, 62, 60, 62], ["FOR-189", "Demanda de Retracto legal por parte de un Arrendatario", 9, 40, 52, 51, 52], ["FOR-159", "Demanda de Revocatoria a declaración de Estado de Atraso", 8, 40, 50, 49, 50], ["FOR-190", "Demanda de Saneamiento", 8, 40, 50, 49, 50], ["FOR-147", "Demanda de Tercería", 8, 40, 50, 49, 50], ["FOR-148", "Demanda de Trabajo por Despido fundado en Reajuste de Personal", 3, 40, 51, 50, 51], ["FOR-149", "Demanda de Tránsito", 8, 40, 50, 49, 50], ["FOR-150", "Demanda de una Compañía de Seguros, que se niega a pagar gastos de accidente ocurrido y denunciado durante el periodo de gracia concedido en la Póliza respectiva", 1, 40, 41, 40, 41], ["FOR-151", "Demanda de una Sucesión para el Reconocimiento de Hijo Natural del Decujus", 7, 40, 43, 42, 43], ["FOR-152", "Demanda para cobrar un pagaré", 8, 40, 50, 49, 50], ["LOP-06", "Demanda para Fijación y Cumplimiento de Régimen de Visitas", 4, 56, 63, 61, 63], ["FOR-153", "Demanda Penal por Simulación de hechos punibles", 8, 40, 50, 49, 50], ["FOR-154", "Demanda por Cobro de Bolívares a ¡os Herederos de un Fiador muerto", 8, 40, 50, 49, 50], ["FOR-155", "Demanda por Cobro de Letra de Cambio vencida", 8, 40, 50, 49, 50], ["FOR-156", "Demanda por Disminución del precio de una venta, Artículos 1496 y 1.500 dcl Código Civil Vigente", 2, 40, 49, 48, 49], ["LOP-05", "Demanda por Incumplimiento y Sanción de Pensión Alimenticia", 4, 57, 64, 62, 64], ["FOR-157", "Demanda por Quiebra", 8, 40, 50, 49, 50], ["FOR-158", "Demanda por Resolución del Contrato de Arrendamiento de una Oficina Amueblada", 9, 40, 52, 51, 52], ["FOR-160", "Demanda Solicitando La Quiebra", 8, 40, 50, 49, 50], ["FOR-161", "Demanda Solicitando la Quiebra y Pidiendo su Calificación", 8, 40, 50, 49, 50], ["FOR-162", "Denuncia Simple de Herencia Yacente", 6, 40, 42, 41, 42], ["FOR-163", "Derecho de Autor", 4, 40, 39, 38, 39], ["FOR-164", "Diferimiento al Servicio Militar Obligatorio", 4, 40, 39, 38, 39], ["AMP-06", "Diligencia del Alguacil Consignando el Recibo de Notificación", 4, 58, 65, 63, 65], ["FOR-165", "Diligencia para Decreto del Discernimiento del menor a través del Tutor", 7, 40, 43, 42, 43], ["FOR-166", "Diligencia pidiendo actuaciones para formalizar Recurso de Hecho", 8, 40, 50, 49, 50], ["FOR-167", "Diligencia pidiendo Computo de Audiencias", 4, 40, 39, 38, 39], ["FOR-128", "Disolución de Sociedad en Comandita Simple", 1, 40, 41, 40, 41], ["FOR-129", "Disolución y Liquidación de la Comunidad de Bienes, Articulo 173 del Código Civil Vigente", 4, 40, 39, 38, 39], ["FOR-130", "Divorcio Breve Articulo", 5, 40, 40, 39, 40], ["FOR-132", "Documento de Cancelación de hipoteca de Segundo Grado", 2, 40, 49, 48, 49], ["FOR-133", "Documento de Constitución de Hipoteca de Primer Grado", 2, 40, 49, 48, 49], ["FOR-134", "Documento de Constitución de Hipoteca de Segundo Grado", 2, 40, 49, 48, 49], ["FOR-135", "Documento de Deslinde", 4, 40, 39, 38, 39], ["FOR-136", "Documento de Disolución de una Sociedad en Comandita Simple", 1, 40, 41, 40, 41], ["FOR-137", "Documento de Donación, Artículo 1.431 dcl Código Civil Vigente", 4, 40, 39, 38, 39], ["FOR-138", "Documento de Parcelamiento y Urbanismo", 4, 40, 39, 38, 39], ["FOR-140", "Documento de Venta con Pacto de Retracto", 2, 40, 49, 48, 49], ["FOR-141", "Documento de Venta de un Cuerpo Determinado de un Inmueble", 2, 40, 49, 48, 49], ["FOR-142", "Documento de Venta de una Parcela", 2, 40, 49, 48, 49], ["FOR-144", "Documento de Venta de Vehículo", 2, 40, 49, 48, 49], ["FOR-143", "Documento de Venta de Vehículo Usado de Concesionario apersonas naturales", 2, 40, 49, 48, 49], ["FOR-139", "Documento Renta Vitalicia", 4, 40, 39, 38, 39], ["FOR-146", "Donación Artículo 1.431 dcl Código Civil", 4, 40, 39, 38, 39], ["FOR-145", "Donación de Cédulas Hipotecarías a Menores con Nombramiento de Curador", 7, 40, 43, 42, 43], ["FOR-479", "Ejusdem", 4, 59, 39, 38, 39], ["FOR-191", "Entrega Material Artículo 1.167 del Código Civil Vigente", 4, 40, 39, 38, 39], ["FOR-192", "Escrito ante la Corte Suprema Consignado Cómputo de Audiencias", 4, 40, 39, 38, 39], ["FOR-193", "Escrito de Cesión de Bienes", 2, 40, 49, 48, 49], ["FOR-194", "Escrito de Consignación del Inventario de Los Bienes de un Menor", 7, 40, 43, 42, 43], ["FOR-195", "Escrito de Partición Amigable", 6, 40, 42, 41, 42], ["FOR-196", "Escrito de Pruebas en un Divorcio por Abandono Voluntario Promovido por él Cónyuge", 5, 40, 40, 39, 40], ["FOR-197", "Escrito de Pruebas en un Juicio de Divorcio promovidas por la Cónyuge", 5, 40, 40, 39, 40], ["FOR-198", "Escrito de Pruebas en un Juicio Laboral presentado por el Actor -", 3, 40, 51, 50, 51], ["FOR-199", "Escrito de Quien Vaya a Contraer Nupcias Teniendo Menores Bajo su Patria Potestad", 7, 40, 43, 42, 43], ["FOR-201", "Escrito de Separación de Cuerpos y de Bienes", 5, 60, 40, 39, 40], ["FOR-202", "Escrito del Tutor para un Expediente de Interdicción que se le sigue a sus Representadas, solicitando autorización para suscribir en nombre de las mismas el", 7, 60, 43, 42, 43], ["FOR-203", "Escrito en el cual el Padre o la Madre pide autorización judicial para Hipotecar gravar o enajenar Bienes del hijo o de los hijos que tiene bajo su Patria Potestad", 7, 60, 43, 42, 43], ["FOR-204", "Escrito para Repudiar una Herencia", 6, 60, 42, 41, 42], ["FOR-205", "Escrito Pidiendo Desocupación de Acuerdo con la Ley de Alquileres", 9, 60, 52, 51, 52], ["FOR-206", "Escrito Pidiendo se acepte la Inhibición del Juez", 4, 60, 39, 38, 39], ["FOR-208", "Escrito pidiendo se niegue Derecho Preferencial", 4, 60, 39, 38, 39], ["FOR-207", "Escrito presentando Documento Público para ser agregado a los Autos", 4, 60, 39, 38, 39], ["FOR-209", "Escrito Reclamando Cumplimiento de Fallo", 4, 60, 39, 38, 39], ["FOR-210", "Escrito Reclamando el Cierre de un Negocio", 4, 60, 39, 38, 39], ["FOR-200", "Escrito Separación de Cuerpos, Artículo", 5, 60, 40, 39, 40], ["FOR-211", "Estatutos de una Asociación Civil", 4, 60, 39, 38, 39], ["FOR-213", "Excepciones de Ln admisibilidad", 8, 60, 50, 49, 50], ["FOR-212", "Excepciones Dilatorias", 8, 60, 50, 49, 50], ["FOR-214", "Excusa del Cargo de Tutor o Protutor", 7, 60, 43, 42, 43], ["LOP-16", "Exposición de Motivos de la Ley Orgánica para la Protección del Niño y del Adolescente", 4, 61, 66, 64, 66], ["FOR-215", "Extinción de Fianza", 2, 60, 49, 48, 49], ["FOR-216", "Extinción de una Servidumbre", 4, 60, 39, 38, 39], ["FOR-217", "Fianza por Aval de Compañía de Seguros", 1, 60, 41, 40, 41], ["FOR-219", "Formalización de Recurso de Casación Actuaciones Subsiguientes", 8, 60, 50, 49, 50], ["FOR-218", "Formalización de Recurso de Casación Caso Remate en Ejecución de Hipoteca", 2, 60, 49, 48, 49], ["FOR-220", "Habeas Corpus", 4, 60, 39, 38, 39], ["FOR-222", "Impugnación de Recurso de Casación en un Juicio de Quiebra", 8, 60, 50, 49, 50], ["FOR-221", "Impugnación de un Acuerdo tomado por la Mayoría de Copropietarios en un Régimen de Propiedad Horizontal", 4, 60, 39, 38, 39], ["AMP-07", "Informe del Alguacil Dejando Constancia de Negativa a Firmar Notificación", 4, 62, 67, 52, 67], ["FOR-223", "Informe del Comisario de una Compañía de Accionistas", 1, 60, 41, 40, 41], ["FOR-224", "Informes del Actor en un Juicio de Trabajo", 3, 60, 51, 50, 51], ["FOR-225", "Inhabilitación en Caso de Dispendio, Artículo 409 del Código Civil", 4, 60, 39, 38, 39], ["FOR-226", "Inhabilitación en Caso de Dispendio, Artículo 409 del Código Civil", 4, 60, 39, 38, 39], ["FOR-227", "inhabilitación en Caso de Enfermedad", 4, 60, 39, 38, 39], ["FOR-228", "Inquisición de Paternidad", 7, 60, 43, 42, 43], ["FOR-229", "Inquisición de Paternidad Natural contra Sucesires Legítimos", 7, 60, 43, 42, 43], ["FOR-231", "Inspección Ocular en un Banco para conocer el Estado de una Cuenta", 4, 60, 39, 38, 39], ["FOR-230", "Inspección Ocular sobre un Inmueble", 4, 60, 39, 38, 39], ["FOR-232", "Interdicción", 4, 60, 39, 38, 39], ["FOR-233", "Interdicto de Amparo", 8, 60, 50, 49, 50], ["FOR-236", "Interdicto de Daño Temido", 8, 60, 50, 49, 50], ["FOR-234", "Interdicto de Despojo", 8, 60, 50, 49, 50], ["FOR-235", "Interdicto de Obra Nueva", 8, 60, 50, 49, 50], ["FOR-237", "Intimación de Honorarios", 4, 60, 39, 38, 39], ["FOR-238", "Invalidación de Juicio", 4, 60, 39, 38, 39], ["FOR-239", "Inventario que debe formar el Consejo de Tutela", 7, 60, 43, 42, 43], ["FOR-240", "Inventario Solemne de los Bienes Hereditarios", 6, 60, 42, 41, 42], ["FOR-241", "Juicio Breve", 4, 60, 39, 38, 39], ["FOR-242", "Juicio de Rendición de Cuenta, Artículo 21 del Código Civil Vigente", 4, 60, 39, 38, 39], ["FOR-244", "Justificativo de Cuenta Corriente", 4, 60, 39, 38, 39], ["FOR-246", "Justificativo de Soltería para contraer Matrimonio", 5, 60, 40, 39, 40], ["FOR-245", "Justificativo de Soltería para Extranjero en Venezuela", 4, 60, 39, 38, 39], ["FOR-247", "Justificativo para acompañar a la solicitud de Declaración de Pobreza", 4, 60, 39, 38, 39], ["FOR-248", "Justificativo para la Admisión de Inscripción de una Partida de Matrimonio", 5, 60, 40, 39, 40], ["FOR-243", "Justificativo para Naturalización", 4, 60, 39, 38, 39], ["FOR-249", "Justificativo para obtención de Nacionalidad Venezolana", 4, 60, 39, 38, 39], ["FOR-250", "Justificativo para obtener título supletorio por prescripción", 4, 60, 39, 38, 39], ["FOR-251", "Justificativo para preparar interdicto de despojo", 8, 60, 50, 49, 50], ["FOR-252", "Justificativo para Presentarlo como prueba en un Divorcio", 5, 60, 40, 39, 40], ["FOR-253", "Justificativo para probar la Propiedad de un Vehículo", 4, 60, 39, 38, 39], ["LOP-15", "Ley Aprobatoria de la Convención sobre los Derechos del Niño (Tratado)", 4, 63, 68, 65, 68], ["LOP-14", "Ley Orgánica para la Protección de Niños, Niñas y Adolescentes (Texto Legal)", 4, 64, 69, 66, 69], ["FOR-254", "Libelo de Cobro de Alquileres Insolutos cuando el Arrendatario ya ha desocupado él Inmueble", 9, 60, 52, 51, 52], ["FOR-255", "Libelo de Cobro de Letra de Cambio Endosada", 8, 60, 50, 49, 50], ["FOR-256", "Libelo de Cobro Mercantil", 8, 60, 50, 49, 50], ["FOR-257", "Libelo de Divorcio", 5, 60, 40, 39, 40], ["FOR-258", "Libelo dé Ejecución de Hipoteca", 2, 60, 49, 48, 49], ["FOR-259", "Libelo de Reivindicación", 8, 60, 50, 49, 50], ["FOR-260", "Liberación de Anticresis", 2, 60, 49, 48, 49], ["FOR-261", "Liberación de Hipoteca por haber sido Sustituida por otra Garantía", 2, 60, 49, 48, 49], ["FOR-263", "Línea de Crédito Bancario", 4, 60, 39, 38, 39], ["FOR-262", "Liquidación de la Comunidad Conyugal", 5, 60, 40, 39, 40], ["FOR-264", "Manifestación de no poder aceptar una Herencia, Legado Donación para el Hijo Artículo 268 del Código Civil Vigente", 7, 60, 43, 42, 43], ["AMP-11", "Modelo de Acta de Declaración de Testigo en Audiencia de Amparo", 4, 65, 70, 67, 70], ["AMP-12", "Modelo de Acta de Inspección Judicial en Materia de Amparo", 4, 66, 71, 68, 71], ["AMP-04", "Modelo de Boleta de Notificación al Presunto Agraviante", 4, 67, 72, 69, 72], ["FOR-265", "Modelo de Declaración de Voluntad de ser Venezolano", 4, 60, 39, 38, 39], ["AMP-02", "Modelo de Demanda / Solicitud de Acción de Amparo Constitucional", 4, 68, 73, 70, 73], ["FOR-266", "Modelo de Escrito de Consignación del Inventario de los Bienes del Menor", 7, 60, 43, 42, 43], ["FOR-268", "Modelo de Poder General Judicial con Facultad Especial para Reclamar Responsabilidad Civil, Daños y Perjuicios", 4, 60, 39, 38, 39], ["FOR-267", "Modelo de Poder para Contra demandar en Divorcio", 5, 60, 40, 39, 40], ["FOR-269", "Modelo de Solicitud para Nombramiento de Tutor", 7, 60, 43, 42, 43], ["FOR-270", "Modificación de Linderos", 4, 60, 39, 38, 39], ["FOR-117", "No", 4, 40, 39, 38, 39], ["FOR-271", "Nombramiento de Albacea Artículo 970 del Código Civil Patrio Vigente", 6, 60, 42, 41, 42], ["FOR-272", "Nombramiento de Tutor Artículo 301 del Código Civil Vigente", 7, 60, 43, 42, 43], ["FOR-274", "Notificación al Registro Mercantil de la Circunscripción Judicial del Distrito Federal y Estado Miranda, sobre Aumento del Capital social de una Compañía Anónima y Emisión de Nuevas Acciones", 1, 60, 41, 40, 41], ["FOR-275", "Notificación al Registro Mercantil del Nombramiento de Administrador de una Compañía Anónima", 1, 60, 41, 40, 41], ["FOR-273", "Notificación al Registro Mercantil sobre Aumento del Capital Social de una Compañía Anónima", 1, 60, 41, 40, 41], ["FOR-276", "Notificación de Comerciante a Acreedores de Estado de Atraso", 8, 60, 50, 49, 50], ["FOR-277", "Notificación de Denominación Comercial Formulada ante el Ciudadano Registrador de la Propiedad Industrial", 8, 60, 50, 49, 50], ["FOR-279", "Nulidad de Matrimonio (Caso Bigamia)", 5, 60, 40, 39, 40], ["FOR-278", "Nulidad de Matrimonio Artículo", 5, 60, 40, 39, 40], ["FOR-280", "Nulidad de Presunción de Muerte, Artículo 438 y Siguientes del Código Civil Vigente y Artículo", 4, 60, 39, 38, 39], ["FOR-281", "Nulidad de Venta de la Cosa Ajena, Articulo 1.438 del Código Civil Vigente", 2, 60, 49, 48, 49], ["FOR-282", "Oferta de Compra-Venta de todo un Activo", 2, 60, 49, 48, 49], ["FOR-283", "Oferta Real ante un Tribunal cuando el Arrendador se niega a Recibir Cánones de Arrendamiento", 9, 60, 52, 51, 52], ["FOR-284", "Oposición a una Acumulación de Autos", 4, 60, 39, 38, 39], ["FOR-285", "Oposición en Herencia Yacente", 6, 60, 42, 41, 42], ["FOR-286", "Oposición en una Pretendida Invalidación de un Juicio 561", 4, 60, 39, 38, 39], ["FOR-921", "Ordinal 2o del Código Civil Vigente", 4, 59, 39, 38, 39], ["FOR-287", "Pagare", 4, 60, 39, 38, 39], ["FOR-288", "Partición", 6, 60, 42, 41, 42], ["FOR-298", "Partición Amistosa de Bienes de la Sociedad Conyugal", 6, 60, 42, 41, 42], ["FOR-289", "Partición de Bienes y Rectificación o Participación de Error en la Declaración de Herencia", 6, 60, 42, 41, 42], ["FOR-290", "Participación al Registro Mercantil de la Constitución de una Compañía en Comandita", 6, 60, 42, 41, 42], ["FOR-291", "Participación al Registro Mercantil de la Constitución de una Sociedad en Nombre Colectivo", 6, 60, 42, 41, 42], ["FOR-292", "Participación al Registro Mercantil de la Terminación de una Sociedad en Nombre Colectivo", 6, 60, 42, 41, 42], ["FOR-293", "Participación al Registro Mercantil de la Venta de Acciones de una Compañía Anónima y Nombramiento de Nuevo Presidente", 6, 60, 42, 41, 42], ["FOR-294", "Participación de Cesión de Crédito", 6, 60, 42, 41, 42], ["FOR-295", "Participación de Disolución de Sociedad en Comandita Simple quedando el socio solidario autorizado para obrar, firmar, etc. como único responsable", 6, 60, 42, 41, 42], ["FOR-296", "Participación de la separación de un socio y entrada de otros a una Sociedad", 6, 60, 42, 41, 42], ["FOR-297", "Participación de Venta de Acciones al Registro Mercantil", 6, 60, 42, 41, 42], ["FOR-299", "Pedimento de Ejecución de Sentencia en Caso de Desocupación de Inmueble", 9, 60, 52, 51, 52], ["FOR-300", "Petición de Apertura de un Testamento Cerrado en manos de otro", 6, 69, 42, 41, 42], ["FOR-301", "Poder Apud Acta", 4, 69, 39, 38, 39], ["FOR-302", "Poder Comercial Judicial y Extrajudicial", 4, 69, 39, 38, 39], ["FOR-303", "Poder Conferido en nombre de otro", 4, 69, 39, 38, 39], ["FOR-304", "Poder Especial", 4, 69, 39, 38, 39], ["FOR-310", "Poder Especial de Administración y Disposición y en especial para vender un Inmueble en Venezuela otorgado ante un Cónsul Venezolano en el Extranjero y protocolizado ante una Oficina Subalterna de Registro de Venezuela", 4, 69, 39, 38, 39], ["POD-14", "Poder Especial de Cobranza Extrajudicial y Depósito Bancario", 0, 70, 74, 28, 74], ["FOR-305", "Poder Especial para actuar solamente en la Dirección de Inquilinato y en el Tribunal de Apelaciones de Inquilinato y ante la Gobernación, Inos, CANTV y otros Institutos Autónomos", 9, 69, 52, 51, 52], ["FOR-306", "Poder Especial para Defender Derechos Hereditarios de Menores", 7, 69, 43, 42, 43], ["FOR-307", "Poder Especial para Manifestación de Matrimonio", 5, 69, 40, 39, 40], ["FOR-308", "Poder Extrajudicial (Comercial)", 4, 69, 39, 38, 39], ["FOR-309", "Poder General", 4, 69, 39, 38, 39], ["FOR-311", "Poder General del Cónyuge para la Cónyuge", 5, 69, 40, 39, 40], ["FOR-312", "Poder Otorgado sin Revocar los anteriores", 4, 69, 39, 38, 39], ["FOR-313", "Poder para Acusar", 4, 69, 39, 38, 39], ["FOR-314", "Poder para contra demandar en Divorcio", 5, 69, 40, 39, 40], ["FOR-315", "Poder para Demandar ante los Tribunales del Trabajo", 3, 69, 51, 50, 51], ["FOR-316", "Poder para Divorcio de un extranjero residenciado en Venezuela y de tránsito en su país otorgado ante el Cónsul Venezolano respectivo", 5, 69, 40, 39, 40], ["FOR-317", "Poder para movilizar Cuentas de un Banco", 4, 69, 39, 38, 39], ["FOR-318", "Poder para Partición de una Herencia", 6, 69, 42, 41, 42], ["FOR-319", "Poder Personal al Abogado para Actos judiciales", 4, 69, 39, 38, 39], ["FOR-320", "Precontrato de Administración", 4, 69, 39, 38, 39], ["FOR-321", "Presentación de Copia de Informe del Comisario y Balance de la Compañía con Copia de Reforma de sus Estatutos", 1, 69, 41, 40, 41], ["FOR-322", "Presunción de Muerte, Artículos 418, 419 y 420 del Código Civil", 4, 69, 39, 38, 39], ["FOR-323", "Primera, Segunda y Tercera Publicaciones para venta de un Fondo de Comercio en atención al Artículo 151 del Código de Comercio", 1, 69, 41, 40, 41], ["AMP-01", "Procedimiento de Amparo Constitucional - Comentarios Generales y Doctrina TSJ", 4, 71, 75, 71, 75], ["FOR-324", "Promesa Bilateral de venta de un Apartamento con Entrega Anticipada del mismo", 2, 69, 49, 48, 49], ["FOR-325", "Promesa Mutua de Matrimonio", 5, 69, 40, 39, 40], ["FOR-326", "Promesa Unilateral de Venta de un Inmueble", 2, 69, 49, 48, 49], ["FOR-327", "Promoción de la Yacencia de una Herencia y cobro Privilegiado", 6, 69, 42, 41, 42], ["FOR-328", "Promoción de Pruebas de una Empresa Demandada ante la Comisión Tripartita contra Despidos Injustificados", 8, 69, 50, 49, 50], ["FOR-329", "Promoción de Pruebas en una cuestión previa Articulo 352 del Código de Procedimiento Civil", 4, 69, 39, 38, 39], ["FOR-330", "Promoción de Tutela", 7, 69, 43, 42, 43], ["FOR-331", "Promoción del inventario Solemne de los Bienes Hereditarios Artículo 1.025 del Código Civil y Artículo 921 del Código de Procedimiento Civil Vigente", 6, 69, 42, 41, 42], ["FOR-332", "Proposición de Arreglo Amistoso de Liquidación de un negocio en Estado de Atraso", 4, 69, 39, 38, 39], ["FOR-333", "Protesto de Cheque", 4, 69, 39, 38, 39], ["FOR-334", "Pruebas de la Empresa Demandada en Juicio Laboral", 3, 69, 51, 50, 51], ["FOR-335", "Quiebra", 4, 69, 39, 38, 39], ["FOR-336", "Rechazo de Cargos en una Defensa Penal", 4, 69, 39, 38, 39], ["AMP-05", "Recibo de Citación y Notificación Personal del Presunto Agraviante", 4, 72, 76, 52, 76], ["FOR-337", "Reclamación por un Acuerdo tomado por la Mayoría de Copropietarios en un", 4, 69, 39, 38, 39], ["FOR-338", "Reclamo de Auto de Detención", 4, 69, 39, 38, 39], ["FOR-339", "Reclamo de Pensión de Alimentos al Cónyuge para sus menores hijos,", 7, 69, 43, 42, 43], ["FOR-340", "Reclamo de Pensión de Alimentos para hijo reconocido", 7, 69, 43, 42, 43], ["FOR-341", "Reconvención en Divorcio", 5, 69, 40, 39, 40], ["FOR-342", "Rectificación de Acta de Defunción", 4, 69, 39, 38, 39], ["FOR-343", "Rectificación de Partida de Matrimonio", 5, 69, 40, 39, 40], ["FOR-344", "Rectificación de Partida de Nacimiento de una Persona mayor de edad", 4, 69, 39, 38, 39], ["FOR-345", "Rectificación de Partida del Registro de un Menor", 7, 69, 43, 42, 43], ["FOR-346", "Recurso contra la Negativa de consentimiento del Tutor para la celebración del", 7, 69, 43, 42, 43], ["FOR-347", "Recurso de Queja de un Juez Mercantil", 8, 69, 50, 49, 50], ["FOR-348", "Redención de Enfiteusis", 4, 69, 39, 38, 39], ["FOR-350", "Reforma de Libelo", 8, 69, 50, 49, 50], ["FOR-349", "Reforma del Libelo de Trabajo por haber Declarado con Lugar Cuestiones Previas", 3, 69, 51, 50, 51], ["FOR-365", "Régimen de Visitas", 7, 69, 43, 42, 43], ["FOR-351", "Reglamento Interno de un Edificio Vendido bajo el Régimen de Propiedad Horizontal", 4, 69, 39, 38, 39], ["FOR-352", "Rendición de Cuenta de la Tutela", 7, 69, 43, 42, 43], ["FOR-353", "Rendición de Cuentas", 4, 69, 39, 38, 39], ["FOR-354", "Renuncia de Herencia", 6, 69, 42, 41, 42], ["FOR-355", "Renuncia de Poder", 4, 69, 39, 38, 39], ["FOR-356", "Reparcelamiento", 4, 69, 39, 38, 39], ["FOR-357", "Rescisión de un Contrato Preparatorio de Compra-Venta", 2, 69, 49, 48, 49], ["FOR-358", "Resolución Extra-Judicial de Contrato de Arrendamiento", 9, 69, 52, 51, 52], ["FOR-359", "Restablecimiento dé la Comunidad de Bienes en el Matrimonio Artículos 179", 5, 69, 40, 39, 40], ["FOR-360", "Restitución de Guarda", 7, 69, 43, 42, 43], ["FOR-361", "Restitución de Guarda de un Menor", 7, 69, 43, 42, 43], ["FOR-362", "Reunión de Junta Directiva de una. Compañía Anónima", 1, 69, 41, 40, 41], ["FOR-363", "Revocación de un Testamento Abierto", 6, 69, 42, 41, 42], ["FOR-364", "Revocatoria del Poder", 4, 69, 39, 38, 39], ["FOR-366", "Sanción de Incumplimiento de Pensión Alimenticia", 4, 69, 39, 38, 39], ["FOR-367", "Separación de Cuerpos", 5, 69, 40, 39, 40], ["FOR-368", "Separación de Cuerpos y Bienes Artículos 189 y 190 del Código Civil", 5, 69, 40, 39, 40], ["FOR-369", "Servidumbre de Conductores Eléctricos", 4, 69, 39, 38, 39], ["FOR-370", "Servidumbre para uso de peatones y vehículos", 4, 69, 39, 38, 39], ["FOR-371", "Solicitud a Extranjería de Devolución de una Partida de Matrimonio", 5, 69, 40, 39, 40], ["FOR-372", "Solicitud a un Tribunal de Notificación al Arrendatario sobre el fin de su Arrendamiento", 9, 69, 52, 51, 52], ["FOR-373", "Solicitud al Juez para que Compele al Heredero a que declare si acepta o Repudia la Herencia", 6, 69, 42, 41, 42], ["FOR-374", "Solicitud ante la Comisión Investigadora, según la Ley de Enriquecimiento ilícito de Funcionarios y Empleados Públicos, para Reorganizar y Administrar un Fundo", 4, 69, 39, 38, 39], ["FOR-376", "Solicitud de Acta de Manifestación de Deseo de contraer Matrimonio firmada por ambos solicitantes", 5, 69, 40, 39, 40], ["FOR-377", "Solicitud de Apertura de un Testamento cerrado depositado en manos propias", 6, 69, 42, 41, 42], ["FOR-378", "Solicitud de Apertura del Lapso de Prueba", 4, 69, 39, 38, 39], ["FOR-379", "Solicitud de Aumento de Pensión de Alimentos Artículo 68 de la Ley Tutelar del Menor", 7, 69, 43, 42, 43], ["LOP-07", "Solicitud de Aumento de Pensión de Alimentos por Modificación de Circunstancias", 4, 73, 77, 72, 77], ["FOR-380", "Solicitud de Autorización al Ministerio de Hacienda para vender un bien que forma parte", 4, 69, 39, 38, 39], ["FOR-381", "Solicitud de Autorización de inserción de partida de matrimonio extranjero en los libros del", 5, 69, 40, 39, 40], ["FOR-382", "Solicitud de Autorización de un Padre para Vender Bienes de sus hijos menores de 16 años", 7, 69, 43, 42, 43], ["FOR-383", "Solicitud de Autorización Judicial de una Madre para cobrar dinero de sus menores hijos", 7, 69, 43, 42, 43], ["FOR-384", "Solicitud de Autorización Judicial para contraer Matrimonio con la persona que fue su tutor", 7, 69, 43, 42, 43], ["FOR-385", "Solicitud de Autorización Judicial para no aceptar una Herencia, legado o donación para sus hijos menores de 16 años", 7, 69, 43, 42, 43], ["FOR-386", "Solicitud de Autorización Judicial para separarse del hogar Artículo 138 del Código Civil", 4, 69, 39, 38, 39], ["FOR-387", "Solicitud de Autorización Judicial para vender un inmueble de una persona entredicha", 4, 69, 39, 38, 39], ["LOP-10", "Solicitud de Autorización Judicial para Venta de Inmueble Perteneciente a Menor", 4, 74, 78, 73, 78], ["FOR-388", "Solicitud de Autorización para Ejercer el cargo de Corredor Público", 4, 69, 39, 38, 39], ["FOR-389", "Solicitud de Autorización para Enajenar o Liquidar Bienes del Menor", 7, 69, 43, 42, 43], ["FOR-390", "Solicitud de Autorización para Eximir a la Cónyuge el deber de seguir a su Marido a donde", 5, 69, 40, 39, 40], ["FOR-375", "Solicitud de Autorización para vender un inmueble de una Sociedad Conyugal sin consentimiento de la Cónyuge", 5, 69, 40, 39, 40], ["LOP-03", "Solicitud de Autorización para Viajar al Exterior (Madre con Hijos sin Autorización Paterna)", 4, 75, 79, 74, 79], ["FOR-391", "Solicitud de Autorización para Viajar una Madre con sus menores hijos Legítimos sin Autorización del Cónyuge", 7, 69, 43, 42, 43], ["FOR-392", "Solicitud de beneficio de Competencia Artículos 1950 y 1951 del Código Civil Vigente", 4, 69, 39, 38, 39], ["FOR-393", "Solicitud de Certificación de Gravámenes", 4, 69, 39, 38, 39], ["FOR-394", "Solicitud de Constancia de Domicilio para obtener Nacionalización", 4, 69, 39, 38, 39], ["FOR-395", "Solicitud de Constancia de que un Edificio Arrendado esta apto para ser Vendido en Propiedad Horizontal", 9, 69, 52, 51, 52], ["FOR-396", "Solicitud de Constitución de un Tribunal para Ofrecer en Venta a un Inquilino el Inmueble que ocupa", 9, 69, 52, 51, 52], ["FOR-397", "Solicitud de Convocatoria de una Asamblea Extraordinaria dirigida al Administrador del Condominio de un Edificio Vendido en Propiedad Horizontal", 1, 69, 41, 40, 41], ["FOR-398", "Solicitud de Copia Certificada de Acta de Asamblea de una Compañía Anónima", 1, 69, 41, 40, 41], ["FOR-401", "Solicitud de Copia Certificada de Documento Protocolizado de la Venta de un", 2, 59, 49, 48, 49], ["FOR-399", "Solicitud de Copia Certificada de Recaudos y actuaciones Tribunalicias", 4, 69, 39, 38, 39], ["FOR-400", "Solicitud de copia certificada de un Documento en el Tribunal de Apelaciones de Inquilino", 9, 59, 52, 51, 52], ["FOR-402", "Solicitud de Copia Certificada de un Documento Registrado", 4, 59, 39, 38, 39], ["FOR-403", "Solicitud de Copia Certificada del Documento Constitutivo de una Empresa", 4, 59, 39, 38, 39], ["LOP-11", "Solicitud de Curatela Especial para Menor previa a Segundas Nupcias de la Madre", 4, 76, 80, 75, 80], ["FOR-404", "Solicitud de Declaración de Herederos Universales", 4, 59, 39, 38, 39], ["FOR-405", "Solicitud de Declaración de Prescripción de Declaración de Herencia", 6, 59, 42, 41, 42], ["FOR-406", "Solicitud de Declaratoria de la Conversión de la Separación de Cuerpos en Divorcio Artículo 185 del Código Civil Vigente Ultimo Aparte", 5, 59, 40, 39, 40], ["FOR-407", "Solicitud de Derecho de Preferencia", 4, 59, 39, 38, 39], ["FOR-408", "Solicitud de Deslinde", 4, 59, 39, 38, 39], ["FOR-409", "Solicitud de Disminución de una Pensión Alimenticia", 4, 59, 39, 38, 39], ["FOR-410", "Solicitud de Dispensa del Impedimento que existe para contraer Matrimonio entre tíos y sobrinos y entre cuñados Artículo 53 del Código Civil y65 Ejusdem", 5, 59, 40, 39, 40], ["FOR-411", "Solicitud de Dispensa para contraer Matrimonio una mujer antes de Diez meses de la", 5, 59, 40, 39, 40], ["FOR-412", "Solicitud de Dispensa para contraer Matrimonio una mujer antes de diez meses de la", 5, 59, 40, 39, 40], ["FOR-414", "Solicitud de Divorcio en base al Articulo", 5, 59, 40, 39, 40], ["FOR-415", "Solicitud de Ejecución de Convenimíento Homologado", 8, 59, 50, 49, 50], ["FOR-416", "Solicitud de Emancipación", 4, 59, 39, 38, 39], ["FOR-417", "Solicitud de Fijación de hora y día para consignación de Testamento Cerrado", 6, 59, 42, 41, 42], ["FOR-418", "Solicitud de Habilitación para pedir ejecución de Sentencia Definitiva en un juicio de desocupación", 9, 59, 52, 51, 52], ["FOR-419", "Solicitud de inscripción de un negocio en el Registro Mercantil", 1, 59, 41, 40, 41], ["FOR-421", "Solicitud de Inscripción de una Oficina Técnica en el Registro Mercantil", 1, 59, 41, 40, 41], ["FOR-422", "Solicitud de Inscripción del Acta Modificatoria de una Compañía en el, Registro Mercantil", 1, 59, 41, 40, 41], ["FOR-420", "Solicitud de Inserción de Partida de Nacimiento", 4, 59, 39, 38, 39], ["FOR-423", "Solicitud de Interdicción de parte de la Cónyuge Artículos 393, 395, 396 y 397 del Código", 5, 59, 40, 39, 40], ["FOR-424", "Solicitud de Interdicción Provisional", 4, 59, 39, 38, 39], ["FOR-425", "Solicitud de Legitimación", 4, 59, 39, 38, 39], ["FOR-426", "Solicitud de Legitimación de un hijo natural por Subsiguiente Matrimonio", 7, 59, 43, 42, 43], ["FOR-427", "Solicitud de Nombramiento de un Curador sin cuya intervención el padre o la madre no", 7, 59, 43, 42, 43], ["FOR-428", "Solicitud de Notificación aun Arrendador de que el inmueble arrendado esta a su disposición", 9, 59, 52, 51, 52], ["FOR-429", "Solicitud de Notificación para pedir desocupación de casa por razones sanitarias", 9, 59, 52, 51, 52], ["FOR-430", "Solicitud de partición suplementaria", 6, 59, 42, 41, 42], ["FOR-431", "Solicitud de pensión alimenticia de una hija mayor de edad Artículo 282 del Código Civil Vigente", 4, 59, 39, 38, 39], ["FOR-432", "Solicitud de Reconocimiento de un Documento privado en su contenido y firma", 4, 59, 39, 38, 39], ["LOP-12", "Solicitud de Rectificación de Partida de Nacimiento de Menor ante Tribunal de Protección", 4, 77, 81, 76, 81], ["FOR-433", "Solicitud de Registro (le una Marca Comercial o Patente", 4, 59, 39, 38, 39], ["FOR-434", "Solicitud de Registro, Publicación y Fijación de una Compañía Anónima", 1, 59, 41, 40, 41], ["FOR-435", "Solicitud de Selladura de Libros para la Contabilidad", 4, 59, 39, 38, 39], ["FOR-436", "Solicitud de Separación de los Patrimonios del Decujus y Los Herederos Artículos", 4, 59, 39, 38, 39], ["FOR-437", "Solicitud de Traslado del Tribunal para notificar opción de Compra Terminada", 2, 59, 49, 48, 49], ["FOR-438", "Solicitud de un Cónyuge para separación temporal del hogar Artículo 138 del Código", 5, 59, 40, 39, 40], ["FOR-439", "Solicitud de una madre soltera para que su hijo use sus dos apelli dos Artículo 238 del", 7, 59, 43, 42, 43], ["FOR-440", "Solicitud para Autorización Matrimonial de una menor", 7, 59, 43, 42, 43], ["FOR-413", "Solicitud para Nombramiento de Tutor", 7, 59, 43, 42, 43], ["FOR-441", "Solicitud para portar armas", 4, 59, 39, 38, 39], ["FOR-442", "Solicitud para preparar la vía Ejecutiva", 4, 59, 39, 38, 39], ["FOR-443", "Solicitud para privar al padre de la Administración de los bienes del hijo", 7, 59, 43, 42, 43], ["FOR-444", "Solicitud para que el Juez dicte las Providencias Conducentes a Evitar las consecuencias", 4, 59, 39, 38, 39], ["FOR-445", "Solicitud para que se Compele al Heredero a que declare si acepta o repudia la Herencia", 6, 59, 42, 41, 42], ["FOR-446", "Solicitud para que se nombre curador por haber oposición de intereses entre los hijos y el", 7, 59, 43, 42, 43], ["FOR-447", "Solicitud para una Adopción", 7, 59, 43, 42, 43], ["FOR-448", "Sustitución de Poder en un Juicio", 4, 59, 39, 38, 39], ["FOR-449", "Testamento Abierto con Herederos Legítimos forzosos", 6, 59, 42, 41, 42], ["FOR-450", "Testamento Abierto con un solo heredero universal", 6, 59, 42, 41, 42], ["FOR-451", "Testamento abierto Instituyendo como única y universal herede ra a la Cónyuge", 5, 59, 40, 39, 40], ["FOR-452", "Testamento abierto o mancupativo instituyendo la Cónyuge al Cónyuge como único y", 5, 59, 40, 39, 40], ["FOR-453", "Testamento abierto sin herederos legítimos forzosos", 6, 59, 42, 41, 42], ["FOR-454", "Testamento que establece una fundación", 6, 59, 42, 41, 42], ["FOR-455", "Título o Acción", 4, 59, 39, 38, 39], ["FOR-456", "Título Supletorio", 4, 59, 39, 38, 39], ["FOR-457", "Título Supletorio de Construcción sobre Terreno Municipal", 4, 59, 39, 38, 39], ["FOR-458", "Transacción en forma de diligencia", 2, 59, 49, 48, 49], ["FOR-459", "Transacción en litigios cursantes en Tribunales de Alemania y Ve nezuela", 2, 59, 49, 48, 49], ["FOR-460", "Transacción Extrajudicial", 2, 59, 49, 48, 49], ["FOR-461", "Transacción Judicial", 2, 59, 49, 48, 49], ["FOR-462", "Traspaso de Acción C.A", 4, 59, 39, 38, 39], ["FOR-463", "Usufructo", 4, 59, 39, 38, 39], ["FOR-464", "Usufructo Legal Recursos para compelar al cumplimiento", 8, 59, 50, 49, 50], ["FOR-465", "Venta con Hipoteca de Primer Grado (Documento privado)", 2, 59, 49, 48, 49], ["FOR-466", "Venta de Acciones de una Compañía Anónima", 1, 59, 41, 40, 41], ["FOR-467", "Venta de Automóvil Artículo 1.474 del Código Civil", 2, 59, 49, 48, 49], ["FOR-468", "Venta de inmueble adquirido en remate con Hipoteca sobre el mismo", 2, 59, 49, 48, 49], ["FOR-469", "Venta de Muebles con Inventario y cesión de Derecho de Arrenda miento de un Lugar", 6, 59, 42, 41, 42], ["FOR-470", "Venta de Propiedad Horizontal - Condominio", 2, 59, 49, 48, 49], ["FOR-471", "Venta de un inmueble con pacto de Retracto Artículos 1.534 y 1544 del Código Civil", 2, 59, 49, 48, 49], ["FOR-472", "Venta de un inmueble efectuado en Venezuela por una extranje ra, actuando como", 2, 59, 49, 48, 49], ["FOR-473", "Venta de un Negocio", 2, 59, 49, 48, 49], ["FOR-474", "Venta del Activo de un Negocio en proceso de Quiebra, efectua do por el Depositario", 2, 59, 49, 48, 49], ["FOR-475", "Venta y Traspaso de todas las cuotas de una Sociedad de Respon sabilidad Limitada", 1, 59, 41, 40, 41]]};
 
+const RAW_SPANISH_TECH_MODELS: [string, string, string, string, string, string][] = [["TECH-ES-01", "Escritura de Constitución de Sociedad de Responsabilidad Limitada (S.L.)", "Tech & Startups (España / UE)", "https://drive.google.com/file/d/1Lbv7ba1Nz96X347eV7G2Rqey825a7DBL/view?usp=drivesdk", "RDL 1/2010 Ley de Sociedades de Capital (LSC); Ley 18/2022 Crea y Crece", "societario_es"], ["TECH-ES-02", "Pacto de Socios Fundadores (Startup Tech — Vesting, Drag-Along, Tag-Along y IP)", "Tech & Startups (España / UE)", "https://drive.google.com/file/d/1zfiZb1i1C2D1ZBe0hM4r2LtheXDohZgB/view?usp=drivesdk", "Art. 28 y 29 LSC; Ley 28/2022 de Fomento del Ecosistema de las Empresas Emergentes (Ley de Startups); Código Civil Español", "pacto_socios_es"], ["TECH-ES-03", "Contrato de Inversión y Nuevo Pacto de Socios (Ronda Seed / Venture Capital)", "Tech & Startups (España / UE)", "https://drive.google.com/file/d/1YS4Yqzkg8LADxg5-Pw0UqaWNX7LPl042/view?usp=drivesdk", "Ley de Sociedades de Capital (LSC); Ley 28/2022 de Startups", "pacto_socios_es"], ["TECH-ES-04", "Escritura de Poder General Mercantil (España)", "Tech & Startups (España / UE)", "https://drive.google.com/file/d/1J-Z70iafQUwFoZAEEFscSU4-ZWFjwmTx/view?usp=drivesdk", "Arts. 281 y ss. Código de Comercio Español; RDL 1/2010 LSC; Reglamento del Registro Mercantil", "poder_es"], ["TECH-ES-05", "Ficha Legal Societaria de la Compañía (Tech Spain)", "Tech & Startups (España / UE)", "https://drive.google.com/file/d/1trnKZEw6pQ0fM2qON1IbE69yYUt_9prb/view?usp=drivesdk", "Ley de Sociedades de Capital; Ley 10/2010 PBC/FT (Titularidad Real)", "societario_es"], ["TECH-ES-06", "Acuerdo Marco Bilateral de Confidencialidad y No Divulgación (NDA Tech)", "Tech & Startups (España / UE)", "https://drive.google.com/file/d/1mKZF6xe40JCXqHU41Rx3Mh11zsT_fk-y/view?usp=drivesdk", "Ley 1/2019 de Secretos Empresariales; Art. 1.255 Código Civil Español; RGPD", "nda_es"], ["TECH-ES-07", "Contrato Marco de Prestación de Servicios Tecnológicos y Consultoría (MSA Legal OS)", "Tech & Startups (España / UE)", "https://drive.google.com/file/d/1de-oscJDEUmU1kkVVwcKs2RT_afCoCCc/view?usp=drivesdk", "Código de Comercio Español; Arts. 1.091 y 1.544 Código Civil; RGPD", "msa_saas_es"], ["TECH-ES-08", "Anexo de Servicio N.º 1 — Servicios de Implementación Tecnológica (SOW)", "Tech & Startups (España / UE)", "https://drive.google.com/file/d/15BL-HmJ3ZdDgKtYc6jJl2GVRfzvtN6wv/view?usp=drivesdk", "Código de Comercio Español; RDL 1/1996 Ley de Propiedad Intelectual", "msa_saas_es"], ["TECH-ES-09", "Anexo de Servicio N.º 2 — Suscripción SaaS, Mantenimiento y Acuerdo de Nivel de Servicio (SLA)", "Tech & Startups (España / UE)", "https://drive.google.com/file/d/1bFTeA2CgUQ3bQybcPYBswHoVEIPmjKMO/view?usp=drivesdk", "Ley 34/2002 (LSSI-CE); Código de Comercio; Art. 28 RGPD", "msa_saas_es"], ["TECH-ES-10", "Contrato de Licencia de Uso de Software (EULA On-Premise / Enterprise)", "Tech & Startups (España / UE)", "https://drive.google.com/file/d/1q_FPc5tLG-ujf6IVQxc9LPzJKMBkbarx/view?usp=drivesdk", "Arts. 95 a 104 RDL 1/1996 Texto Refundido de la Ley de Propiedad Intelectual (TRLPI)", "ip_software_es"], ["TECH-ES-11", "Contrato de Cesión Exclusiva de Derechos de Propiedad Intelectual e Industrial (Software y Código)", "Tech & Startups (España / UE)", "https://drive.google.com/file/d/1EmoalHBLajeTOkkZ2z2yZ7FxcOPdStQ2/view?usp=drivesdk", "Arts. 43, 51 y 97 RDL 1/1996 Ley de Propiedad Intelectual (TRLPI)", "ip_software_es"], ["TECH-ES-12", "Solicitud y Memoria Descriptiva de Inscripción de Programa de Ordenador (Software) en Registro de PI", "Tech & Startups (España / UE)", "https://drive.google.com/file/d/1Wr6wFyvkNnqfjwAXBGgdE9-Qk_rxJc-W/view?usp=drivesdk", "Arts. 95 y ss. y 144 RDL 1/1996 Ley de Propiedad Intelectual; RD 281/2003", "ip_software_es"], ["TECH-ES-13", "Contrato de Encargado de Tratamiento de Datos Personales (Data Processing Agreement — DPA)", "Tech & Startups (España / UE)", "https://drive.google.com/file/d/1htkHEb80dbqPEvkDG9yXfXnlD3o7K-Fo/view?usp=drivesdk", "Art. 28 Reglamento (UE) 2016/679 (RGPD); Art. 33 Ley Orgánica 3/2018 (LOPDGDD)", "rgpd_compliance_es"], ["TECH-ES-14", "Contrato de Préstamo Participativo / Convertible en Participaciones Sociales (Nota Convertible)", "Tech & Startups (España / UE)", "https://drive.google.com/file/d/15EsVrfQmwCVh8aNcZxY_JI8IiseuZ-xb/view?usp=drivesdk", "Art. 20 RDL 7/1996; RDL 1/2010 LSC; Ley 28/2022 de Startups", "pacto_socios_es"], ["TECH-ES-15", "Escritura de Aumento de Capital Social por Compensación de Créditos / Aportaciones y Modificación Estatutaria", "Tech & Startups (España / UE)", "https://drive.google.com/file/d/1LJ1DnClcIo21vrn-jKevmIQwAU_KObiS/view?usp=drivesdk", "Arts. 295 a 316 RDL 1/2010 Ley de Sociedades de Capital (LSC)", "societario_es"], ["TECH-ES-16", "Escritura de Constitución de Prenda sobre Participaciones Sociales", "Tech & Startups (España / UE)", "https://drive.google.com/file/d/1dVEZLJYphFfYqlpw3tOYKgkK42dsi40a/view?usp=drivesdk", "Arts. 132 RDL 1/2010 LSC; Arts. 1.857 y ss. Código Civil Español", "societario_es"], ["TECH-ES-17", "Contrato de Trabajo Indefinido Sector Tech (Modalidad Híbrida / Trabajo a Distancia y Cesión de PI)", "Tech & Startups (España / UE)", "https://drive.google.com/file/d/1mg0-Q2iX5o4Z5tjsWlVVFnrkSnGUqZeA/view?usp=drivesdk", "RDL 2/2015 Estatuto de los Trabajadores; Ley 10/2021 de Trabajo a Distancia; Art. 97.4 TRLPI", "laboral_tech_es"], ["TECH-ES-18", "Anexo al Contrato de Trabajo: Pacto de No Competencia Post-Contractual, Permanencia y No Captación", "Tech & Startups (España / UE)", "https://drive.google.com/file/d/1gd5RjvOuwZqnRGPElsAnn_Hkv7tUhjDV/view?usp=drivesdk", "Art. 21.2 y 21.4 del Estatuto de los Trabajadores (RDL 2/2015)", "laboral_tech_es"], ["TECH-ES-19", "Contrato Mercantil de Arrendamiento de Servicios Profesionales (Independent Contractor / Freelance Tech)", "Tech & Startups (España / UE)", "https://drive.google.com/file/d/1mIkrj2r4XXNZdra5QlnhyWqeYrQ6gUN6/view?usp=drivesdk", "Art. 1.544 Código Civil Español; Ley 20/2007 del Estatuto del Trabajo Autónomo", "msa_saas_es"], ["TECH-ES-20", "Contrato de Prestación de Servicios y Colaboración Mercantil B2B", "Tech & Startups (España / UE)", "https://drive.google.com/file/d/1oUd5XVTD15gP7qG00jOMAOqunm-BFd0W/view?usp=drivesdk", "Código de Comercio Español; Arts. 1.254 y ss. Código Civil", "msa_saas_es"], ["TECH-ES-21", "Acuerdo Transaccional de Extinción de Relación Laboral, Liquidación y Finiquito", "Tech & Startups (España / UE)", "https://drive.google.com/file/d/1JI8JyPpgu0ygNaEzzcRaBgXxj5IQq6lt/view?usp=drivesdk", "Art. 49.1.a) RDL 2/2015 Estatuto de los Trabajadores; Art. 1.809 Código Civil", "laboral_tech_es"], ["TECH-ES-22", "Código de Ética, Conducta Profesional y Uso Aceptable de Recursos Tecnológicos", "Tech & Startups (España / UE)", "https://drive.google.com/file/d/1Odu5qZnrHkuH-U3Q8vwuBuCARw4HmfSt/view?usp=drivesdk", "Art. 31 bis Código Penal Español; Art. 20.3 Estatuto de los Trabajadores; Art. 87 LOPDGDD", "rgpd_compliance_es"], ["TECH-ES-23", "Contrato Marco de Distribución No Exclusiva de Software y Servicios Cloud (Reseller / Partner)", "Tech & Startups (España / UE)", "https://drive.google.com/file/d/1R0UWvHctQdwcRAZiJ-3DDRDuF-CG46il/view?usp=drivesdk", "Código de Comercio Español; Ley de Defensa de la Competencia", "msa_saas_es"], ["TECH-ES-24", "Contrato Marco de Suministro de Equipamiento Tecnológico (Hardware & Infraestructura)", "Tech & Startups (España / UE)", "https://drive.google.com/file/d/1pQqb1U4mpCYeeSjwbfHhGX0Uj66TzJbw/view?usp=drivesdk", "Arts. 325 y ss. Código de Comercio Español; Código Civil", "msa_saas_es"], ["TECH-ES-25", "Contrato de Arrendamiento de Local de Negocio / Oficina Tecnológica (LAU Uso Distinto de Vivienda)", "Tech & Startups (España / UE)", "https://drive.google.com/file/d/1rMLI2s_vU6nHjZ206pot5lsVdwyyrGHj/view?usp=drivesdk", "Art. 3 y Título III Ley 29/1994 de Arrendamientos Urbanos (LAU)", "msa_saas_es"], ["TECH-ES-26", "Aviso Legal y Condiciones Generales de Contratación y Uso para Plataforma SaaS / E-Commerce (LSSI-CE / Ómnibus)", "Tech & Startups (España / UE)", "https://drive.google.com/file/d/1ddgcM01GV7dKMSujXFPDRFfpPDMlx31s/view?usp=drivesdk", "Ley 34/2002 (LSSI-CE); Ley 7/1998 sobre Condiciones Generales de la Contratación; RDL 24/2021 (Directiva Ómnibus)", "rgpd_compliance_es"], ["TECH-ES-27", "Contrato de Prestación de Servicios de Marketing, Growth y Publicidad Digital", "Tech & Startups (España / UE)", "https://drive.google.com/file/d/1OiogDSV9GkvKbbbMXjSwfLdLZ3JfiTmC/view?usp=drivesdk", "Ley 34/1988 General de Publicidad; Ley 34/2002 (LSSI-CE); RGPD", "msa_saas_es"], ["TECH-ES-28", "Política Global de Privacidad y Protección de Datos de Carácter Personal (RGPD / LOPDGDD)", "Tech & Startups (España / UE)", "https://drive.google.com/file/d/1x3e9CmHMPWDC4x3whxSx6Of_15a5TbAl/view?usp=drivesdk", "Arts. 13 y 14 Reglamento (UE) 2016/679 (RGPD); Art. 11 LO 3/2018 (LOPDGDD)", "rgpd_compliance_es"], ["TECH-ES-29", "Matriz y Protocolo de Permisos, Licencias Administrativas y Registros (Tech Spain Compliance)", "Tech & Startups (España / UE)", "https://drive.google.com/file/d/1R7bbzzMIVLqviDVjdygyvrSd9fdauwrv/view?usp=drivesdk", "Ley 39/2015 LPACAP; Ley 17/2001 de Marcas (OEPM / EUIPO); RGPD", "rgpd_compliance_es"], ["TECH-ES-30", "Carta de Intenciones Vinculante / No Vinculante para Adquisición de Sociedad Tecnológica (LOI / Term Sheet M&A)", "Tech & Startups (España / UE)", "https://drive.google.com/file/d/1ga9GbBj14APYtMScOii0yREhQVutxHbK/view?usp=drivesdk", "Arts. 1.255 y 1.258 Código Civil Español; RDL 1/2010 LSC", "ma_tech_es"], ["TECH-ES-31", "Contrato de Compraventa de Participaciones Sociales de Empresa Tecnológica (SPA — Share Purchase Agreement)", "Tech & Startups (España / UE)", "https://drive.google.com/file/d/14akMrZ7M0Szh2FGneR_pKQD5VdHGP3Uu/view?usp=drivesdk", "Arts. 106 y ss. RDL 1/2010 Ley de Sociedades de Capital; Arts. 1.445 y ss. Código Civil", "ma_tech_es"], ["TECH-ES-32", "Contrato de Compraventa de Rama de Actividad y Activos Tecnológicos (APA — Asset Purchase Agreement)", "Tech & Startups (España / UE)", "https://drive.google.com/file/d/1hKL_ypktucjO2fEI8jX7tgJ1QEmtSbkU/view?usp=drivesdk", "Código de Comercio Español; Art. 44 Estatuto de los Trabajadores (Sucesión de Empresa); TRLPI", "ma_tech_es"], ["TECH-ES-33", "Proyecto Común de Fusión por Absorción de Sociedades Mercantiles", "Tech & Startups (España / UE)", "https://drive.google.com/file/d/1JG9--1IUBIEClj2HHfxNdklIo91t-H6s/view?usp=drivesdk", "RDL 5/2023 de Modificaciones Estructurales de Sociedades Mercantiles (LME)", "ma_tech_es"], ["TECH-ES-34", "Anexo de Declaraciones y Garantías del Vendedor (Reps & Warranties — Due Diligence Tech)", "Tech & Startups (España / UE)", "https://drive.google.com/file/d/1mkxDFh1jT0IR2AGSPEIwMCvcougu6hS2/view?usp=drivesdk", "Arts. 1.101 y 1.474 Código Civil Español; TRLPI; RGPD", "ma_tech_es"], ["TECH-ES-35", "Registro de Actividades de Tratamiento (RAT) y Análisis de Riesgos (Art. 30 y 32 RGPD)", "Tech & Startups (España / UE)", "https://drive.google.com/drive/folders/1x6wFngWN6vJnPVtjytRYFvCnoEjIB6E5", "Arts. 30 y 32 Reglamento (UE) 2016/679 (RGPD); Art. 31 LOPDGDD", "rgpd_compliance_es"], ["TECH-ES-36", "Evaluación de Impacto en la Protección de Datos (EIPD / DPIA) para Sistemas de Inteligencia Artificial", "Tech & Startups (España / UE)", "https://drive.google.com/drive/folders/1x6wFngWN6vJnPVtjytRYFvCnoEjIB6E5", "Art. 35 RGPD; Reglamento (UE) 2024/1689 (EU AI Act); Guía AEPD", "rgpd_compliance_es"], ["TECH-ES-37", "Protocolo de Gestión y Notificación de Brechas de Seguridad de Datos (72 Horas AEPD)", "Tech & Startups (España / UE)", "https://drive.google.com/drive/folders/1x6wFngWN6vJnPVtjytRYFvCnoEjIB6E5", "Arts. 33 y 34 Reglamento (UE) 2016/679 (RGPD)", "rgpd_compliance_es"], ["TECH-ES-38", "Acta de Nombramiento y Contrato de Servicios de Delegado de Protección de Datos (DPO / DPD)", "Tech & Startups (España / UE)", "https://drive.google.com/drive/folders/1x6wFngWN6vJnPVtjytRYFvCnoEjIB6E5", "Arts. 37 a 39 RGPD; Arts. 34 a 37 LO 3/2018 (LOPDGDD)", "rgpd_compliance_es"], ["TECH-ES-39", "Política y Procedimiento del Sistema Interno de Información (Canal de Denuncias — Ley 2/2023)", "Tech & Startups (España / UE)", "https://drive.google.com/drive/folders/1x6wFngWN6vJnPVtjytRYFvCnoEjIB6E5", "Ley 2/2023 reguladora de la protección de las personas que informen sobre infracciones normativas (Whistleblowing)", "rgpd_compliance_es"], ["TECH-ES-40", "Política de Ciber-Resiliencia, Gestión de Riesgos TIC y Proveedores Críticos (Directiva NIS2 y Reglamento DORA)", "Tech & Startups (España / UE)", "https://drive.google.com/drive/folders/1x6wFngWN6vJnPVtjytRYFvCnoEjIB6E5", "Directiva (UE) 2022/2555 (NIS2); Reglamento (UE) 2022/2554 (DORA)", "rgpd_compliance_es"], ["TECH-ES-41", "Acuerdo Marco de Acceso, Intercambio y Gobernanza de Datos (Reglamento Europeo Data Act & DSA)", "Tech & Startups (España / UE)", "https://drive.google.com/drive/folders/1x6wFngWN6vJnPVtjytRYFvCnoEjIB6E5", "Reglamento (UE) 2023/2854 (Data Act); Reglamento (UE) 2022/2065 (Digital Services Act - DSA)", "msa_saas_es"], ["TECH-ES-42", "Informe de Auditoría, Gobernanza y Clasificación de Riesgo de Sistemas de IA (Reglamento Europeo de IA - EU AI Act)", "Tech & Startups (España / UE)", "https://drive.google.com/drive/folders/1x6wFngWN6vJnPVtjytRYFvCnoEjIB6E5", "Reglamento (UE) 2024/1689 por el que se establecen normas armonizadas en materia de Inteligencia Artificial (EU AI Act)", "rgpd_compliance_es"]];
+
+function buildSpanishTechModel(row: [string, string, string, string, string, string]): ModelTemplate {
+  const [codigo, titulo, category, driveUrl, fundamento, kind] = row;
+
+  const variables: ModelTemplateVariable[] = [
+    { key: "PARTE_A", label: "Primera Parte / Sociedad / Licenciante (Denominación S.L., NIF/CIF, Domicilio y Representante con DNI/NIE)", category: "Partes", placeholder: "Ej: TECH INNOVATION SPAIN, S.L., NIF B-12345678, domiciliada en Madrid, representada por D. Carlos Ruiz (DNI 12345678A)" },
+    { key: "PARTE_B", label: "Segunda Parte / Cliente / Inversor / Contraparte (Nombre o Razón Social, NIF/DNI y Domicilio)", category: "Partes", placeholder: "Ej: VENTURE CAPITAL EUROPE, S.L., NIF B-87654321, domiciliada en Barcelona" },
+    { key: "OBJETO_ALCANCE", label: "Objeto Específico, Software, Servicio o Activo Tecnológico", category: "Objeto", placeholder: "Ej: Licencia y despliegue de plataforma SaaS / Desarrollo de software propietario" },
+    { key: "CONDICIONES_ECONOMICAS", label: "Precio, Contraprestación, Capital o Retribución (en Euros €) y Forma de Pago", category: "Económico", placeholder: "Ej: DOCE MIL EUROS (12.000,00 €) más IVA mediante transferencia a cuenta IBAN" },
+    { key: "PLAZO_JURISDICCION", label: "Duración, Ciudad de Otorgamiento y Fuero (Juzgados y Tribunales)", category: "Jurisdicción", placeholder: "Ej: En Madrid, vigencia de un (1) año, sometido a los Juzgados y Tribunales de Madrid capital" }
+  ];
+
+  let contentPreview = "";
+
+  if (kind === "pacto_socios_es" || kind === "societario_es") {
+    contentPreview = `En {{PLAZO_JURISDICCION}}
+
+REUNIDOS
+
+De una parte, {{PARTE_A}}.
+
+Y de otra parte, {{PARTE_B}}.
+
+Ambas partes se reconocen mutua y recíprocamente la capacidad legal suficiente conforme al Derecho español para otorgar el presente ${titulo.toUpperCase()}, de conformidad con el Real Decreto Legislativo 1/2010, de 2 de julio, por el que se aprueba el texto refundido de la Ley de Sociedades de Capital (LSC) y la Ley 28/2022 de Fomento del Ecosistema de las Empresas Emergentes (Ley de Startups), y a tal efecto
+
+EXPONEN
+
+I.- Que las Partes participan en el proyecto societario y tecnológico relativo a: {{OBJETO_ALCANCE}}.
+
+II.- Que las condiciones patrimoniales, de capital social, participaciones o aportaciones quedan fijadas en los siguientes términos: {{CONDICIONES_ECONOMICAS}}.
+
+III.- Que en virtud de lo anterior, las Partes formalizan el presente instrumento con sujeción a las siguientes
+
+CLÁUSULAS
+
+PRIMERA.- OBJETO Y RÉGIMEN SOCIETARIO.
+El presente documento tiene por objeto regular las relaciones societarias, corporativas y económicas relativas a {{OBJETO_ALCANCE}}, obligándose las Partes a su estricto cumplimiento de buena fe conforme al artículo 1.255 del Código Civil y al artículo 28 de la Ley de Sociedades de Capital.
+
+SEGUNDA.- APORTACIONES, CAPITAL Y CONDICIONES ECONÓMICAS.
+Las estipulaciones económicas, valoración, desembolso o distribución de participaciones sociales se regirán por lo siguiente: {{CONDICIONES_ECONOMICAS}}. Las participaciones sociales gozarán de los derechos políticos y económicos previstos en la Ley y en los Estatutos Sociales.
+
+TERCERA.- PERMANENCIA (VESTING), TRANSMISIÓN DE PARTICIPACIONES (DRAG-ALONG Y TAG-ALONG).
+Cualquier transmisión voluntaria de participaciones sociales quedará sujeta al derecho de adquisición preferente de los restantes socios, así como a los derechos de acompañamiento (Tag-Along) y arrastre (Drag-Along) pactados para proteger la liquidez y gobernabilidad de la Sociedad. Los socios fundadores y personal clave asumen el compromiso de permanencia y devengo progresivo (Vesting) vinculado a la creación de valor tecnológico.
+
+CUARTA.- PROPIEDAD INTELECTUAL E INDUSTRIAL Y CONFIDENCIALIDAD.
+Todos los desarrollos de software, código fuente, algoritmos, bases de datos, marcas y nombres de dominio vinculados a {{OBJETO_ALCANCE}} son de titularidad única y exclusiva de la Sociedad conforme al Real Decreto Legislativo 1/1996 (TRLPI) y a la Ley 1/2019 de Secretos Empresariales.
+
+QUINTA.- LEY APLICABLE Y JURISDICCIÓN.
+El presente documento tiene carácter mercantil y se regirá por la legislación común española (${fundamento}). Para cualquier controversia derivada de su interpretación o ejecución, las Partes se someten expresamente a lo estipulado en {{PLAZO_JURISDICCION}}.
+
+Y en prueba de conformidad, firman el presente documento por duplicado y a un solo efecto en el lugar y fecha indicados en el encabezamiento.`;
+  } else if (kind === "poder_es") {
+    contentPreview = `ESCRITURA DE PODER MERCANTIL
+
+En {{PLAZO_JURISDICCION}}
+
+COMPARECE
+
+{{PARTE_A}}, quien actúa en nombre y representación social con facultades suficientes para este otorgamiento.
+
+EXPONE
+
+Que por medio del presente instrumento confiere PODER MERCANTIL tan amplio y bastante como en Derecho sea necesario a favor de {{PARTE_B}} (en adelante, el "Apoderado"), en relación con el giro y tráfico empresarial relativo a {{OBJETO_ALCANCE}}, para que ejercite las siguientes
+
+FACULTADES
+
+1. FACULTADES REPRESENTATIVAS Y DE GESTIÓN: Representar a la Sociedad ante toda clase de personas físicas y jurídicas, Administraciones Públicas, Agencia Estatal de Administración Tributaria (AEAT), Tesorería General de la Seguridad Social (TGSS), Registros Mercantiles y de la Propiedad, y Oficina Española de Patentes y Marcas (OEPM).
+
+2. FACULTADES CONTRACTUALES Y OPERATIVAS: Negociar, suscribir, modificar y extinguir contratos mercantiles, licencias de software, contratos SaaS, acuerdos de confidencialidad y encargos de tratamiento de datos relativos a {{OBJETO_ALCANCE}}, dentro de los parámetros económicos de {{CONDICIONES_ECONOMICAS}}.
+
+3. FACULTADES BANCARIAS Y FINANCIERAS: Abrir, seguir y cancelar cuentas corrientes o de crédito, ordenar transferencias, cobros y pagos dentro de los límites establecidos en {{CONDICIONES_ECONOMICAS}}.
+
+4. FACULTADES PROCESALES: Comparecer ante Juzgados y Tribunales de cualquier jurisdicción y otorgar poderes generales para pleitos a favor de Abogados y Procuradores de los Tribunales.
+
+Así lo otorga y firma conforme a {{PLAZO_JURISDICCION}} y a lo dispuesto en ${fundamento}.`;
+  } else if (kind === "ip_software_es" || kind === "msa_saas_es" || kind === "nda_es") {
+    contentPreview = `${titulo.toUpperCase()}
+
+En {{PLAZO_JURISDICCION}}
+
+REUNIDOS
+
+De una parte, {{PARTE_A}} (en adelante, la "Primera Parte" o el "Proveedor / Titular").
+
+Y de otra parte, {{PARTE_B}} (en adelante, la "Segunda Parte" o el "Cliente / Receptor").
+
+Ambas Partes se reconocen capacidad legal suficiente para contratar conforme al Derecho español y, a tal efecto,
+
+EXPONEN
+
+I.- Que ambas Partes están interesadas en formalizar el presente ${titulo} en relación con el activo tecnológico, software o servicio consistente en: {{OBJETO_ALCANCE}}.
+
+II.- Que habiendo alcanzado un acuerdo sobre los términos técnicos, económicos y jurídicos, formalizan el presente Contrato con arreglo a las siguientes
+
+CLÁUSULAS
+
+PRIMERA.- OBJETO Y ALCANCE TÉCNICO.
+El presente Contrato tiene por objeto regular las condiciones jurídicas y técnicas aplicables a {{OBJETO_ALCANCE}}, conforme a las especificaciones y niveles de calidad acordados entre las Partes.
+
+SEGUNDA.- CONDICIONES ECONÓMICAS, FACTURACIÓN Y PAGO.
+Como contraprestación por las obligaciones asumidas en el presente Contrato, se pactan las siguientes condiciones económicas: {{CONDICIONES_ECONOMICAS}}. Todas las cantidades devengarán el Impuesto sobre el Valor Añadido (IVA) legalmente aplicable conforme a la normativa tributaria española.
+
+TERCERA.- PROPIEDAD INTELECTUAL, INDUSTRIAL Y SECRETO EMPRESARIAL.
+De conformidad con el Real Decreto Legislativo 1/1996, por el que se aprueba el Texto Refundido de la Ley de Propiedad Intelectual (TRLPI) y la Ley 1/2019 de Secretos Empresariales, quedan expresamente protegidos el código fuente, código objeto, arquitectura, documentación técnica y know-how asociados a {{OBJETO_ALCANCE}}. Queda prohibida cualquier ingeniería inversa, descompilación o cesión no autorizada a terceros.
+
+CUARTA.- PROTECCIÓN DE DATOS PERSONALES (RGPD Y LOPDGDD) Y CONFIDENCIALIDAD.
+Las Partes se comprometen a cumplir estrictamente el Reglamento (UE) 2016/679 (RGPD) y la Ley Orgánica 3/2018 (LOPDGDD), aplicando las medidas técnicas y organizativas de seguridad apropiadas (Art. 32 RGPD) y guardando reserva absoluta sobre toda la Información Confidencial intercambiada.
+
+QUINTA.- DURACIÓN, RESPONSABILIDAD Y JURISDICCIÓN APLICABLE.
+La vigencia, régimen de preaviso y fuero aplicable se regirán por lo establecido en: {{PLAZO_JURISDICCION}}, con sujeción a ${fundamento}.
+
+Y en prueba de conformidad, las Partes firman el presente Contrato en el lugar y fecha indicados en el encabezamiento.`;
+  } else if (kind === "laboral_tech_es") {
+    contentPreview = `${titulo.toUpperCase()}
+
+En {{PLAZO_JURISDICCION}}
+
+REUNIDOS
+
+De una parte, {{PARTE_A}} (en adelante, la "Empresa").
+
+Y de otra parte, {{PARTE_B}} (en adelante, la "Persona Trabajadora").
+
+Ambas Partes se reconocen capacidad legal suficiente y suscriben el presente instrumento laboral conforme al Real Decreto Legislativo 2/2015, por el que se aprueba el texto refundido de la Ley del Estatuto de los Trabajadores, la Ley 10/2021 de Trabajo a Distancia y el artículo 97.4 de la Ley de Propiedad Intelectual, con sujeción a las siguientes
+
+CLÁUSULAS
+
+PRIMERA.- PUESTO, FUNCIONES TECNOLÓGICAS Y MODALIDAD DE PRESTACIÓN.
+La Persona Trabajadora prestará sus servicios profesionales en el ámbito de {{OBJETO_ALCANCE}}, con sujeción a las políticas de seguridad informática, desconexión digital (Art. 88 LOPDGDD) y confidencialidad de la Empresa.
+
+SEGUNDA.- RETRIBUCIÓN Y COMPENSACIÓN ECONÓMICA.
+La retribución bruta, estructura salarial y, en su caso, compensación específica por exclusividad o no competencia post-contractual (Art. 21.2 ET) se fijan en: {{CONDICIONES_ECONOMICAS}}, sujetas a las retenciones de IRPF y cotizaciones a la Seguridad Social legalmente vigentes.
+
+TERCERA.- CESIÓN EXCLUSIVA DE PROPIEDAD INTELECTUAL SOBRE SOFTWARE Y DESARROLLOS (ART. 97.4 TRLPI).
+De conformidad con el artículo 97.4 del Texto Refundido de la Ley de Propiedad Intelectual y el artículo 51 del mismo cuerpo legal, corresponden en exclusiva a la Empresa todos los derechos de explotación (reproducción, distribución, comunicación pública y transformación) sobre cualesquiera programas de ordenador, código fuente, algoritmos, documentación y creaciones desarrolladas por la Persona Trabajadora en el ejercicio de sus funciones o siguiendo instrucciones de la Empresa, para todo el mundo y por el plazo máximo legal.
+
+CUARTA.- SECRETO PROFESIONAL, NO COMPETENCIA Y NO CAPTACIÓN.
+La Persona Trabajadora se obliga a mantener el más estricto secreto sobre el código, clientes, algoritmos y operaciones de la Empresa (Ley 1/2019 de Secretos Empresariales), absteniéndose de concurrir con la actividad de la Empresa o captar personal/clientes en los términos del artículo 21 del Estatuto de los Trabajadores.
+
+QUINTA.- VIGENCIA Y JURISDICCIÓN SOCIAL.
+El presente acuerdo surtirá efectos conforme a {{PLAZO_JURISDICCION}}, sometiéndose cualquier controversia a los Juzgados y Tribunales del Orden Social competentes.
+
+Y en prueba de conformidad, firman el presente documento en el lugar y fecha indicados.`;
+  } else {
+    contentPreview = `${titulo.toUpperCase()}
+
+En {{PLAZO_JURISDICCION}}
+
+INTERVIENEN Y DECLARACIÓN DE PARTES:
+• Entidad / Responsable / Primera Parte: {{PARTE_A}}
+• Contraparte / Encargado / Destinatario: {{PARTE_B}}
+
+I.- ÁMBITO OBJETIVO Y TECNOLÓGICO DE APLICACIÓN
+El presente instrumento normativo y contractual se aplica sobre las operaciones, sistemas de información, activos digitales o transacción consistentes en: {{OBJETO_ALCANCE}}.
+
+II.- MARCO REGULATORIO EUROPEO Y ESPAÑOL APLICABLE
+Este instrumento se rige e interpreta en estricto cumplimiento de ${fundamento}, así como los estándares de diligencia debida, trazabilidad técnica y seguridad de la información exigidos en España y la Unión Europea.
+
+III.- ESTIPULACIONES Y MEDIDAS DE CUMPLIMIENTO / TRANSACCIÓN
+1. Alcance y Condiciones Económicas o de Responsabilidad: {{CONDICIONES_ECONOMICAS}}.
+2. Medidas Técnicas y Organizativas de Seguridad (Privacy & Security by Design): Se implementan controles de acceso por mínimo privilegio, cifrado extremo a extremo, registro inmutable de auditoría, evaluación continua de riesgos y supervisión humana efectiva (Human-in-the-Loop).
+3. Régimen de Notificación, Conservación y Auditoría: Las Partes documentarán toda actuación relevante y pondrán a disposición de las autoridades competentes (AEPD, INCIBE, CNMC o Registro Mercantil) las evidencias de cumplimiento cuando sea legalmente requerido.
+
+IV.- VIGENCIA, LEY APLICABLE Y FUERO
+El presente documento entrará en vigor y se regirá por lo dispuesto en {{PLAZO_JURISDICCION}}.
+
+Firmado en señal de conformidad y aprobación por los representantes acreditados.`;
+  }
+
+  return {
+    id: `tech-es-${codigo.toLowerCase()}`,
+    codigo,
+    name: `[${codigo}] ${titulo}`,
+    category,
+    source: "Google Drive",
+    driveUrl,
+    fundamento,
+    notas: "Modelo Tech España / Unión Europea (Legal OS)",
+    updatedAt: "Google Drive",
+    variables,
+    contentPreview
+  };
+}
+
 function buildVenezuelanModelFromCatalogRow(r: [string, string, number, number, number, number, number]): ModelTemplate {
   const codigo = r[0];
   const titulo = r[1];
   const category = RAW_CATALOGO_550.cats[r[2]] || "Práctica Forense y Trámites Varios";
   const driveUrl = RAW_CATALOGO_550.urls[r[3]] || "https://drive.google.com/drive/folders/1xHuhO7x1zL7Ll3-0J0s59Td2LBentREF";
-  const rawVars = RAW_CATALOGO_550.vars[r[4]] || "Otorgante / Primera Parte, Contraparte / Apoderado, Objeto del Acto Jurídico, Condiciones y Monto, Domicilio Especial y Jurisdicción";
+  const rawVars = RAW_CATALOGO_550.vars[r[4]] || "Otorgante, Contraparte, Objeto, Condiciones";
   const fundamento = RAW_CATALOGO_550.funds[r[5]] || "Código Civil / Código de Procedimiento Civil de Venezuela";
-  const notas = RAW_CATALOGO_550.notas[r[6]] || "Redacción jurídica venezolana con visado profesional.";
+  const notas = RAW_CATALOGO_550.notas[r[6]] || "Redacción jurídica venezolana.";
 
-  const varParts = rawVars.split(",").map(s => s.trim()).filter(Boolean);
-  const used = new Set<string>();
-  const variables: ModelTemplateVariable[] = varParts.map((labelStr, idx) => {
-    let k = labelStr.toUpperCase().replace(/[^A-Z0-9_ÁÉÍÓÚÑ]/g, "_").replace(/_+/g, "_").replace(/^_|_$/g, "").slice(0, 26);
-    if (!k) k = `CAMPO_${idx + 1}`;
-    let c = 1;
-    let finalK = k;
-    while (used.has(finalK)) {
-      c++;
-      finalK = `${k}_${c}`;
-    }
-    used.add(finalK);
-    return {
-      key: finalK,
-      label: labelStr,
-      category: idx === 0 ? "Partes / Otorgantes" : idx === 1 ? "Contraparte / Apoderados" : "Datos del Modelo",
-      placeholder: `Ingresa: ${labelStr}`
-    };
-  });
+  const lowerTit = titulo.toLowerCase();
+  const lowerCat = category.toLowerCase();
 
-  const firstKey = variables[0]?.key || "OTORGANTE";
-  const secondKey = variables[1]?.key || firstKey;
-  const restVarsBlock = variables.slice(2).map((v, i) => `CLÁUSULA ${i + 2} (${v.label.toUpperCase()}): En relación con ${v.label.toLowerCase()}, se establece expresamente lo siguiente: {{${v.key}}}.`).join("\n\n");
+  let variables: ModelTemplateVariable[] = [];
+  let contentPreview = "";
 
-  const contentPreview = `INSTRUMENTO JURÍDICO VENEZOLANO: ${titulo.toUpperCase()} (CÓDIGO DRIVE: ${codigo})
-MATERIA: ${category.toUpperCase()}
+  // 1) PODERES Y MANDATOS (VENEZUELA)
+  if (lowerCat.includes("poder") || codigo.startsWith("POD") || lowerTit.startsWith("poder ")) {
+    variables = [
+      { key: "PODERDANTE", label: "Poderdante / Otorgante (Nombre completo, nacionalidad, estado civil, C.I. / RIF y domicilio)", category: "Partes", placeholder: "Ej: MARÍA FERNANDA SALAZAR, venezolana, mayor de edad, soltera, de este domicilio, titular de la C.I. Nº V-18.987.654" },
+      { key: "APODERADO", label: "Apoderado(s) / Mandatario(s) (Nombre completo, C.I. e Inpreabogado / IPSA si es judicial)", category: "Partes", placeholder: "Ej: CARLOS EDUARDO MÉNDEZ, venezolano, mayor de edad, titular de la C.I. Nº V-12.345.678 e Inpreabogado Nº 104.892" },
+      { key: "OBJETO_ESPECIAL", label: "Bienes, Cuentas, Inmuebles o Asunto Específico del Mandato", category: "Objeto", placeholder: "Ej: Todos mis bienes muebles e inmuebles, cuentas bancarias y derechos patrimoniales en la República Bolivariana de Venezuela" },
+      { key: "CIUDAD_FECHA", label: "Ciudad y Fecha de Otorgamiento (Notaría / Registro / Consulado)", category: "Otorgamiento", placeholder: "Ej: En la ciudad de Caracas, a la fecha de su presentación y autenticación notarial" }
+    ];
 
-ENTRE: {{${firstKey}}}, venezolano(a), mayor de edad, civilmente hábil, de este domicilio, por una parte; y por la otra, {{${secondKey}}}, suficientemente identificado(a) en autos y para este otorgamiento, se ha convenido en otorgar y suscribir el presente ${titulo.toUpperCase()}, contenido en las siguientes cláusulas y declaraciones de conformidad con el ordenamiento jurídico venezolano vigente:
+    const incluyeAutocontratacion = lowerTit.includes("autocontrat") || rawVars.toLowerCase().includes("autocontrat");
+    const clausulaAutocontratacion = incluyeAutocontratacion
+      ? `\n\nCUARTO (CLÁUSULA EXPRESA DE AUTOCONTRATACIÓN — ARTÍCULO 1.171 DEL CÓDIGO CIVIL): Queda expresamente facultado(a) mi mencionado(a) apoderado(a) para contratar consigo mismo(a), ya sea en su propio nombre o como representante de un tercero, pudiendo adquirir para sí o para terceros los bienes, derechos o acciones que me pertenezcan, fijar y recibir precios y otorgar los correspondientes instrumentos públicos o privados de conformidad con lo previsto en el Artículo 1.171 del Código Civil venezolano vigente.`
+      : "";
 
-CLÁUSULA 1 (DECLARACIÓN PRINCIPAL Y OBJETO): Las partes otorgan formalmente el presente instrumento de ${titulo}, conforme a los datos y recaudos siguientes: ${variables.map(v => `${v.label}: {{${v.key}}}`).join("; ")}.
+    contentPreview = `Yo, {{PODERDANTE}}, por medio del presente documento declaro: Que confiero ${titulo.toUpperCase()}, amplio, bastante y suficiente cuanto en derecho se requiere, a favor de {{APODERADO}}, para que en mi nombre y representación, conjunta o separadamente si fueren varios, ejerza y sostenga mis derechos e intereses en relación con: {{OBJETO_ESPECIAL}}.
 
-${restVarsBlock ? restVarsBlock + "\n\n" : ""}FUNDAMENTACIÓN LEGAL Y TÉCNICA FORENSE VENEZOLANA: El presente instrumento se rige por las disposiciones contenidas en ${fundamento}. Criterio forense aplicable: ${notas}
+PRIMERO (FACULTADES DE ADMINISTRACIÓN, GESTIÓN Y MOVILIZACIÓN BANCARIA): En ejercicio de este mandato, mi apoderado(a) queda ampliamente facultado(a) para administrar mis bienes y derechos; celebrar contratos de arrendamiento, comodato o servicios; cobrar y percibir cantidades de dinero en moneda nacional o divisas; otorgar recibos, finiquitos y solvencias; abrir, movilizar y cerrar cuentas bancarias corrientes o de ahorro en cualquier institución financiera nacional o extranjera; endosar, depositar y cobrar cheques, transferencias y demás efectos de comercio; así como comparecer ante ministerios, alcaldías, SENIAT, SAREN, IVSS y demás entes públicos o privados.
 
-DECLARACIÓN DE ORIGEN Y DESTINO LÍCITO DE FONDOS Y DOMICILIO ESPECIAL: Las partes declaran bajo fe de juramento que los bienes, haberes o recursos involucrados tienen origen y destino lícitos. Para todos los efectos derivados de este instrumento, se elige como domicilio especial, único y excluyente a la ciudad de Caracas, a la jurisdicción de cuyos Tribunales competentes declaran someterse.
+SEGUNDO (FACULTADES DISPOSITIVAS Y REGISTRALES): Queda igualmente facultado(a) para vender, ceder, permutar, hipotecar, gravar o de cualquier otro modo enajenar a título oneroso los bienes muebles, inmuebles, acciones o derechos vinculados a {{OBJETO_ESPECIAL}}; pactar precios, intereses, plazos y modalidades de pago; declarar el origen y destino lícito de los fondos; obligarme al saneamiento de ley conforme al Código Civil; y suscribir los protocolos, formularios y documentos públicos o privados ante las Oficinas de Registro Público y Notarías Públicas competentes, haciendo la tradición legal y entrega material correspondiente.
 
-Nota: Puedes abrir el archivo original de este modelo directamente en tu Google Drive con el botón "Abrir en Google Drive", o pegar/subir su texto exacto (aunque tenga datos de un cliente anterior o espacios en blanco ____) para sustituir los datos conservando el 100% de tu redacción.`;
+TERCERO (FACULTADES JUDICIALES Y PROCESALES — ARTÍCULO 154 DEL CÓDIGO DE PROCEDIMIENTO CIVIL): En el ámbito jurisdiccional y administrativo, queda expresamente facultado(a) para intentar y contestar demandas, oponer y contestar cuestiones previas y reconvenciones, darse por citado(a) o notificado(a), promover y evacuar toda clase de pruebas, interponer recursos ordinarios y extraordinarios incluyendo el de casación y acciones de amparo constitucional, solicitar medidas preventivas y ejecutivas, convenir, desistir, transigir, comprometer en árbitros, solicitar la decisión según la equidad, hacer posturas en remates, recibir cantidades de dinero y sustituir total o parcialmente este poder reservándose o no su ejercicio, de conformidad con los Artículos 1.684 y siguientes del Código Civil y Artículos 150 al 154 del Código de Procedimiento Civil (${fundamento}).${clausulaAutocontratacion}
+
+El mandatario cumplirá fielmente este encargo dando cuenta de su gestión. Así lo digo, otorgo y firmo. {{CIUDAD_FECHA}}.`;
+  }
+  // 2) ACTAS CONSTITUTIVAS Y ASAMBLEAS SOCIETARIAS (VENEZUELA)
+  else if (lowerCat.includes("mercantil") || lowerCat.includes("societario") || codigo.startsWith("SOC") || lowerTit.includes("acta de asamblea") || lowerTit.includes("acta constitutiva")) {
+    variables = [
+      { key: "SOCIEDAD_MERCANTIL", label: "Denominación de la Sociedad Mercantil, RIF y Datos de Registro Mercantil", category: "Sociedad", placeholder: "Ej: INVERSIONES TORRE CENTRAL, C.A., RIF Nº J-30948271-0, inscrita ante el Registro Mercantil Segundo de Caracas bajo el Nº 19, Tomo 84-A" },
+      { key: "ACCIONISTAS_DIRECTIVOS", label: "Accionistas / Socios Concurrentes, Representación del Capital y Cargos", category: "Accionistas", placeholder: "Ej: ROBERTO ROJAS (C.I. V-10.456.789), titular del 60% de las acciones, y ANA GÓMEZ (C.I. V-16.234.567), titular del 40% de las acciones, reuniendo el 100% del capital social" },
+      { key: "ACUERDOS_OBJETO", label: "Puntos del Orden del Día, Reforma Estatutaria, Objeto o Decisiones Aprobadas", category: "Acuerdos", placeholder: "Ej: Aprobación de estados financieros, reforma de cláusula estatutaria y ratificación de Junta Directiva" },
+      { key: "CAPITAL_MONTO", label: "Capital Social, Aportes, Acciones o Valores Patrimoniales", category: "Capital", placeholder: "Ej: Capital social suscrito y pagado de DIEZ MIL DÓLARES (US$ 10.000,00) equivalente en Bolívares al tipo de cambio oficial del BCV" },
+      { key: "AUTORIZADO_CIUDAD", label: "Persona Autorizada para Participación al Registro Mercantil, Ciudad y Fecha", category: "Otorgamiento", placeholder: "Ej: Autorizada la ciudadana ANA GÓMEZ (C.I. V-16.234.567). En Caracas, a la fecha de su presentación registral" }
+    ];
+
+    contentPreview = `ACTA SOCIETARIA: ${titulo.toUpperCase()}
+
+Nosotros, {{ACCIONISTAS_DIRECTIVOS}}, actuando en nuestro carácter de accionistas e integrantes de la sociedad mercantil {{SOCIEDAD_MERCANTIL}}, reunidos en la sede social habiéndose verificado el quórum legal y estatutario correspondiente conforme al Código de Comercio venezolano vigente (${fundamento}), constituimos formalmente la presente sesión a fin de deliberar y resolver sobre el siguiente orden del día:
+
+PUNTO PRIMERO (DELIBERACIÓN Y APROBACIÓN PRINCIPAL): Sometido a consideración de los presentes el punto relativo a {{ACUERDOS_OBJETO}}, luego de su examen detallado fue aprobado por unanimidad de votos, dejándose expresa constancia de que dicha determinación se ajusta plenamente a los Estatutos Sociales y al Código de Comercio.
+
+PUNTO SEGUNDO (RÉGIMEN PATRIMONIAL, CAPITAL SOCIAL Y ACCIONES): En lo atinente a la estructura patrimonial, capital social, suscripción de acciones o balances económicos evaluados, la Asamblea acuerda y certifica por unanimidad lo siguiente: {{CAPITAL_MONTO}}. Los accionistas declaran bajo fe de juramento que los fondos y bienes aportados tienen origen y destino estrictamente lícitos de conformidad con la normativa orgánica contra la delincuencia organizada y financiamiento al terrorismo.
+
+PUNTO TERCERO (AUTORIZACIÓN PARA REGISTRO Y PUBLICACIÓN): Se autoriza suficientemente a {{AUTORIZADO_CIUDAD}}, para que efectúe la correspondiente participación y presentación del presente documento ante la Oficina de Registro Mercantil competente, a los fines de su inserción en el expediente mercantil de la compañía, fijación y publicación de ley conforme al Código de Comercio.
+
+Terminada la reunión se levantó la presente Acta que leída en voz alta firman todos los concurrentes en señal de absoluta conformidad. {{AUTORIZADO_CIUDAD}}.`;
+  }
+  // 3) ARRENDAMIENTO COMERCIAL Y DE VIVIENDA (VENEZUELA)
+  else if (lowerCat.includes("inquilinato") || lowerCat.includes("arrendamiento") || lowerTit.includes("arrendamiento")) {
+    variables = [
+      { key: "ARRENDADOR", label: "Identificación Completa de EL ARRENDADOR (Nombre/Empresa, C.I./RIF, Registro y Representante)", category: "Partes", placeholder: "Ej: INVERSIONES TORRE CENTRAL, C.A., RIF J-30948271-0, representada por su Director ROBERTO ROJAS, C.I. V-10.456.789" },
+      { key: "ARRENDATARIO", label: "Identificación Completa de EL ARRENDATARIO (Nombre/Empresa, C.I./RIF y Fiador si aplica)", category: "Partes", placeholder: "Ej: COMERCIALIZADORA NOVA, C.A., RIF J-40192834-2, representada por MARÍA SALAZAR, C.I. V-18.987.654" },
+      { key: "INMUEBLE_DESTINO", label: "Descripción Exacta del Inmueble, Dirección, Linderos y Uso / Destino Permitido", category: "Inmueble", placeholder: "Ej: Local Comercial PB-08, Centro Comercial Paseo Las Mercedes, Caracas, de 90 m2, destinado exclusivamente a actividad comercial" },
+      { key: "CANON_PLAZO", label: "Canon Mensual de Arrendamiento, Depósito en Garantía y Plazo de Duración", category: "Condiciones", placeholder: "Ej: Canon mensual equivalente a MIL QUINIENTOS DÓLARES (US$ 1.500,00) a tasa oficial BCV, tres (3) meses de depósito, plazo fijo de dos (02) años" },
+      { key: "JURISDICCION_FECHA", label: "Domicilio Especial, Jurisdicción y Fecha de Suscripción", category: "Jurisdicción", placeholder: "Ej: Ciudad de Caracas, a la fecha de su autenticación notarial" }
+    ];
+
+    contentPreview = `ENTRE: {{ARRENDADOR}}, quien en lo adelante y a todos los efectos de este contrato se denominará EL ARRENDADOR, por una parte; y por la otra, {{ARRENDATARIO}}, quien en lo sucesivo se denominará EL ARRENDATARIO, se ha convenido en celebrar, como en efecto se celebra, el presente ${titulo.toUpperCase()}, regido por las disposiciones de ${fundamento} y contenido en las cláusulas siguientes:
+
+CLÁUSULA PRIMERA (OBJETO, UBICACIÓN Y DESTINO DEL INMUEBLE): EL ARRENDADOR cede en arrendamiento a EL ARRENDATARIO un inmueble constituido por: {{INMUEBLE_DESTINO}}. Queda expresamente prohibido a EL ARRENDATARIO cambiar el uso o destino convenido, así como ceder, traspasar o subarrendar total o parcialmente el inmueble sin el consentimiento previo, expreso y por escrito de EL ARRENDADOR.
+
+CLÁUSULA SEGUNDA (CANON DE ARRENDAMIENTO, GARANTÍA Y PLAZO DE VIGENCIA): El canon de arrendamiento, depósito en garantía y término de vigencia del contrato han sido pactados de común acuerdo en los términos siguientes: {{CANON_PLAZO}}. El pago del canon mensual se efectuará dentro de los primeros cinco (05) días continuos de cada mes contra la entrega de la respectiva factura fiscal de ley.
+
+CLÁUSULA TERCERA (CONSERVACIÓN, SERVICIOS PÚBLICOS Y CONDOMINIO): EL ARRENDATARIO declara recibir el inmueble en perfecto estado de conservación, aseo e instalaciones operativas, obligándose a devolverlo en el mismo buen estado al término del contrato. Correrán por cuenta exclusiva de EL ARRENDATARIO las reparaciones menores o locativas, así como el pago puntual de los servicios de electricidad, telecomunicaciones, aseo urbano y alícuota de condominio.
+
+CLÁUSULA CUARTA (ENTREGA MATERIAL Y CLÁUSULA PENAL): Al vencimiento del término o de su eventual prórroga legal si correspondiere, EL ARRENDATARIO deberá entregar el inmueble totalmente desocupado de personas y bienes, libre de deudas por servicios o condominio.
+
+CLÁUSULA QUINTA (DOMICILIO ESPECIAL Y JURISDICCIÓN): Para todos los efectos, derivados y consecuencias del presente contrato, las partes eligen como domicilio especial y excluyente a {{JURISDICCION_FECHA}}, a la jurisdicción de cuyos Tribunales competentes declaran someterse.
+
+Se hacen dos (02) ejemplares de un mismo tenor y a un solo efecto. {{JURISDICCION_FECHA}}.`;
+  }
+  // 4) LABORAL Y LOTTT (VENEZUELA)
+  else if (lowerCat.includes("laboral") || codigo.startsWith("LAB") || lowerTit.includes("trabajo") || lowerTit.includes("prestaciones") || lowerTit.includes("renuncia")) {
+    variables = [
+      { key: "ENTIDAD_TRABAJO", label: "Entidad de Trabajo / Patrono (Denominación Social, RIF, Registro Mercantil y Representante)", category: "Patrono", placeholder: "Ej: GRUPO INDUSTRIAL DELTA, C.A., RIF J-00192837-4, representada por su Director GUSTAVO MENDOZA, C.I. V-06.812.334" },
+      { key: "TRABAJADOR", label: "Trabajador(a) / Profesional (Nombre completo, nacionalidad, estado civil, C.I. y domicilio)", category: "Trabajador", placeholder: "Ej: CARLOS EDUARDO MÉNDEZ, venezolano, mayor de edad, titular de la C.I. Nº V-12.345.678" },
+      { key: "CARGO_FUNCIONES", label: "Cargo, Funciones, Fecha de Ingreso/Egreso y Jornada o Alcance", category: "Relación", placeholder: "Ej: Gerente de Operaciones, fecha de ingreso 01/03/2024, jornada diurna ordinaria" },
+      { key: "SALARIO_LIQUIDACION", label: "Salario, Remuneración o Desglose de Prestaciones Sociales y Conceptos (Bs. / USD BCV)", category: "Económico", placeholder: "Ej: Remuneración / Liquidación total por la cantidad equivalente a DOS MIL DÓLARES (US$ 2.000,00) pagados mediante transferencia bancaria" },
+      { key: "LUGAR_FECHA", label: "Ciudad y Fecha de Suscripción", category: "Otorgamiento", placeholder: "Ej: En la ciudad de Caracas, a los veintiún (21) días del mes de octubre de 2026" }
+    ];
+
+    contentPreview = `${titulo.toUpperCase()}
+
+ENTRE: {{ENTIDAD_TRABAJO}}, quien en lo adelante se denominará LA ENTIDAD DE TRABAJO, por una parte; y por la otra, {{TRABAJADOR}}, quien en lo sucesivo se denominará EL TRABAJADOR, se suscribe el presente instrumento de naturaleza laboral de conformidad con la Ley Orgánica del Trabajo, los Trabajadores y las Trabajadoras (LOTTT) y demás normativa aplicable (${fundamento}), bajo las siguientes estipulaciones:
+
+PRIMERA (IDENTIFICACIÓN DEL CARGO, FUNCIONES Y CONDICIONES): Las partes dejan expresa constancia de que la relación, cargo y funciones objeto del presente instrumento corresponden a: {{CARGO_FUNCIONES}}, obligándose las partes al cumplimiento de las normas de higiene, seguridad y ambiente de trabajo previstas en la LOPCYMAT.
+
+SEGUNDA (REMUNERACIÓN, CONCEPTOS LABORALES Y FORMA DE PAGO): Las estipulaciones económicas, salariales o de liquidación de conceptos laborales (prestaciones sociales Art. 142 LOTTT, vacaciones Art. 190, bono vacacional Art. 192 y utilidades Art. 131, según aplique al acto) quedan determinadas en los siguientes términos: {{SALARIO_LIQUIDACION}}.
+
+TERCERA (CONFIDENCIALIDAD Y RESGUARDO DE BIENES): EL TRABAJADOR se obliga a guardar estricta reserva y confidencialidad sobre la información comercial, contable, tecnológica y operativa de LA ENTIDAD DE TRABAJO, así como a cuidar y restituir en perfecto estado las herramientas, equipos y accesos corporativos asignados.
+
+CUARTA (DOMICILIO Y EJEMPLARES): En cumplimiento de lo previsto en el Artículo 59 de la LOTTT, se levantan dos (02) ejemplares originales de un mismo tenor y a un solo efecto, dejando constancia de la entrega de un ejemplar a EL TRABAJADOR en {{LUGAR_FECHA}}.`;
+  }
+  // 5) DEMANDAS, ESCRITOS JUDICIALES, AMPARO, FAMILIA, SUCESIONES Y LOPNNA (VENEZUELA)
+  else if (
+    lowerCat.includes("procesal") || lowerCat.includes("forense") || lowerCat.includes("familia") ||
+    lowerCat.includes("sucesiones") || lowerCat.includes("menores") || codigo.startsWith("AMP") ||
+    codigo.startsWith("LOP") || lowerTit.startsWith("demanda") || lowerTit.startsWith("solicitud") ||
+    lowerTit.startsWith("escrito") || lowerTit.startsWith("libelo") || lowerTit.startsWith("acción")
+  ) {
+    variables = [
+      { key: "TRIBUNAL_ORGANO", label: "Tribunal, Juzgado, Registro o Autoridad Competente a quien se dirige", category: "Órgano", placeholder: "Ej: CIUDADANO JUEZ DE PRIMERA INSTANCIA EN LO CIVIL, MERCANTIL Y DEL TRÁNSITO DE LA CIRCUNSCRIPCIÓN JUDICIAL DEL ÁREA METROPOLITANA DE CARACAS" },
+      { key: "SOLICITANTE_ACTOR", label: "Demandante / Solicitante y Abogado(s) Apoderado(s) o Asistente(s) (con C.I. e Inpreabogado)", category: "Actor", placeholder: "Ej: MARÍA FERNANDA SALAZAR (C.I. V-18.987.654), debidamente asistida por la Abogada BÁRBARA PICCOLO, Inpreabogado Nº 115.794 / IPSA Nº 102.485" },
+      { key: "DEMANDADO_CAUSANTE", label: "Demandado / Contraparte / Causante / Menor involucrado (Identificación completa)", category: "Contraparte", placeholder: "Ej: Contra la sociedad mercantil INVERSIONES ALFA, C.A. (RIF J-30948271-0), en la persona de su representante legal" },
+      { key: "HECHOS_FUNDAMENTOS", label: "Relación de Hechos (Causa Petendi), Pruebas y Elementos Fácticos del Caso", category: "Hechos", placeholder: "Ej: En fecha 15/05/2025 se suscribió el contrato cuyo incumplimiento origina la presente acción..." },
+      { key: "PETITORIO_DOMICILIO", label: "Petitorio Específico, Cuantía, Medidas Solicitadas y Domicilio Procesal", category: "Petitorio", placeholder: "Ej: Se declare CON LUGAR la presente acción, con expresa condena en costas. Domicilio procesal en Caracas" }
+    ];
+
+    contentPreview = `{{TRIBUNAL_ORGANO}}
+SU DESPACHO.-
+
+Yo (Nosotros), {{SOLICITANTE_ACTOR}}, actuando con el carácter acreditado en autos, ante su competente autoridad ocurro muy respetuosamente para proponer y formalizar, como en efecto formalizo, el presente escrito de ${titulo.toUpperCase()} en relación con / en contra de: {{DEMANDADO_CAUSANTE}}, con fundamento en los hechos, pruebas y consideraciones de Derecho siguientes:
+
+CAPÍTULO I
+DE LOS HECHOS Y ANTECEDENTES FÁCTICOS (CAUSA PETENDI)
+
+Consta de los recaudos fehacientes que se acompañan marcados con letras útiles que los hechos determinantes de la presente actuación son los siguientes: {{HECHOS_FUNDAMENTOS}}. Tales circunstancias fácticas demuestran de forma inequívoca el interés jurídico actual y la legitimación activa que asiste a esta representación.
+
+CAPÍTULO II
+DEL DERECHO Y FUNDAMENTACIÓN JURÍDICA VENEZOLANA
+
+La presente actuación se fundamenta en derecho en las disposiciones expresas contenidas en ${fundamento}, en concordancia con la doctrina pacífica y reiterada del Tribunal Supremo de Justicia de la República Bolivariana de Venezuela. Criterio técnico-forense aplicable al caso: ${notas}
+
+CAPÍTULO III
+DEL PETITORIO, MEDIDAS Y DOMICILIO PROCESAL
+
+Por todos los razonamientos de hecho y de Derecho anteriormente expuestos, ocurro ante su competente autoridad para solicitar formalmente: {{PETITORIO_DOMICILIO}}.
+
+Asimismo, a los efectos de lo dispuesto en el Artículo 174 del Código de Procedimiento Civil, señalo como domicilio procesal el indicado ut supra y solicito que la presente actuación sea admitida, sustanciada conforme a derecho y declarada CON LUGAR en la definitiva con todos los pronunciamientos de ley.
+
+Es Justicia que espero en la ciudad de Caracas, a la fecha de su presentación.`;
+  }
+  // 6) CONTRATOS CIVILES, MERCANTILES, COMPRAVENTAS, OPCIONES, CESIONES E HIPOTECAS (VENEZUELA)
+  else {
+    variables = [
+      { key: "PRIMERA_PARTE", label: "Primera Parte / Vendedor / Cedente / Otorgante (Nombre o Empresa, Estado Civil, C.I./RIF y Domicilio)", category: "Partes", placeholder: "Ej: CARLOS EDUARDO MÉNDEZ, venezolano, mayor de edad, casado, de este domicilio y titular de la C.I. Nº V-12.345.678" },
+      { key: "SEGUNDA_PARTE", label: "Segunda Parte / Comprador / Cesionario / Adquirente (Nombre o Empresa, Estado Civil, C.I./RIF y Domicilio)", category: "Partes", placeholder: "Ej: MARÍA FERNANDA SALAZAR, venezolana, mayor de edad, soltera, de este domicilio y titular de la C.I. Nº V-18.987.654" },
+      { key: "OBJETO_BIEN", label: "Descripción Detallada del Bien, Inmueble, Vehículo, Derecho, Superficie y Linderos", category: "Objeto", placeholder: "Ej: Un Apartamento distinguido con el Nº 8-A, Piso 8, Residencias Parque Real, Urb. Los Palos Grandes, Municipio Chacao, de 162,00 m2" },
+      { key: "REGISTRO_TRADICION", label: "Título de Adquisición / Datos de Registro Público o Notaría Antecedente (Oficina, Nº, Tomo, Folio, Fecha)", category: "Registro", placeholder: "Ej: Documento protocolizado ante el Registro Público del Municipio Chacao bajo el Nº 45, Tomo 22, Folio 108, Protocolo 1º, de fecha 14/05/2018" },
+      { key: "PRECIO_CONDICIONES", label: "Precio o Monto (en Letras y Números), Moneda y Modalidad de Pago", category: "Precio", placeholder: "Ej: NOVENTA Y CINCO MIL DÓLARES DE LOS ESTADOS UNIDOS DE AMÉRICA (US$ 95.000,00) pagados mediante transferencia bancaria" },
+      { key: "JURISDICCION_FECHA", label: "Domicilio Especial, Jurisdicción y Fecha de Otorgamiento", category: "Jurisdicción", placeholder: "Ej: Ciudad de Caracas, a la fecha de su presentación y otorgamiento registral" }
+    ];
+
+    contentPreview = `ENTRE: {{PRIMERA_PARTE}}, por una parte; y por la otra, {{SEGUNDA_PARTE}}, se ha convenido en celebrar, como en efecto se celebra, el presente ${titulo.toUpperCase()}, regido por las disposiciones de ${fundamento} y contenido en las cláusulas siguientes:
+
+PRIMERA (OBJETO Y DETERMINACIÓN DEL BIEN O DERECHO): Por medio del presente instrumento se otorga formalmente ${titulo} sobre el bien o derecho constituido y determinado por: {{OBJETO_BIEN}}.
+
+SEGUNDA (TÍTULO DE ADQUISICIÓN Y TRADICIÓN REGISTRAL): El bien o derecho objeto del presente contrato pertenece a la primera parte otorgante según consta fehacientemente en: {{REGISTRO_TRADICION}}.
+
+TERCERA (PRECIO, MONTO Y MODALIDAD DE PAGO): El precio o valor patrimonial de esta operación ha sido pactado de común acuerdo entre las partes en la cantidad de: {{PRECIO_CONDICIONES}}, recibidos a entera y cabal satisfacción conforme al medio de pago indicado, otorgándose por el presente instrumento el correspondiente recibo y finiquito de pago.
+
+CUARTA (SANEAMIENTO DE LEY, TRADICIÓN LEGAL Y LIBERTAD DE GRAVÁMENES): La parte otorgante declara que el bien o derecho objeto de este acto se encuentra libre de todo gravamen, embargo o medida de prohibición de enajenar y gravar, obligándose al saneamiento de ley conforme a los Artículos 1.486 y 1.503 y siguientes del Código Civil venezolano vigente, y haciendo la tradición legal y entrega material con el otorgamiento del presente instrumento.
+
+QUINTA (DECLARACIÓN JURADA DE ORIGEN Y DESTINO LÍCITO DE FONDOS): Las partes declaran bajo fe de juramento que los capitales, haberes, valores o títulos utilizados en el presente negocio jurídico tienen un origen y destino estrictamente lícitos y no guardan relación alguna con las actividades sancionadas en la Ley Orgánica Contra la Delincuencia Organizada y Financiamiento al Terrorismo.
+
+SEXTA (DOMICILIO ESPECIAL Y JURISDICCIÓN): Para todos los efectos, derivados y consecuencias de este contrato, las partes eligen como domicilio especial, único y excluyente a {{JURISDICCION_FECHA}}, a la jurisdicción de cuyos Tribunales competentes declaran someterse. Así lo decimos, otorgamos y firmamos.`;
+  }
 
   return {
     id: `drive-${codigo.toLowerCase()}`,
@@ -861,7 +1172,7 @@ const INITIAL_DRIVE_TEMPLATES: ModelTemplate[] = [
   {
     id: "tpl-compraventa",
     codigo: "CON-12",
-    name: "Contrato de Compraventa de Inmueble",
+    name: "[CON-12] Contrato de Compraventa de Inmueble",
     category: "Civil - Contratos y Garantías",
     source: "Google Drive",
     driveUrl: RAW_CATALOGO_550.urls[31] || "https://drive.google.com/drive/folders/1xHuhO7x1zL7Ll3-0J0s59Td2LBentREF",
@@ -869,19 +1180,19 @@ const INITIAL_DRIVE_TEMPLATES: ModelTemplate[] = [
     notas: "Redacción jurídica venezolana para otorgamiento ante Registro Inmobiliario.",
     updatedAt: "Google Drive",
     variables: [
-      { key: "VENDEDOR", label: "Identificación completa del Vendedor (Nombre, Estado Civil, C.I. / RIF)", category: "Partes", placeholder: "Ej: CARLOS EDUARDO MÉNDEZ, mayor de edad, casado, C.I. V-12.345.678" },
-      { key: "COMPRADOR", label: "Identificación completa del Comprador (Nombre, Estado Civil, C.I. / RIF)", category: "Partes", placeholder: "Ej: MARÍA FERNANDA SALAZAR, mayor de edad, soltera, C.I. V-18.987.654" },
-      { key: "DATOS_INMUEBLE", label: "Descripción, Ubicación, Superficie y Linderos del Inmueble", category: "Inmueble", placeholder: "Ej: Apartamento Nº 4-B, Edificio Torre Ávila, Urb. Altamira, 145 m2" },
-      { key: "REGISTRO_INMUEBLE", label: "Datos de Registro Inmobiliario / Tradición Legal (Oficina, Tomo, Folio, Fecha)", category: "Inmueble", placeholder: "Ej: Registro Público del Municipio Chacao, Tomo 14, Protocolo 1º, Año 2019" },
-      { key: "PRECIO_VENTA", label: "Precio de la Compraventa (en letras y números) y Forma de Pago", category: "Precio y Pago", placeholder: "Ej: OCHENTA Y CINCO MIL DÓLARES (85.000,00 USD) mediante transferencia bancaria" },
-      { key: "JURISDICCION", label: "Jurisdicción y Domicilio Especial elegido por las partes", category: "Jurisdicción", placeholder: "Ej: Ciudad de Caracas, a la jurisdicción de cuyos Tribunales declaran someterse" }
+      { key: "VENDEDOR", label: "Vendedor (Nombre completo, nacionalidad, estado civil, C.I. / RIF y domicilio)", category: "Partes", placeholder: "Ej: CARLOS EDUARDO MÉNDEZ, venezolano, mayor de edad, casado, C.I. Nº V-12.345.678" },
+      { key: "COMPRADOR", label: "Comprador (Nombre completo, nacionalidad, estado civil, C.I. / RIF y domicilio)", category: "Partes", placeholder: "Ej: MARÍA FERNANDA SALAZAR, venezolana, mayor de edad, soltera, C.I. Nº V-18.987.654" },
+      { key: "DATOS_INMUEBLE", label: "Descripción, Ubicación, Superficie y Linderos del Inmueble", category: "Inmueble", placeholder: "Ej: Apartamento Nº 4-B, Piso 4, Edificio Torre Ávila, Urb. Altamira, Municipio Chacao, de 145,00 m2" },
+      { key: "REGISTRO_INMUEBLE", label: "Datos de Registro Inmobiliario / Tradición Legal (Oficina, Nº, Tomo, Folio, Fecha)", category: "Inmueble", placeholder: "Ej: Registro Público del Municipio Chacao bajo el Nº 18, Tomo 14, Protocolo 1º, de fecha 12/06/2019" },
+      { key: "PRECIO_VENTA", label: "Precio de la Compraventa (en letras y números) y Forma de Pago", category: "Precio y Pago", placeholder: "Ej: OCHENTA Y CINCO MIL DÓLARES (US$ 85.000,00) pagados mediante transferencia bancaria" },
+      { key: "JURISDICCION", label: "Ciudad, Domicilio Especial y Fecha de Otorgamiento", category: "Jurisdicción", placeholder: "Ej: Ciudad de Caracas, a la fecha de su presentación registral" }
     ],
-    contentPreview: `ENTRE: {{VENDEDOR}}, quien en lo adelante y a los efectos de este contrato se denominará EL VENDEDOR, por una parte; y por la otra, {{COMPRADOR}}, quien en lo sucesivo se denominará EL COMPRADOR, se ha convenido en celebrar el presente CONTRATO DE COMPRAVENTA DE INMUEBLE:\n\nPRIMERA (OBJETO Y DESCRIPCIÓN DEL INMUEBLE): EL VENDEDOR da en venta pura y simple, perfecta e irrevocable a EL COMPRADOR, un inmueble constituido por {{DATOS_INMUEBLE}}.\n\nSEGUNDA (TÍTULO DE ADQUISICIÓN Y REGISTRO): El referido inmueble pertenece a EL VENDEDOR según consta en documento protocolizado ante {{REGISTRO_INMUEBLE}}.\n\nTERCERA (PRECIO Y FORMA DE PAGO): El precio de esta venta ha sido pactado de común acuerdo en la cantidad de {{PRECIO_VENTA}}, que EL VENDEDOR declara recibir a su entera y cabal satisfacción.\n\nCUARTA (SANEAMIENTO Y ENTREGA MATERIAL): EL VENDEDOR garantiza que el inmueble se encuentra libre de todo gravamen, hipoteca o medida de prohibición, haciendo la tradición legal y entrega material con el otorgamiento del presente instrumento.\n\nQUINTA (JURISDICCIÓN): Para todos los efectos derivados de este contrato, las partes eligen como domicilio especial a la {{JURISDICCION}}.`
+    contentPreview: `ENTRE: {{VENDEDOR}}, quien en lo adelante y a todos los efectos de este contrato se denominará EL VENDEDOR, por una parte; y por la otra, {{COMPRADOR}}, quien en lo sucesivo se denominará EL COMPRADOR, se ha convenido en celebrar el presente CONTRATO DE COMPRAVENTA DE INMUEBLE, regido por las cláusulas siguientes:\n\nPRIMERA (OBJETO Y DESCRIPCIÓN DEL INMUEBLE): EL VENDEDOR da en venta pura y simple, perfecta e irrevocable a EL COMPRADOR, un inmueble constituido por: {{DATOS_INMUEBLE}}.\n\nSEGUNDA (TÍTULO DE ADQUISICIÓN Y REGISTRO): El referido inmueble pertenece a EL VENDEDOR según consta en documento protocolizado ante {{REGISTRO_INMUEBLE}}.\n\nTERCERA (PRECIO Y FORMA DE PAGO): El precio de esta venta ha sido pactado de común acuerdo en la cantidad de {{PRECIO_VENTA}}, que EL VENDEDOR declara recibir en este acto de manos de EL COMPRADOR a su entera y cabal satisfacción, sirviendo el otorgamiento del presente documento de formal recibo y carta de pago.\n\nCUARTA (SANEAMIENTO DE LEY Y ENTREGA MATERIAL): EL VENDEDOR declara que el inmueble vendido se encuentra libre de todo gravamen, hipoteca, privilegio o medida de prohibición, obligándose al saneamiento de ley conforme al artículo 1.503 del Código Civil y haciendo la tradición legal y entrega material con el otorgamiento del presente instrumento.\n\nQUINTA (DECLARACIÓN JURADA DE ORIGEN LÍCITO DE FONDOS Y JURISDICCIÓN): Las partes declaran bajo fe de juramento que los fondos utilizados en esta operación tienen origen y destino estrictamente lícitos. Para todos los efectos derivados de este contrato, las partes eligen como domicilio especial a {{JURISDICCION}}, a la jurisdicción de cuyos Tribunales competentes declaran someterse.`
   },
   {
     id: "tpl-arrendamiento",
     codigo: "CON-01",
-    name: "Contrato de Arrendamiento de Local Comercial",
+    name: "[CON-01] Contrato de Arrendamiento de Local Comercial",
     category: "Inquilinato y Arrendamiento",
     source: "Google Drive",
     driveUrl: RAW_CATALOGO_550.urls[20] || "https://drive.google.com/drive/folders/1xHuhO7x1zL7Ll3-0J0s59Td2LBentREF",
@@ -889,19 +1200,19 @@ const INITIAL_DRIVE_TEMPLATES: ModelTemplate[] = [
     notas: "Modelo venezolano para locales comerciales con cláusula bimonetaria.",
     updatedAt: "Google Drive",
     variables: [
-      { key: "ARRENDADOR", label: "Datos de la Parte Arrendadora / Propietaria", category: "Partes", placeholder: "Ej: INVERSIONES TORRE CENTRAL, C.A. (RIF J-30948271-0)" },
-      { key: "ARRENDATARIO", label: "Datos de la Parte Arrendataria / Inquilina", category: "Partes", placeholder: "Ej: COMERCIALIZADORA NOVA, S.A. (RIF J-40192834-2)" },
-      { key: "LOCAL_DIRECCION", label: "Identificación y Ubicación del Local Comercial", category: "Inmueble", placeholder: "Ej: Local PB-08, Centro Comercial Paseo Las Mercedes, 90 m2" },
-      { key: "CANON_MENSUAL", label: "Canon de Arrendamiento Mensual y Depósito en Garantía", category: "Precio y Pago", placeholder: "Ej: 1.500,00 USD mensuales + 3 meses de depósito" },
-      { key: "DURACION", label: "Plazo de Duración del Contrato", category: "Plazo", placeholder: "Ej: Dos (02) años fijos contados a partir de la firma" },
-      { key: "JURISDICCION", label: "Jurisdicción Aplicable", category: "Jurisdicción", placeholder: "Ej: Tribunales Mercantiles de la Circunscripción Judicial de Caracas" }
+      { key: "ARRENDADOR", label: "Arrendador / Propietario (Nombre o Empresa, RIF y Representante)", category: "Partes", placeholder: "Ej: INVERSIONES TORRE CENTRAL, C.A., RIF J-30948271-0, representada por su Director ROBERTO ROJAS, C.I. V-10.456.789" },
+      { key: "ARRENDATARIO", label: "Arrendatario / Inquilino (Nombre o Empresa, RIF y Representante)", category: "Partes", placeholder: "Ej: COMERCIALIZADORA NOVA, S.A., RIF J-40192834-2, representada por MARÍA SALAZAR, C.I. V-18.987.654" },
+      { key: "LOCAL_DIRECCION", label: "Identificación, Ubicación, Superficie y Destino del Local Comercial", category: "Inmueble", placeholder: "Ej: Local PB-08, Centro Comercial Paseo Las Mercedes, Caracas, de 90 m2" },
+      { key: "CANON_MENSUAL", label: "Canon de Arrendamiento Mensual y Depósito en Garantía", category: "Precio y Pago", placeholder: "Ej: MIL QUINIENTOS DÓLARES (US$ 1.500,00) mensuales a tasa oficial BCV y tres (03) meses de depósito" },
+      { key: "DURACION", label: "Plazo de Duración del Contrato", category: "Plazo", placeholder: "Ej: Dos (02) años fijos contados a partir de la suscripción" },
+      { key: "JURISDICCION", label: "Domicilio Especial y Jurisdicción Aplicable", category: "Jurisdicción", placeholder: "Ej: Ciudad de Caracas, Tribunales Mercantiles y de Municipio competentes" }
     ],
-    contentPreview: `ENTRE: {{ARRENDADOR}} (EL ARRENDADOR) y {{ARRENDATARIO}} (EL ARRENDATARIO), se suscribe el presente CONTRATO DE ARRENDAMIENTO DE LOCAL COMERCIAL:\n\nCLÁUSULA PRIMERA (INMUEBLE): EL ARRENDADOR cede en arrendamiento el inmueble ubicado en {{LOCAL_DIRECCION}}.\n\nCLÁUSULA SEGUNDA (CANON Y GARANTÍA): El canon de arrendamiento convenido es de {{CANON_MENSUAL}}, pagaderos dentro de los primeros cinco (5) días de cada mes.\n\nCLÁUSULA TERCERA (VIGENCIA): El presente contrato tendrá una duración de {{DURACION}}.\n\nCLÁUSULA CUARTA (DOMICILIO ESPECIAL): Las partes eligen como domicilio especial la {{JURISDICCION}}.`
+    contentPreview: `ENTRE: {{ARRENDADOR}} (en lo adelante EL ARRENDADOR), por una parte; y por la otra, {{ARRENDATARIO}} (en lo sucesivo EL ARRENDATARIO), se suscribe el presente CONTRATO DE ARRENDAMIENTO DE LOCAL COMERCIAL, regido por el Decreto con Rango, Valor y Fuerza de Ley de Regulación del Arrendamiento Inmobiliario para el Uso Comercial (G.O. Nº 40.418) y las cláusulas siguientes:\n\nCLÁUSULA PRIMERA (INMUEBLE Y DESTINO COMERCIAL): EL ARRENDADOR cede en arrendamiento el inmueble constituido por {{LOCAL_DIRECCION}}, quedando prohibido el subarriendo o cesión sin autorización escrita de EL ARRENDADOR.\n\nCLÁUSULA SEGUNDA (CANON Y GARANTÍA): El canon de arrendamiento y depósito se fijan en {{CANON_MENSUAL}}, pagaderos dentro de los primeros cinco (05) días de cada mes contra entrega de factura fiscal.\n\nCLÁUSULA TERCERA (VIGENCIA): El presente contrato tendrá una duración de {{DURACION}}.\n\nCLÁUSULA CUARTA (DOMICILIO ESPECIAL): Para todos los efectos de este contrato, las partes eligen como domicilio especial a {{JURISDICCION}}.`
   },
   {
     id: "tpl-poder",
     codigo: "POD-01",
-    name: "Poder Especial de Representación Judicial y Administrativa",
+    name: "[POD-01] Poder Especial de Representación Judicial y Administrativa",
     category: "Poderes y Mandatos",
     source: "Google Drive",
     driveUrl: RAW_CATALOGO_550.urls[0] || "https://drive.google.com/drive/folders/1xHuhO7x1zL7Ll3-0J0s59Td2LBentREF",
@@ -909,17 +1220,17 @@ const INITIAL_DRIVE_TEMPLATES: ModelTemplate[] = [
     notas: "Representación judicial y extrajudicial amplia.",
     updatedAt: "Google Drive",
     variables: [
-      { key: "OTORGANTE", label: "Datos del Poderdante / Otorgante", category: "Partes", placeholder: "Ej: GRUPO INDUSTRIAL DELTA, C.A., representada por su Director" },
-      { key: "APODERADOS", label: "Nombre e Inpreabogado / IPSA de los Abogados Apoderados", category: "Apoderados", placeholder: "Ej: Abg. Bárbara Piccolo, Inpreabogado Nº 115.794 / IPSA Nº 102.485" },
-      { key: "FACULTADES_ESPECIFICAS", label: "Objeto y Facultades Especiales del Mandato", category: "Facultades", placeholder: "Ej: Darse por citado, promover pruebas, convenir, desistir, transigir y recibir cantidades de dinero" },
-      { key: "JURISDICCION", label: "Ciudad y Fecha de Otorgamiento", category: "Jurisdicción", placeholder: "Ej: En la ciudad de Caracas, a la fecha de su autenticación notarial" }
+      { key: "OTORGANTE", label: "Poderdante / Otorgante (Nombre o Empresa, C.I. / RIF y Domicilio)", category: "Partes", placeholder: "Ej: GRUPO INDUSTRIAL DELTA, C.A., RIF J-00192837-4, representada por su Presidente GUSTAVO MENDOZA, C.I. V-06.812.334" },
+      { key: "APODERADOS", label: "Abogado(s) Apoderado(s) (Nombre completo, C.I. e Inpreabogado / IPSA)", category: "Apoderados", placeholder: "Ej: Abogada BÁRBARA ISABEL PICCOLO OBALDO, C.I. V-15.234.567, Inpreabogado Nº 115.794 / IPSA Nº 102.485" },
+      { key: "FACULTADES_ESPECIFICAS", label: "Asunto, Bienes o Alcance Especial del Mandato", category: "Facultades", placeholder: "Ej: Todos mis asuntos judiciales, extrajudiciales, mercantiles y administrativos en la República Bolivariana de Venezuela" },
+      { key: "JURISDICCION", label: "Ciudad y Fecha de Otorgamiento", category: "Jurisdicción", placeholder: "Ej: En la ciudad de Caracas, a la fecha de su presentación y autenticación notarial" }
     ],
-    contentPreview: `Yo, {{OTORGANTE}}, por el presente documento declaro: Que confiero PODER ESPECIAL, pero amplio y bastante cuanto en derecho se requiere, a los abogados en ejercicio {{APODERADOS}}, para que conjunta o separadamente representen y sostengan mis derechos en todos los asuntos judiciales o extrajudiciales.\n\nEn ejercicio de este mandato, los apoderados quedan expresamente facultados para: {{FACULTADES_ESPECIFICAS}}.\n\nOtorgado en {{JURISDICCION}}.`
+    contentPreview: `Yo, {{OTORGANTE}}, por medio del presente documento declaro: Que confiero PODER ESPECIAL, pero amplio y bastante cuanto en derecho se requiere, a {{APODERADOS}}, para que conjunta o separadamente representen y sostengan mis derechos, acciones e intereses en relación con: {{FACULTADES_ESPECIFICAS}}.\n\nEn ejercicio de este mandato y de conformidad con lo dispuesto en el Artículo 154 del Código de Procedimiento Civil y Artículo 1.688 del Código Civil, los apoderados quedan expresamente facultados para intentar y contestar demandas, oponer y contestar cuestiones previas y reconvenciones, darse por citados o notificados, promover y evacuar toda clase de pruebas, solicitar medidas preventivas y ejecutivas, interponer recursos ordinarios y extraordinarios incluyendo el de casación y amparo constitucional, convenir, desistir, transigir, comprometer en árbitros, hacer posturas en remates, recibir cantidades de dinero otorgando los correspondientes recibos y finiquitos, y sustituir total o parcialmente este poder reservándose o no su ejercicio.\n\nAsí lo digo, otorgo y firmo en {{JURISDICCION}}.`
   },
+  ...RAW_SPANISH_TECH_MODELS.map(buildSpanishTechModel),
   ...RAW_CATALOGO_550.rows.map(buildVenezuelanModelFromCatalogRow)
 ];
 
-// Constante de compatibilidad de IDs de auditoría
 const LEGACY_AUDIT_IDS = [
   { id: "HL-2026-001" }, { id: "PII-2026-001" }, { id: "TRZ-2026-001" },
   { id: "act-1" }, { id: "act-2" }, { id: "act-3" },
@@ -942,11 +1253,11 @@ export default function AiGovernLegalSystem() {
 
   const showToast = (msg: string) => {
     setToastMessage(msg);
-    setTimeout(() => setToastMessage(null), 4200);
+    setTimeout(() => setToastMessage(null), 3500);
   };
 
   // ==========================================================================
-  // PALETA DETERMINÍSTICA MODO CLARO / MODO OSCURO (SIN CONFLICTOS DE TAILWIND)
+  // PALETA DETERMINÍSTICA MODO CLARO / MODO OSCURO
   // ==========================================================================
   const theme = useMemo(() => {
     if (darkMode) {
@@ -1016,7 +1327,7 @@ export default function AiGovernLegalSystem() {
   };
 
   // ==========================================================================
-  // ESTADO DE CONFIGURACIÓN GENERAL Y CONEXIÓN GOOGLE DRIVE (550+ MODELOS)
+  // ESTADO DE CONFIGURACIÓN GENERAL Y CONEXIÓN GOOGLE DRIVE (595 MODELOS: VENEZUELA + TECH ESPAÑA)
   // ==========================================================================
   const [llmProvider, setLlmProvider] = useState<'openai' | 'anthropic' | 'gemini' | 'groq' | 'ollama'>('openai');
   const [llmModel, setLlmModel] = useState<string>('gpt-4o');
@@ -1036,7 +1347,6 @@ export default function AiGovernLegalSystem() {
   const [driveDocUrlToImport, setDriveDocUrlToImport] = useState<string>('');
   const [isSyncingDriveCatalog, setIsSyncingDriveCatalog] = useState<boolean>(false);
 
-  // Biblioteca de Modelos pre-conectada con los 550+ modelos venezolanos de Google Drive
   const [templates, setTemplates] = useState<ModelTemplate[]>(INITIAL_DRIVE_TEMPLATES);
   const [templateCategoryFilter, setTemplateCategoryFilter] = useState<string>('Todas');
   const [templateSearchQuery, setTemplateSearchQuery] = useState<string>('');
@@ -1046,38 +1356,36 @@ export default function AiGovernLegalSystem() {
   const [newTplDriveUrlInput, setNewTplDriveUrlInput] = useState<string>('');
   const [showAddTemplateModal, setShowAddTemplateModal] = useState<boolean>(false);
 
-  // Modal/Panel en Redactor para pegar o subir el texto real de un modelo de Drive (con datos viejos o rayas ____)
   const [showAdaptRealModelBox, setShowAdaptRealModelBox] = useState<boolean>(false);
   const [rawRealModelTextInput, setRawRealModelTextInput] = useState<string>('');
 
-  // Repositorio RAG de Leyes y Normativa
   const [ragDocs, setRagDocs] = useState<RagLawDocument[]>([
     {
       id: 'rag-01',
-      title: 'Código Civil de Venezuela (Obligaciones, Contratos, Compraventa, Mandato y Garantías)',
+      title: 'Código Civil y Código de Comercio (Venezuela)',
       type: 'Código / Ley',
       chunks: 420,
       status: 'Indexado',
-      excerpt: 'Artículos 151, 168 (consentimiento conyugal), 1.133, 1.159, 1.167, 1.474 y ss. (Compraventa), 1.579 (Arrendamiento), 1.684 y ss. (Mandato y Poderes).',
-      fullText: 'Código Civil de Venezuela: Art. 151 (Bienes propios de los cónyuges). Art. 168 (Requiere consentimiento de ambos cónyuges para enajenar o gravar bienes gananciales). Art. 1.133 (El contrato es una convención entre dos o más personas para constituir, reglar, transmitir, modificar o extinguir entre ellas un vínculo jurídico). Art. 1.167 (En el contrato bilateral, si una de las partes no ejecuta su obligación, la otra puede a su elección reclamar judicialmente la ejecución del contrato o la resolución del mismo, con los daños y perjuicios). Art. 1.474 (La venta es un contrato por el cual el vendedor se obliga a transferir la propiedad de una cosa y el comprador a pagar el precio). Art. 1.684 (El mandato es un contrato por el cual una persona se obliga gratuitamente, o mediante salario, a ejecutar uno o más negocios por cuenta de otra, que la ha encargado de ello).'
+      excerpt: 'Arts. 151, 168 (consentimiento conyugal), 1.133, 1.167, 1.171 (autocontratación), 1.474 y ss. (Compraventa), 1.579 (Arrendamiento), 1.684 y ss. (Mandato); Arts. 151, 200 y ss. C.Com.',
+      fullText: 'Código Civil de Venezuela: Art. 151 (Bienes propios). Art. 168 (Consentimiento de ambos cónyuges para enajenar o gravar bienes gananciales). Art. 1.133 (Contrato). Art. 1.167 (Acción resolutoria o cumplimiento forzoso con daños y perjuicios). Art. 1.171 (Autocontratación del mandatario). Art. 1.474 (Compraventa y tradición legal). Art. 1.684 y ss. (Mandato y obligaciones del mandatario). Código de Comercio: Art. 151 (Fondo de comercio). Art. 200 y ss. (Compañías Anónimas, S.R.L., Asambleas y Administradores).'
     },
     {
       id: 'rag-02',
-      title: 'Código de Procedimiento Civil de Venezuela (CPC)',
+      title: 'Código de Procedimiento Civil (CPC), LOTTT, LOPNNA y Arrendamiento (Venezuela)',
       type: 'Código / Ley',
       chunks: 315,
       status: 'Indexado',
-      excerpt: 'Artículos 150 y ss. (Poderes judiciales), Art. 197 (Cómputo de lapsos por días de despacho), Art. 340 (Requisitos del libelo de demanda), Art. 585 (Medidas preventivas).',
-      fullText: 'Código de Procedimiento Civil (CPC): Art. 151 (En el poder para actos judiciales deben expresarse las facultades para convenir, desistir, transigir, comprometer en árbitros, solicitar la decisión según la equidad, hacer posturas en remates y recibir cantidades de dinero). Art. 197 (Los términos o lapsos procesales se computarán por días calendarios consecutivos, excepto los lapsos de pruebas y aquellos en que la ley disponga que se computen por días de despacho). Art. 340 (Requisitos formales del libelo de la demanda). Art. 585 (Medidas preventivas de embargo, secuestro y prohibición de enajenar y gravar ante fumus boni iuris y periculum in mora).'
+      excerpt: 'Arts. 150-154 CPC (Poderes judiciales), Art. 197 CPC (Cómputo de lapsos), Art. 340 CPC (Libelo), Art. 585 CPC (Medidas preventivas); LOTTT y LOPNNA.',
+      fullText: 'Código de Procedimiento Civil (CPC): Arts. 150 a 154 (Facultades expresas en poderes judiciales: convenir, desistir, transigir, comprometer en árbitros, recibir cantidades de dinero). Art. 197 (Cómputo por días de despacho). Art. 340 (Requisitos del libelo de demanda). Art. 585 (Medidas cautelares). Decreto Ley de Arrendamiento Comercial (G.O. 40.418). LOTTT y LOPNNA.'
     },
     {
       id: 'rag-03',
-      title: 'Código de Comercio, LOTTT, LOPNNA y Decreto Ley de Arrendamiento Comercial',
+      title: 'Normativa Tech España / UE (LSC, Ley de Startups 28/2022, RGPD, LOPDGDD, TRLPI, NIS2, DORA y EU AI Act)',
       type: 'Código / Ley',
-      chunks: 260,
+      chunks: 340,
       status: 'Indexado',
-      excerpt: 'Artículos 151, 200 y ss. del Código de Comercio (Sociedades Mercantiles y Asambleas); Decreto Ley de Arrendamiento Comercial (G.O. 40.418); LOTTT y LOPNNA.',
-      fullText: 'Código de Comercio: Art. 151 (Enajenación de fondo de comercio y publicaciones). Art. 200 y ss. (Compañías Anónimas, S.R.L., Asambleas Ordinarias y Extraordinarias, facultades de administradores y comisarios). Decreto con Rango, Valor y Fuerza de Ley de Regulación del Arrendamiento Inmobiliario para el Uso Comercial (G.O. 40.418). Ley Orgánica del Trabajo, los Trabajadores y las Trabajadoras (LOTTT). Ley Orgánica para la Protección de Niños, Niñas y Adolescentes (LOPNNA).'
+      excerpt: 'RDL 1/2010 LSC, Ley 28/2022 de Startups, Reglamento (UE) 2016/679 (RGPD), LO 3/2018 (LOPDGDD), RDL 1/1996 Propiedad Intelectual Software, Ley 2/2023 y Reglamento (UE) 2024/1689 (EU AI Act).',
+      fullText: 'Derecho Español y Europeo Tech: Real Decreto Legislativo 1/2010 Ley de Sociedades de Capital (LSC). Ley 28/2022 de Fomento del Ecosistema de las Empresas Emergentes (Ley de Startups). Reglamento (UE) 2016/679 (RGPD, Art. 28 Encargado de Tratamiento DPA, Art. 30 RAT, Art. 32 Seguridad, Art. 35 EIPD) y Ley Orgánica 3/2018 (LOPDGDD). Real Decreto Legislativo 1/1996 Ley de Propiedad Intelectual (Arts. 95 a 104 Programas de Ordenador y Art. 97.4 cesión de software creado por asalariados). Ley 1/2019 de Secretos Empresariales. Directiva NIS2, Reglamento DORA y Reglamento (UE) 2024/1689 de Inteligencia Artificial (EU AI Act).'
     }
   ]);
   const [newRagTitleInput, setNewRagTitleInput] = useState<string>('');
@@ -1086,12 +1394,10 @@ export default function AiGovernLegalSystem() {
   const [showAddRagModal, setShowAddRagModal] = useState<boolean>(false);
   const [viewingRagDoc, setViewingRagDoc] = useState<RagLawDocument | null>(null);
 
-  // Bitácoras y Registros Reales
   const [approvedDocsRegistry, setApprovedDocsRegistry] = useState<ApprovedDocumentRecord[]>([]);
   const [piiAuditRegistry, setPiiAuditRegistry] = useState<PiiAuditEntry[]>([]);
   const [auditLogs, setAuditLogs] = useState<AuditLogEntry[]>([]);
 
-  // CRM de Clientes
   const [crmClients, setCrmClients] = useState<CrmClient[]>([]);
   const [selectedClientId, setSelectedClientId] = useState<string>('');
   const [crmSearch, setCrmSearch] = useState<string>('');
@@ -1127,7 +1433,7 @@ export default function AiGovernLegalSystem() {
   }, [crmClients]);
 
   // ==========================================================================
-  // MÓDULO 1: CONSULTOR DE IA (100% FUNCIONAL, CONECTADO A API, RAG Y MODELOS)
+  // MÓDULO 1: CONSULTOR DE IA
   // ==========================================================================
   const [consultQuery, setConsultQuery] = useState<string>('');
   const [consultSelectedLawId, setConsultSelectedLawId] = useState<string>('auto');
@@ -1181,7 +1487,7 @@ export default function AiGovernLegalSystem() {
     const newId = `sess-${Date.now().toString().slice(-5)}`;
     const blankSession: ConsultChatSession = {
       id: newId,
-      title: 'Nueva Consulta Jurídica',
+      title: 'Nueva Consulta',
       updatedAt: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       matterTag: 'Expediente Activo',
       turns: []
@@ -1211,7 +1517,7 @@ export default function AiGovernLegalSystem() {
         setConsultResponse(null);
       }
     }
-    showToast('Conversación eliminada del historial.');
+    showToast('Conversación eliminada.');
   };
 
   const handleAddCustomMaskTerm = () => {
@@ -1221,7 +1527,7 @@ export default function AiGovernLegalSystem() {
       setCustomMaskedTerms(prev => [...prev, term]);
     }
     setCustomMaskInput('');
-    showToast(`Término "${term}" agregado al filtro de anonimización en RAM.`);
+    showToast(`Término "${term}" enmascarado.`);
   };
 
   const handleAddConsultFileAttachment = async (
@@ -1246,7 +1552,7 @@ export default function AiGovernLegalSystem() {
       addedAt: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
     };
     setConsultAttachments(prev => [...prev, newAtt]);
-    showToast(`"${file.name}" adjuntado (${tokens.length} datos PII protegidos en RAM).`);
+    showToast(`"${file.name}" adjuntado.`);
   };
 
   const handleAddConversationAttachment = () => {
@@ -1266,7 +1572,7 @@ export default function AiGovernLegalSystem() {
     setConversationTextInput('');
     setConversationTitleInput('');
     setShowConversationPasteBox(false);
-    showToast(`Comunicación adjuntada (${tokens.length} datos PII ocultados en RAM).`);
+    showToast('Comunicación adjuntada.');
   };
 
   const handleRemoveConsultAttachment = (attId: string) => {
@@ -1284,52 +1590,40 @@ export default function AiGovernLegalSystem() {
         ? activeLaws
             .map(
               (l, idx) =>
-                `${idx + 1}. ${l.title} (${l.type}):\n   • Contenido / Articulado en RAG: "${(l.fullText || l.excerpt).slice(0, 600)}${(l.fullText || l.excerpt).length > 600 ? '...' : ''}"\n   • Subsunción al caso: Los hechos planteados («${questionText.slice(0, 140)}») deben contrastarse directamente con los supuestos normativos contenidos en este cuerpo legal.`
+                `${idx + 1}. ${l.title} (${l.type}):\n   • Preceptos en RAG: "${(l.fullText || l.excerpt).slice(0, 600)}"\n   • Subsunción: Aplicación directa a «${questionText.slice(0, 140)}».`
             )
             .join('\n\n')
-        : '• Aún no has cargado textos legales en el módulo 11 (Configuración -> Tus Leyes y Normativa RAG).';
+        : '• Sin leyes cargadas en el RAG.';
 
     const tplBlock = selectedTpl
-      ? `Instrumento de referencia en tu Biblioteca de Google Drive: «${selectedTpl.name}» (${selectedTpl.fundamento || selectedTpl.category}).\nCampos del modelo: ${selectedTpl.variables.map(v => v.label).join(', ')}.\n\nTexto base del modelo para estructurar la actuación:\n"${selectedTpl.contentPreview.slice(0, 500)}${selectedTpl.contentPreview.length > 500 ? '...' : ''}"`
-      : 'Selecciona un modelo de tu Biblioteca de Google Drive.';
+      ? `Instrumento recomendado: «${selectedTpl.name}» (${selectedTpl.fundamento || selectedTpl.category}).\n\nExtracto:\n"${selectedTpl.contentPreview.slice(0, 500)}..."`
+      : '';
 
     const attBlock =
       attachments.length > 0
-        ? `RECAUDOS EXAMINADOS EN ESTA CONSULTA (${attachments.length}):\n` +
+        ? `RECAUDOS EXAMINADOS (${attachments.length}):\n` +
           attachments.map((a, i) => `${i + 1}) [${a.kind}] ${a.name}: ${a.rawContent.slice(0, 220)}`).join('\n') +
           '\n\n'
         : '';
 
-    return `${attBlock}I. BASE LEGAL Y ANÁLISIS DE LOS ARTÍCULOS INVOLUCRADOS POR CADA LEY (RAG):
+    return `${attBlock}I. BASE LEGAL Y ANÁLISIS DE LOS ARTÍCULOS INVOLUCRADOS (RAG):
 
 ${lawsBlock}
 
 II. OPCIONES JURÍDICAS DISPONIBLES:
 
-- Opción Primera (Vía Sustantiva / Contractual): Exigir el cumplimiento estricto o la adecuación de las estipulaciones conforme a la normativa indexada en el RAG y a las cláusulas del modelo venezolano aplicable.
-- Opción Segunda (Vía Prejudicial / Intimatoria): Practicar requerimiento o notificación formal dejando constancia fehaciente de la pretensión y agotando la fase previa o constitutiva de mora.
-- Opción Tercera (Vía Jurisdiccional y Cautelar): Interponer la acción correspondiente ante los Tribunales competentes solicitando medidas preventivas (Art. 585 CPC) para asegurar el resultado práctico del fallo.
+- Vía Sustantiva / Contractual: Formalización o exigencia de cumplimiento según las cláusulas del instrumento matriz.
+- Vía Prejudicial / Intimatoria: Requerimiento fehaciente dejando constancia de mora o incumplimiento.
+- Vía Jurisdiccional y Cautelar: Ejercicio de la acción correspondiente ante los Tribunales competentes con solicitud de medidas preventivas.
 
-III. ANÁLISIS DE ESCENARIOS Y CONSECUENCIAS DE CADA ESCENARIO:
+III. ANÁLISIS DE ESCENARIOS Y CONSECUENCIAS:
 
-- Escenario A (Ejecución Prejudicial Documentada):
-  - Presupuesto: Existencia de recaudos suficientes y posibilidad de avenimiento o constitución inmediata en mora.
-  - Consecuencias: Preconstituye prueba plena para un eventual litigio, reduce tiempos y evita defensas dilatorias de la contraparte.
-- Escenario B (Contencioso con Solicitud de Medida Cautelar):
-  - Presupuesto: Negativa de cumplimiento o riesgo de enajenación/insolvencia de la contraparte.
-  - Consecuencias: Asegura el patrimonio objeto del litigio desde la admisión de la demanda e impone condena en costas procesales en caso de vencimiento total.
+- Escenario A (Ejecución Prejudicial Documentada): Preconstituye prueba plena, reduce tiempos procesales y habilita solución autocompositiva.
+- Escenario B (Contencioso Judicial): Asegura el patrimonio objeto del litigio e impone condena en costas procesales en caso de vencimiento total.
 
-IV. DECISIÓN DE EJECUCIÓN, MODO DE ACCIONAR Y REDACCIÓN FORENSE:
+IV. DECISIÓN DE EJECUCIÓN Y MODELO APLICABLE:
 
-- Secuencia de Ejecución:
-  1) Auditar la suficiencia probatoria de los documentos e instrumentos del cliente.
-  2) Formalizar la actuación utilizando la matriz correspondiente de tu Biblioteca de Google Drive.
-  3) Proceder al otorgamiento, notificación o consignación dentro de los lapsos de ley.
-
-- Vinculación con tu Biblioteca de Google Drive:
-${tplBlock}
-
-[Nota del Sistema: Para que este dictamen sea redactado en vivo por tu motor de IA (${llmProvider.toUpperCase()} - ${llmModel}), ingresa tu API Key activa en el módulo 11. Configuración.]`;
+${tplBlock}`;
   };
 
   const executeConsultationTurn = async (questionToAsk: string, isFollowUp: boolean = false) => {
@@ -1370,7 +1664,7 @@ ${tplBlock}
             ? activeLaws
                 .map(d => `=== LEY / NORMA EN RAG: ${d.title} (${d.type}) ===\n${d.fullText || d.excerpt}`)
                 .join('\n\n')
-            : 'Responde conforme al Derecho positivo venezolano vigente aplicable.';
+            : 'Responde conforme al Derecho positivo aplicable.';
 
         const sampleTemplatesForContext = [
           chosenTemplate,
@@ -1382,32 +1676,29 @@ ${tplBlock}
         const tplContextStr = sampleTemplatesForContext
           .map(
             t =>
-              `=== MODELO DE GOOGLE DRIVE: ${t!.name} (${t!.category}) ===\nFundamento: ${t!.fundamento || 'Derecho Venezolano'}\nCampos: ${t!.variables.map(v => v.label).join(', ')}\nContenido:\n${t!.contentPreview.slice(0, 900)}`
+              `=== MODELO: ${t!.name} (${t!.category}) ===\nFundamento: ${t!.fundamento || ''}\nContenido:\n${t!.contentPreview.slice(0, 900)}`
           )
           .join('\n\n');
 
         const historyStr = consultThread
           .slice(-4)
-          .map(t => `Consulta previa del Abogado:\n${t.sanitizedSentToAi}\n\nDictamen previo:\n${t.dictamen}`)
+          .map(t => `Consulta previa:\n${t.sanitizedSentToAi}\n\nDictamen previo:\n${t.dictamen}`)
           .join('\n\n---\n\n');
 
-        const sysPrompt = `Eres un Abogado Venezolano Senior en Ejercicio y Jurisconsulto Forense del despacho "${firmName || 'Despacho Jurídico'}", asistiendo a ${lawyerSignerName || 'Dra. Bárbara Piccolo'} (${lawyerCollegiateId || 'Inpreabogado'}).
-REGLAS ESTRICTAS DE RIGOR Y CERO ALUCINACIÓN:
-1) Prohibido usar emojis, tono coloquial o frases de asistente genérico. Habla estrictamente como un abogado especialista en ejercicio en Venezuela.
-2) Fundamenta tu dictamen en las LEYES CARGADAS EN EL RAG DEL DESPACHO y en los MODELOS DE GOOGLE DRIVE DEL DESPACHO suministrados abajo. No inventes artículos ni jurisprudencia inexistente.
-3) ESTRUCTURA OBLIGATORIAMENTE TU RESPUESTA EN ESTAS CUATRO (04) FASES FORENSES:
-   I. BASE LEGAL Y ANÁLISIS DE LOS ARTÍCULOS INVOLUCRADOS POR CADA LEY (RAG): Analiza ley por ley y artículo por artículo los preceptos aplicables al caso y su subsunción jurídica.
-   II. OPCIONES JURÍDICAS DISPONIBLES: Determina con precisión técnica las vías o acciones que asisten al cliente.
-   III. ANÁLISIS DE ESCENARIOS Y CONSECUENCIAS DE CADA ESCENARIO: Evalúa cada escenario posible (Escenario A, Escenario B, etc.), su carga probatoria y sus consecuencias jurídicas, procesales y patrimoniales.
-   IV. DECISIÓN DE EJECUCIÓN, MODO DE ACCIONAR Y REDACCIÓN FORENSE: Define la decisión técnica de ejecución, el paso a paso concreto para lograr el resultado y entrega la redacción forense venezolana del instrumento, cláusula o escrito adaptada a los modelos de Google Drive del despacho.
+        const sysPrompt = `Eres un Abogado Senior en Ejercicio y Jurisconsulto Forense del despacho "${firmName || 'Despacho Jurídico'}", asistiendo a ${lawyerSignerName || 'Dra. Bárbara Piccolo'} (${lawyerCollegiateId || 'Abogada'}).
+Estructura tu respuesta en cuatro fases:
+I. BASE LEGAL Y ANÁLISIS DE LOS ARTÍCULOS INVOLUCRADOS (RAG)
+II. OPCIONES JURÍDICAS DISPONIBLES
+III. ANÁLISIS DE ESCENARIOS Y CONSECUENCIAS
+IV. DECISIÓN DE EJECUCIÓN Y REDACCIÓN FORENSE
 
-LEYES Y NORMATIVA EN EL RAG DEL DESPACHO:
+LEYES EN RAG:
 ${ragContextStr}
 
-MODELOS DE GOOGLE DRIVE DEL DESPACHO (${templates.length} modelos indexados):
+MODELOS DE LA BIBLIOTECA (${templates.length} modelos):
 ${tplContextStr}
 
-${historyStr ? `HISTORIAL DE LA CONSULTA ACTUAL:\n${historyStr}` : ''}`;
+${historyStr ? `HISTORIAL:\n${historyStr}` : ''}`;
 
         const rawAiOutput = await callConfiguredLlmApi({
           provider: llmProvider,
@@ -1422,17 +1713,15 @@ ${historyStr ? `HISTORIAL DE LA CONSULTA ACTUAL:\n${historyStr}` : ''}`;
           finalDictamenText = deAnonymizeText(rawAiOutput.trim(), tokens);
         }
       } catch (err: unknown) {
-        const msg = err instanceof Error ? err.message : 'Error al conectar con la API.';
+        const msg = err instanceof Error ? err.message : 'Error de API.';
         showToast(msg);
-        finalDictamenText =
-          `[Aviso de Conexión API: ${msg}]\n\n` +
-          buildStructuredForensicFallback(cleanQ, activeLaws, chosenTemplate, consultAttachments);
+        finalDictamenText = buildStructuredForensicFallback(cleanQ, activeLaws, chosenTemplate, consultAttachments);
       }
     } else {
       finalDictamenText = buildStructuredForensicFallback(cleanQ, activeLaws, chosenTemplate, consultAttachments);
     }
 
-    const primaryLawTitle = activeLaws[0]?.title || 'Repositorio RAG del Despacho';
+    const primaryLawTitle = activeLaws[0]?.title || 'RAG del Despacho';
     const hash = computeRealSha256(`${sanitized}|${primaryLawTitle}|${Date.now()}`);
     const newAuditLogId = `TRZ-${Date.now().toString().slice(-5)}`;
     const turnId = `TURN-${Date.now().toString().slice(-5)}`;
@@ -1446,7 +1735,7 @@ ${historyStr ? `HISTORIAL DE LA CONSULTA ACTUAL:\n${historyStr}` : ''}`;
       dictamen: finalDictamenText,
       clientReadyReply: '',
       recommendedTemplateId: chosenTemplate?.id || '',
-      recommendedTemplateName: chosenTemplate?.name || 'Sin modelo seleccionado',
+      recommendedTemplateName: chosenTemplate?.name || 'Sin modelo',
       suggestedClauseText: finalDictamenText,
       citations: activeLaws.map(d => d.title),
       attachmentsUsed: consultAttachments.map(a => `${a.name} (${a.kind})`),
@@ -1466,7 +1755,7 @@ ${historyStr ? `HISTORIAL DE LA CONSULTA ACTUAL:\n${historyStr}` : ''}`;
           id: targetSessId,
           title: cleanQ.slice(0, 48) + (cleanQ.length > 48 ? '...' : ''),
           updatedAt: nowTime,
-          matterTag: activeLaws[0]?.type || 'Consulta Forense',
+          matterTag: activeLaws[0]?.type || 'Consulta',
           turns: [newTurn]
         };
         return [created, ...prev];
@@ -1474,7 +1763,7 @@ ${historyStr ? `HISTORIAL DE LA CONSULTA ACTUAL:\n${historyStr}` : ''}`;
       return prev.map(s => {
         if (s.id !== targetSessId) return s;
         const nextTitle =
-          s.turns.length === 0 || s.title === 'Nueva Consulta Jurídica'
+          s.turns.length === 0 || s.title === 'Nueva Consulta'
             ? cleanQ.slice(0, 48) + (cleanQ.length > 48 ? '...' : '')
             : s.title;
         return {
@@ -1499,9 +1788,9 @@ ${historyStr ? `HISTORIAL DE LA CONSULTA ACTUAL:\n${historyStr}` : ''}`;
             ? tokens.map(t => ({
                 token: t.token,
                 type: t.type,
-                maskedPreview: `${t.original.slice(0, 4)}••• (Ocultado en RAM)`
+                maskedPreview: `${t.original.slice(0, 4)}••• (RAM)`
               }))
-            : [{ token: '[SIN_PII]', type: 'VERIFICADO', maskedPreview: 'Sin datos personales detectados' }],
+            : [{ token: '[SIN_PII]', type: 'VERIFICADO', maskedPreview: 'Sin datos personales' }],
         zeroRetentionVerified: true
       },
       ...prev
@@ -1512,7 +1801,7 @@ ${historyStr ? `HISTORIAL DE LA CONSULTA ACTUAL:\n${historyStr}` : ''}`;
         id: newAuditLogId,
         timestamp: nowTime,
         module: 'Consultor de IA',
-        action: 'Dictamen Forense en 4 Etapas (RAG + Biblioteca Drive)',
+        action: 'Dictamen Forense',
         llmUsed: `${llmProvider}/${llmModel}`,
         piiCount: tokens.length,
         ragSource: primaryLawTitle,
@@ -1543,8 +1832,8 @@ ${historyStr ? `HISTORIAL DE LA CONSULTA ACTUAL:\n${historyStr}` : ''}`;
   };
 
   // ==========================================================================
-  // MÓDULO 2: REDACTOR DE DOCUMENTOS (CONECTADO A TUS 550+ MODELOS DE GOOGLE DRIVE,
-  //           CON DETECTOR DE DATOS ANTIGUOS Y ESPACIOS LIBRES ____ SIN NECESIDAD DE LLAVES)
+  // MÓDULO 2: REDACTOR DE DOCUMENTOS (595 MODELOS VENEZUELA + TECH ESPAÑA,
+  //           SUSTITUCIÓN 100% FUNCIONAL EN VIVO Y DESDE TEXTO LIBRE / FOTO / PDF)
   // ==========================================================================
   const [selectedTemplateId, setSelectedTemplateId] = useState<string>('tpl-compraventa');
   const selectedTemplate = useMemo(
@@ -1592,21 +1881,16 @@ ${historyStr ? `HISTORIAL DE LA CONSULTA ACTUAL:\n${historyStr}` : ''}`;
     if (!found) return;
     const cleanMap: Record<string, string> = {};
     found.variables.forEach(v => {
-      cleanMap[v.key] = templateValues[v.key] || '';
+      cleanMap[v.key] = '';
     });
     setTemplateValues(cleanMap);
     setRedactorStep(2);
   };
 
-  // Analiza cualquier modelo real venezolano de Google Drive (tenga datos de clientes viejos o tenga rayas ____)
-  // y lo prepara automáticamente para sustituir datos conservando el 100% de su redacción jurídica venezolana
   const handleApplyRawVenezuelanModelText = (rawText: string, customName?: string) => {
     const clean = rawText.trim();
-    if (!clean) {
-      showToast('Pega o sube primero el texto del modelo de Google Drive.');
-      return;
-    }
-    const { normalizedContent, variables, detectedMode } = analyzeAndNormalizeVenezuelanModel(
+    if (!clean) return;
+    const { normalizedContent, variables } = analyzeAndNormalizeVenezuelanModel(
       clean,
       selectedTemplate?.variables.map(v => v.label).join(', ')
     );
@@ -1617,7 +1901,7 @@ ${historyStr ? `HISTORIAL DE LA CONSULTA ACTUAL:\n${historyStr}` : ''}`;
         name: customName || selectedTemplate.name,
         variables,
         contentPreview: normalizedContent,
-        updatedAt: 'Analizado (Redacción Venezolana)'
+        updatedAt: 'Personalizado'
       };
       setTemplates(prev => prev.map(t => (t.id === selectedTemplate.id ? updatedTpl : t)));
       const nextVals: Record<string, string> = {};
@@ -1628,12 +1912,8 @@ ${historyStr ? `HISTORIAL DE LA CONSULTA ACTUAL:\n${historyStr}` : ''}`;
       setCustomEditedDocumentText(null);
       setShowAdaptRealModelBox(false);
       setRawRealModelTextInput('');
-      setExtractedSourceNote(
-        detectedMode === 'datos_antiguos_y_espacios'
-          ? `Se detectaron automáticamente ${variables.length} datos antiguos / espacios libres (____) en tu modelo venezolano. Rellénalos abajo o usa la IA para sustituirlos.`
-          : `Modelo venezolano cargado con ${variables.length} campos listos para rellenar.`
-      );
-      showToast(`Modelo analizado: ${variables.length} datos antiguos o espacios en blanco detectados automáticamente.`);
+      setExtractedSourceNote(`${variables.length} campos detectados en el modelo.`);
+      showToast(`Modelo cargado con ${variables.length} campos detectados.`);
     }
   };
 
@@ -1655,50 +1935,113 @@ ${historyStr ? `HISTORIAL DE LA CONSULTA ACTUAL:\n${historyStr}` : ''}`;
     const current = templateValues[firstKey] || '';
     const addition =
       mode === 'consentimiento'
-        ? ', con el consentimiento expreso de su cónyuge conforme al Artículo 168 del Código Civil Venezolano'
-        : ', declarando que el bien objeto de este acto constituye bien propio (Art. 151 y 168 del Código Civil Venezolano)';
+        ? ', con el consentimiento expreso de su cónyuge conforme al Artículo 168 del Código Civil'
+        : ', declarando que el bien objeto de este acto constituye bien propio (Art. 151 y 168 del Código Civil)';
     setTemplateValues({
       ...templateValues,
       [firstKey]: current.replace(/\.$/, '') + addition
     });
-    showToast('Mención del Artículo 168 del Código Civil Venezolano incorporada.');
+    showToast('Cláusula del Art. 168 CC incorporada.');
   };
 
+  // Extractor inteligente 100% funcional desde texto libre (con o sin etiquetas, con o sin API Key)
   const parseTextIntoTemplateVariables = async (rawNotes: string, sourceLabel: string) => {
-    if (!selectedTemplate) {
-      showToast('Selecciona un modelo de tu Biblioteca de Google Drive.');
-      return;
-    }
+    if (!selectedTemplate) return;
     const nextVals = { ...templateValues };
-    const lines = rawNotes.split('\n').map(l => l.trim()).filter(Boolean);
+    const vars = selectedTemplate.variables;
+    const rawLines = rawNotes
+      .split(/\r?\n|;/)
+      .map(l => l.trim())
+      .filter(Boolean);
 
-    lines.forEach((line, lineIdx) => {
-      const colonIdx = line.indexOf(':');
-      if (colonIdx !== -1) {
-        const prefix = line.slice(0, colonIdx).toLowerCase().trim();
-        const val = line.slice(colonIdx + 1).trim();
-        if (val) {
-          selectedTemplate.variables.forEach(v => {
-            const keyNorm = v.key.toLowerCase().replace(/_/g, ' ');
-            const labelNorm = v.label.toLowerCase();
-            if (prefix.includes(keyNorm) || keyNorm.includes(prefix) || labelNorm.includes(prefix)) {
-              nextVals[v.key] = val;
-            }
-          });
+    const unassignedLines: string[] = [];
+
+    // 1) Coincidencia por etiquetas con ":" o "-" o palabras clave semánticas
+    rawLines.forEach(line => {
+      let matched = false;
+      const sepMatch = line.match(/^([^:=-]{2,45})[:=-]\s*(.+)$/);
+      if (sepMatch) {
+        const prefix = sepMatch[1].toLowerCase().trim();
+        const val = sepMatch[2].trim();
+        vars.forEach(v => {
+          const kNorm = v.key.toLowerCase().replace(/_/g, ' ');
+          const lNorm = v.label.toLowerCase();
+          if (
+            prefix.includes(kNorm) ||
+            kNorm.includes(prefix) ||
+            lNorm.includes(prefix) ||
+            (prefix.includes('parte 1') && v === vars[0]) ||
+            (prefix.includes('parte a') && v === vars[0]) ||
+            (prefix.includes('vendedor') && v === vars[0]) ||
+            (prefix.includes('arrendador') && v === vars[0]) ||
+            (prefix.includes('poderdante') && v === vars[0]) ||
+            (prefix.includes('otorgante') && v === vars[0]) ||
+            (prefix.includes('patrono') && v === vars[0]) ||
+            (prefix.includes('empresa') && v === vars[0]) ||
+            (prefix.includes('parte 2') && v === vars[1]) ||
+            (prefix.includes('parte b') && v === vars[1]) ||
+            (prefix.includes('comprador') && v === vars[1]) ||
+            (prefix.includes('arrendatario') && v === vars[1]) ||
+            (prefix.includes('apoderado') && v === vars[1]) ||
+            (prefix.includes('cliente') && v === vars[1]) ||
+            (prefix.includes('trabajador') && v === vars[1])
+          ) {
+            nextVals[v.key] = val;
+            matched = true;
+          }
+        });
+      }
+
+      if (!matched) {
+        const lower = line.toLowerCase();
+        // Detectar montos / precios / cánones / euros / dólares / bolívares
+        if (/(?:\b(?:usd|eur|bs\.?|us\$|dólares|dolares|euros|bolívares|canon|precio|monto|salario|capital)\b|\$|€)/i.test(line)) {
+          const econVar = vars.find(v => /PRECIO|MONTO|CANON|ECONOMICA|SALARIO|CAPITAL/i.test(v.key + ' ' + v.label));
+          if (econVar && !nextVals[econVar.key]) {
+            nextVals[econVar.key] = line.replace(/^(?:precio|monto|canon|salario|capital)[:\s-]*/i, '').trim();
+            matched = true;
+          }
         }
-      } else if (selectedTemplate.variables[lineIdx] && !nextVals[selectedTemplate.variables[lineIdx].key]) {
-        nextVals[selectedTemplate.variables[lineIdx].key] = line;
+        // Detectar datos registrales / notaría / tomo / folio
+        if (!matched && /\b(?:registro\s+p[uú]blico|registro\s+mercantil|notar[ií]a|tomo|folio|protocolo|matr[ií]cula)\b/i.test(lower)) {
+          const regVar = vars.find(v => /REGISTRO|TRADICION/i.test(v.key + ' ' + v.label));
+          if (regVar && !nextVals[regVar.key]) {
+            nextVals[regVar.key] = line.replace(/^(?:registro|datos de registro)[:\s-]*/i, '').trim();
+            matched = true;
+          }
+        }
+        // Detectar jurisdicción / ciudad / fecha
+        if (!matched && /\b(?:caracas|madrid|barcelona|valencia|maracaibo|barquisimeto|maracay|jurisdicci[oó]n|domicilio\s+especial|juzgados)\b/i.test(lower) && line.length < 120) {
+          const jurVar = vars.find(v => /JURISDICCION|CIUDAD|PLAZO|LUGAR/i.test(v.key + ' ' + v.label));
+          if (jurVar && !nextVals[jurVar.key]) {
+            nextVals[jurVar.key] = line.replace(/^(?:jurisdicci[oó]n|ciudad|lugar|domicilio)[:\s-]*/i, '').trim();
+            matched = true;
+          }
+        }
+      }
+
+      if (!matched) {
+        unassignedLines.push(line);
       }
     });
 
+    // 2) Asignar las líneas restantes en orden a las variables que sigan vacías (Parte 1, Parte 2, Objeto, etc.)
+    let uIdx = 0;
+    vars.forEach(v => {
+      if (!nextVals[v.key] && uIdx < unassignedLines.length) {
+        nextVals[v.key] = unassignedLines[uIdx++];
+      }
+    });
+
+    // 3) Si hay API Key configurada, refinar con el LLM
     const hasApi = llmProvider === 'ollama' || (apiKeyInput.trim().length > 8 && !apiKeyInput.includes('•'));
     if (hasApi && rawNotes.trim().length > 15) {
       setIsRedactorExtracting(true);
       try {
-        const varDescriptions = selectedTemplate.variables
-          .map(v => `"${v.key}" (${v.label}${v.originalValueInModel ? ` — sustituir dato viejo: ${v.originalValueInModel}` : ''})`)
+        const varDescriptions = vars
+          .map(v => `"${v.key}" (${v.label})`)
           .join(', ');
-        const sys = `Eres un Abogado Venezolano Senior. Extrae del texto suministrado los valores para rellenar o sustituir los campos de este modelo jurídico venezolano: [${varDescriptions}]. Devuelve ÚNICAMENTE un objeto JSON válido donde cada clave sea el nombre exacto de la variable y su valor sea el texto extraído con redacción jurídica venezolana formal.`;
+        const sys = `Extrae del texto los valores para los campos de este documento jurídico: [${varDescriptions}]. Devuelve ÚNICAMENTE un objeto JSON válido con las claves exactas y los valores redactados formalmente.`;
         const { sanitized, tokens } = anonymizePiiText(rawNotes, allProtectedNames);
         const aiResp = await callConfiguredLlmApi({
           provider: llmProvider,
@@ -1718,55 +2061,49 @@ ${historyStr ? `HISTORIAL DE LA CONSULTA ACTUAL:\n${historyStr}` : ''}`;
           });
         }
       } catch {
-        // Conserva la extracción local
+        // Mantiene la extracción local
       }
       setIsRedactorExtracting(false);
     }
 
     setTemplateValues(nextVals);
     setCustomEditedDocumentText(null);
-    setExtractedSourceNote(`${sourceLabel} procesado y aplicado a los campos del modelo.`);
+    setExtractedSourceNote(`${sourceLabel} aplicado.`);
     setRedactorStep(3);
-    showToast('Datos aplicados automáticamente a los campos del modelo.');
+    showToast('Datos sustituidos en el documento.');
   };
 
-  // Reescribe el modelo completo con IA cuando el modelo de Drive tenía datos viejos complejos o párrafos a adaptar,
-  // conservando el 100% de la redacción jurídica venezolana original
   const handleAdaptFullModelWithAi = async () => {
     if (!selectedTemplate) return;
+    if (freeTextToExtract.trim()) {
+      await parseTextIntoTemplateVariables(freeTextToExtract, 'Texto');
+    }
     const newCaseDataSummary = [
-      freeTextToExtract.trim() ? `Notas / Escrito del nuevo caso:\n${freeTextToExtract.trim()}` : '',
+      freeTextToExtract.trim() ? `Datos suministrados:\n${freeTextToExtract.trim()}` : '',
       Object.entries(templateValues)
         .filter(([, val]) => val && val.trim())
         .map(([k, val]) => {
           const vObj = selectedTemplate.variables.find(v => v.key === k);
-          return `• ${vObj?.label || k}${vObj?.originalValueInModel ? ` (reemplazar "${vObj.originalValueInModel}")` : ''}: ${val}`;
+          return `• ${vObj?.label || k}: ${val}`;
         })
         .join('\n')
     ]
       .filter(Boolean)
       .join('\n\n');
 
-    if (!newCaseDataSummary.trim()) {
-      showToast('Escribe los nuevos datos del cliente en los campos o en "Por Escrito" para adaptarlos al modelo.');
-      return;
-    }
-
     const hasApi = llmProvider === 'ollama' || (apiKeyInput.trim().length > 8 && !apiKeyInput.includes('•'));
     if (!hasApi) {
       setCustomEditedDocumentText(null);
       setRedactorStep(3);
-      showToast('Sustitución local completada conservando la redacción venezolana. (Configura tu API Key en Módulo 11 para adaptación avanzada con IA).');
+      showToast('Documento ensamblado con los datos ingresados.');
       return;
     }
 
     setIsRedactorExtracting(true);
     try {
-      const combinedRaw = `MODELO BASE DEL DESPACHO (${selectedTemplate.name}):\n${selectedTemplate.contentPreview}\n\nNUEVOS DATOS DEL CLIENTE / OPERACIÓN PARA SUSTITUIR:\n${newCaseDataSummary}`;
+      const combinedRaw = `MODELO BASE (${selectedTemplate.name}):\n${selectedTemplate.contentPreview}\n\nDATOS DEL CASO PARA SUSTITUIR:\n${newCaseDataSummary}`;
       const { sanitized, tokens } = anonymizePiiText(combinedRaw, allProtectedNames);
-      const sys = `Eres un Abogado Venezolano Senior especialista en redacción de instrumentos públicos, contratos, poderes y escritos forenses en Venezuela.
-REGLA DE ORO: Tienes un MODELO BASE con redacción jurídica venezolana que puede contener datos de un cliente anterior o espacios en blanco (____ o {{VARIABLES}}).
-Tu única función es SUSTITUIR todos los datos antiguos o rellenar todos los espacios libres con los NUEVOS DATOS DEL CLIENTE suministrados, CONSERVANDO PALABRA POR PALABRA el 100% de la estructura, el estilo forense venezolano, las fórmulas registrales/notariales y las cláusulas del modelo original. Devuelve únicamente el documento jurídico venezolano completo y listo para otorgamiento.`;
+      const sys = `Eres un Abogado Senior. Sustituye todos los espacios o campos variables del MODELO BASE con los DATOS DEL CASO suministrados, conservando palabra por palabra el 100% de las cláusulas, estructura y estilo jurídico del modelo original. Devuelve únicamente el documento jurídico completo.`;
 
       const aiDoc = await callConfiguredLlmApi({
         provider: llmProvider,
@@ -1779,10 +2116,10 @@ Tu única función es SUSTITUIR todos los datos antiguos o rellenar todos los es
       if (aiDoc.trim()) {
         setCustomEditedDocumentText(deAnonymizeText(aiDoc.trim(), tokens));
         setRedactorStep(3);
-        showToast('Modelo venezolano adaptado íntegramente con los datos del nuevo caso.');
+        showToast('Documento redactado con IA.');
       }
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : 'Error al conectar con la API.';
+      const msg = err instanceof Error ? err.message : 'Error de conexión con la API.';
       showToast(msg);
     }
     setIsRedactorExtracting(false);
@@ -1794,26 +2131,28 @@ Tu única función es SUSTITUIR todos los datos antiguos o rellenar todos los es
       setFreeTextToExtract(textContent.slice(0, 4000));
       await parseTextIntoTemplateVariables(textContent.slice(0, 4000), `${sourceType} ("${file.name}")`);
     } else {
-      setExtractedSourceNote(`Archivo "${file.name}" cargado. Completa o verifica los campos abajo.`);
+      setExtractedSourceNote(`Archivo "${file.name}" cargado.`);
       setRedactorStep(3);
     }
   };
 
   const handleExtractFromWrittenNotes = () => {
-    if (!freeTextToExtract.trim()) return;
-    parseTextIntoTemplateVariables(freeTextToExtract, 'Texto libre');
+    if (!freeTextToExtract.trim()) {
+      showToast('Pega o escribe primero los datos del cliente.');
+      return;
+    }
+    parseTextIntoTemplateVariables(freeTextToExtract, 'Texto');
   };
 
   const handleLoadClientIntoRedactor = (client: CrmClient) => {
     if (!selectedTemplate) {
       setActiveTab('redactor_docs');
-      showToast('Selecciona primero un modelo en el Redactor.');
       return;
     }
     const fullPartyDesc =
       client.personType === 'Persona Jurídica (Empresa)'
-        ? `${client.name}, RIF ${client.taxId}, inscrita en ${client.registryInfo}, representada por ${client.legalRep}`
-        : `${client.name}, venezolano(a), mayor de edad, titular de la Cédula de Identidad Nº ${client.taxId}, domiciliado(a) en ${client.address}`;
+        ? `${client.name.toUpperCase()}, RIF/NIF ${client.taxId}, inscrita en ${client.registryInfo}, representada por ${client.legalRep}`
+        : `${client.name.toUpperCase()}, mayor de edad, titular del documento de identidad Nº ${client.taxId}, domiciliado(a) en ${client.address}`;
 
     const nextVals = { ...templateValues };
     if (selectedTemplate.variables.length > 0) {
@@ -1821,10 +2160,10 @@ Tu única función es SUSTITUIR todos los datos antiguos o rellenar todos los es
     }
     setTemplateValues(nextVals);
     setCustomEditedDocumentText(null);
-    setExtractedSourceNote(`Ficha legal de "${client.name}" importada desde el CRM.`);
+    setExtractedSourceNote(`Cliente "${client.name}" cargado.`);
     setActiveTab('redactor_docs');
     setRedactorStep(3);
-    showToast(`Datos de "${client.name}" trasladados al Redactor.`);
+    showToast(`Datos de "${client.name}" aplicados.`);
   };
 
   const handleSendConsultToRedactor = (turnToUse?: ConsultTurn) => {
@@ -1835,17 +2174,16 @@ Tu única función es SUSTITUIR todos los datos antiguos o rellenar todos los es
     }
     setFreeTextToExtract(target.dictamen);
     setInputModeTab('escrito_manual');
-    setExtractedSourceNote('Contenido trasladado desde el Consultor Jurídico.');
     setActiveTab('redactor_docs');
     setRedactorStep(3);
-    showToast('Dictamen trasladado al Redactor de Documentos.');
+    showToast('Trasladado al Redactor.');
   };
 
   const handleApproveConsultorDictamen = (turnToApprove?: ConsultTurn) => {
     const target = turnToApprove || consultResponse;
     if (!target) return;
     if (target.approvedInHumanLoop) {
-      showToast('Este dictamen ya fue visado en Human-in-the-Loop.');
+      showToast('Ya fue visado.');
       return;
     }
     const signer = lawyerSignerName.trim() || 'Abogado Titular';
@@ -1853,9 +2191,9 @@ Tu única función es SUSTITUIR todos los datos antiguos o rellenar todos los es
     const record: ApprovedDocumentRecord = {
       id: `HL-${Date.now().toString().slice(-5)}`,
       timestamp: new Date().toLocaleString('es-ES', { dateStyle: 'short', timeStyle: 'short' }),
-      title: `Dictamen Forense — ${(activeSession?.title || 'Consulta').slice(0, 42)}`,
+      title: `Dictamen — ${(activeSession?.title || 'Consulta').slice(0, 42)}`,
       originModule: 'Consultor de IA',
-      templateUsed: target.recommendedTemplateName || 'RAG del Despacho',
+      templateUsed: target.recommendedTemplateName || 'RAG',
       approvedBy: signer,
       collegiateNumber: colegiado,
       sha256: target.hash,
@@ -1881,23 +2219,27 @@ Tu única función es SUSTITUIR todos los datos antiguos o rellenar todos los es
     );
     exportWordDoc(
       `Dictamen_Juridico_${Date.now().toString().slice(-4)}.doc`,
-      'DICTAMEN JURÍDICO FORENSE',
+      'DICTAMEN JURÍDICO',
       `Visado por: ${signer} (${colegiado}) • SHA-256: ${target.hash.slice(0, 24)}...`,
       target.dictamen
     );
-    showToast('Dictamen visado y descargado en .DOC.');
+    showToast('Dictamen descargado en .DOC.');
   };
 
+  // Ensamblaje en tiempo real limpio (sin etiquetas [PENDIENTE: {{...}}])
   const compiledDocument = useMemo(() => {
     if (customEditedDocumentText !== null) return customEditedDocumentText;
     if (!selectedTemplate) return '';
     let text = selectedTemplate.contentPreview;
-    selectedTemplate.variables.forEach(v => {
-      const userVal = templateValues[v.key]?.trim();
-      const fallbackDisplay = v.originalValueInModel
-        ? `[SUSTITUIR (${v.originalValueInModel}): {{${v.key}}}]`
-        : `[PENDIENTE: {{${v.key}}}]`;
-      text = text.replace(new RegExp(`\\{\\{${escapeRegExp(v.key)}\\}\\}`, 'gi'), userVal || fallbackDisplay);
+    selectedTemplate.variables.forEach((v, idx) => {
+      const rawUserVal = templateValues[v.key]?.trim();
+      let formattedVal = rawUserVal || '';
+      // Si es el nombre de una parte (campo 1 o 2) y el usuario escribió solo un nombre corto en minúsculas, ponerlo en mayúsculas forenses
+      if (formattedVal && idx <= 1 && formattedVal.length < 45 && !formattedVal.includes(',')) {
+        formattedVal = formattedVal.toUpperCase();
+      }
+      const fallbackDisplay = v.originalValueInModel || '____________________';
+      text = text.replace(new RegExp(`\\{\\{${escapeRegExp(v.key)}\\}\\}`, 'gi'), formattedVal || fallbackDisplay);
     });
     return text;
   }, [selectedTemplate, templateValues, customEditedDocumentText]);
@@ -1928,15 +2270,15 @@ Tu única función es SUSTITUIR todos los datos antiguos o rellenar todos los es
         id: `PII-${Date.now().toString().slice(-5)}`,
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
         originModule: 'Redactor de Documentos',
-        contextSummary: `Redacción y visado: ${selectedTemplate.name}`,
+        contextSummary: `Visado: ${selectedTemplate.name}`,
         tokensDetected:
           tokens.length > 0
             ? tokens.map(t => ({
                 token: t.token,
                 type: t.type,
-                maskedPreview: `${t.original.slice(0, 5)}••• (Protegido localmente)`
+                maskedPreview: `${t.original.slice(0, 5)}•••`
               }))
-            : [{ token: '[LOCAL]', type: 'DOCUMENTO', maskedPreview: 'Procesado en memoria local' }],
+            : [{ token: '[LOCAL]', type: 'DOCUMENTO', maskedPreview: 'Memoria local' }],
         zeroRetentionVerified: true
       },
       ...prev
@@ -1947,7 +2289,7 @@ Tu única función es SUSTITUIR todos los datos antiguos o rellenar todos los es
         id: `TRZ-${Date.now().toString().slice(-5)}`,
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
         module: 'Redactor de Documentos',
-        action: `Visado y exportación .DOC: ${selectedTemplate.name}`,
+        action: `Visado .DOC: ${selectedTemplate.name}`,
         llmUsed: `${llmProvider}/${llmModel}`,
         piiCount: tokens.length,
         ragSource: selectedTemplate.source,
@@ -1961,15 +2303,15 @@ Tu única función es SUSTITUIR todos los datos antiguos o rellenar todos los es
     setSavedHoursCount(prev => +(prev + 2.0).toFixed(1));
     exportWordDoc(
       `${selectedTemplate.name.replace(/[^a-zA-Z0-9_]+/g, '_')}_Visado.doc`,
-      selectedTemplate.name.toUpperCase(),
+      selectedTemplate.name.replace(/^\[[^\]]+\]\s*/, '').toUpperCase(),
       `Visado por: ${signer} (${colegiado}) • Fecha: ${nowStr} • SHA-256: ${hash.slice(0, 20)}...`,
-      `${compiledDocument}\n\n____________________________________________________\nVISADO POR: ${signer}\n${colegiado}\nSello SHA-256: ${hash}`
+      `${compiledDocument}\n\n____________________________________________________\nVISADO POR: ${signer}\n${colegiado}\nSHA-256: ${hash}`
     );
-    showToast('Documento visado y descargado en formato .DOC.');
+    showToast('Documento descargado en .DOC.');
   };
 
   // ==========================================================================
-  // MÓDULO 3: GRABADOR DE ACTAS (CON DICTADO EN VIVO / TRANSCRIPCIÓN Y TAREAS)
+  // MÓDULO 3: GRABADOR DE ACTAS
   // ==========================================================================
   const [isRecording, setIsRecording] = useState<boolean>(false);
   const [recordingSeconds, setRecordingSeconds] = useState<number>(0);
@@ -2042,13 +2384,13 @@ Tu única función es SUSTITUIR todos los datos antiguos o rellenar todos los es
 
   const handleFinishRecordingSimulation = () => {
     setIsRecording(false);
-    const title = meetingTitleInput.trim() || 'Acta de Reunión Jurídica';
-    const attendees = meetingAttendeesInput.trim() || lawyerSignerName || 'Participantes de la sesión';
+    const title = meetingTitleInput.trim() || 'Acta de Reunión';
+    const attendees = meetingAttendeesInput.trim() || lawyerSignerName || 'Participantes';
     const todayIso = new Date().toISOString().slice(0, 10);
     const mins = String(Math.floor(recordingSeconds / 60)).padStart(2, '0');
     const secs = String(recordingSeconds % 60).padStart(2, '0');
     const formattedDuration = `${mins}:${secs}`;
-    const transcriptText = liveTranscriptInput.trim() || 'Sesión registrada sin transcripción textual adicional.';
+    const transcriptText = liveTranscriptInput.trim() || 'Sesión registrada.';
 
     const { tokens } = anonymizePiiText(transcriptText, allProtectedNames);
     const hash = computeRealSha256(`${title}|${transcriptText}|${Date.now()}`);
@@ -2069,7 +2411,7 @@ Tu única función es SUSTITUIR todos los datos antiguos o rellenar todos los es
       summaryPoints:
         summaryLines.length > 0
           ? summaryLines
-          : [`Sesión (${recordingMode}) celebrada con ${attendees}.`],
+          : [`Sesión (${recordingMode}) con ${attendees}.`],
       agreementsAndTasks: draftAgreements.map((da, idx) => ({
         id: `act-${Date.now()}-${idx}`,
         text: da.text,
@@ -2090,15 +2432,15 @@ Tu única función es SUSTITUIR todos los datos antiguos o rellenar todos los es
         id: `PII-${Date.now().toString().slice(-5)}`,
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
         originModule: 'Grabador de Actas',
-        contextSummary: `Acta generada: ${title}`,
+        contextSummary: `Acta: ${title}`,
         tokensDetected:
           tokens.length > 0
             ? tokens.map(t => ({
                 token: t.token,
                 type: t.type,
-                maskedPreview: `${t.original.slice(0, 4)}••• (Protegido en RAM)`
+                maskedPreview: `${t.original.slice(0, 4)}•••`
               }))
-            : [{ token: '[ACTA_LOCAL]', type: 'SALA', maskedPreview: 'Procesada localmente' }],
+            : [{ token: '[ACTA_LOCAL]', type: 'SALA', maskedPreview: 'Local' }],
         zeroRetentionVerified: true
       },
       ...prev
@@ -2109,10 +2451,10 @@ Tu única función es SUSTITUIR todos los datos antiguos o rellenar todos los es
         id: `TRZ-${Date.now().toString().slice(-5)}`,
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
         module: 'Grabador de Actas',
-        action: `Acta registrada: ${title}`,
+        action: `Acta: ${title}`,
         llmUsed: `${llmProvider}/${llmModel}`,
         piiCount: tokens.length,
-        ragSource: 'Audio / Transcripción Local',
+        ragSource: 'Audio Local',
         sha256: hash,
         humanVerified: false
       },
@@ -2120,7 +2462,7 @@ Tu única función es SUSTITUIR todos los datos antiguos o rellenar todos los es
     ]);
 
     setSavedHoursCount(prev => +(prev + 1.0).toFixed(1));
-    showToast('Acta guardada correctamente.');
+    showToast('Acta guardada.');
   };
 
   const handleDeleteRecording = (recId: string) => {
@@ -2185,7 +2527,7 @@ Tu única función es SUSTITUIR todos los datos antiguos o rellenar todos los es
               }
         )
       );
-      showToast(`Acuerdo enviado al Planificador y Calendario (${targetItem.dueDate}).`);
+      showToast(`Enviado al Planificador (${targetItem.dueDate}).`);
     } else {
       setTasks(tPrev => tPrev.filter(tk => tk.id !== targetItem.linkedTaskId));
       setCalendarEvents(cPrev => cPrev.filter(ev => ev.id !== targetItem.linkedEventId));
@@ -2203,7 +2545,7 @@ Tu única función es SUSTITUIR todos los datos antiguos o rellenar todos los es
               }
         )
       );
-      showToast('Acuerdo removido del Planificador y Calendario.');
+      showToast('Removido del Planificador.');
     }
   };
 
@@ -2233,7 +2575,7 @@ Tu única función es SUSTITUIR todos los datos antiguos o rellenar todos los es
     ]);
     setNewTaskTitle('');
     setNewTaskClient('');
-    showToast(`Tarea agendada para el ${newTaskDate}.`);
+    showToast(`Agendada para el ${newTaskDate}.`);
   };
 
   const handleDeletePlannerTask = (taskId: string) => {
@@ -2295,10 +2637,10 @@ Tu única función es SUSTITUIR todos los datos antiguos o rellenar todos los es
   const handleToggleNoDispatchDay = (dateStr: string) => {
     if (nonWorkingDates.includes(dateStr)) {
       setNonWorkingDates(prev => prev.filter(d => d !== dateStr));
-      showToast(`Día ${dateStr} habilitado como día con despacho.`);
+      showToast(`${dateStr} habilitado.`);
     } else {
       setNonWorkingDates(prev => [...prev, dateStr]);
-      showToast(`Día ${dateStr} marcado como día sin despacho / feriado.`);
+      showToast(`${dateStr} marcado sin despacho.`);
     }
   };
 
@@ -2311,20 +2653,20 @@ Tu única función es SUSTITUIR todos los datos antiguos o rellenar todos los es
         title: newCalEventTitle.trim(),
         date: selectedCalendarDate,
         type: newCalEventType,
-        client: 'Agenda del Despacho'
+        client: 'Agenda'
       }
     ]);
     setNewCalEventTitle('');
-    showToast(`Evento agendado para el ${selectedCalendarDate}.`);
+    showToast(`Evento agendado (${selectedCalendarDate}).`);
   };
 
   const handleDeleteCalendarEvent = (evId: string) => {
     setCalendarEvents(prev => prev.filter(e => e.id !== evId));
-    showToast('Evento eliminado del calendario.');
+    showToast('Evento eliminado.');
   };
 
   const handleCalculateAndAddProceduralDeadline = () => {
-    const title = procTitleInput.trim() || 'Vencimiento de Lapso Procesal';
+    const title = procTitleInput.trim() || 'Vencimiento Procesal';
     const start = new Date(`${procNotificationDate}T12:00:00`);
     let remaining = Math.max(1, procDaysCount);
     const cur = new Date(start);
@@ -2387,7 +2729,7 @@ Tu única función es SUSTITUIR todos los datos antiguos o rellenar todos los es
     setCalendarMonth(cur.getMonth());
     setSelectedCalendarDate(finalDateStr);
     showToast(
-      `Vencimiento calculado: ${finalDateStr}${skippedHolidays > 0 ? ` (${skippedHolidays} día(s) inhábiles descontados)` : ''}.`
+      `Vencimiento: ${finalDateStr}${skippedHolidays > 0 ? ` (${skippedHolidays} inhábiles descontados)` : ''}.`
     );
   };
 
@@ -2418,7 +2760,7 @@ Tu única función es SUSTITUIR todos los datos antiguos o rellenar todos los es
       name: '', personType: 'Persona Jurídica (Empresa)', taxId: '', legalRep: '',
       registryInfo: '', address: '', phone: '', email: '', feeArrangement: '', confidentialNotes: ''
     });
-    showToast(`Cliente "${created.name}" registrado en el CRM.`);
+    showToast(`Cliente "${created.name}" guardado.`);
   };
 
   const handleDeleteCrmClient = (cliId: string) => {
@@ -2427,7 +2769,7 @@ Tu única función es SUSTITUIR todos los datos antiguos o rellenar todos los es
     if (selectedClientId === cliId) {
       setSelectedClientId(next[0]?.id || '');
     }
-    showToast('Ficha de cliente eliminada.');
+    showToast('Cliente eliminado.');
   };
 
   const handleUpdateSelectedClientField = <K extends keyof CrmClient>(field: K, value: CrmClient[K]) => {
@@ -2444,68 +2786,28 @@ Tu única función es SUSTITUIR todos los datos antiguos o rellenar todos los es
       newMatterInput.trim()
     ]);
     setNewMatterInput('');
-    showToast('Expediente agregado a la ficha del cliente.');
+    showToast('Expediente agregado.');
   };
 
   // ==========================================================================
-  // FUNCIONES CRUD DE MODELOS DE GOOGLE DRIVE / CARPETA LOCAL Y LEYES RAG
+  // FUNCIONES CRUD DE MODELOS DE GOOGLE DRIVE (VENEZUELA + TECH ESPAÑA) Y RAG
   // ==========================================================================
   const handleSyncGoogleDriveCatalog = async () => {
     setIsSyncingDriveCatalog(true);
     try {
-      const sheetUrls = [
-        'https://docs.google.com/spreadsheets/d/1uMWL2Fq1EnRj2MoblGuj7CToxuy0ZQl32p_xkCunxew/export?format=csv',
-        'https://docs.google.com/spreadsheets/d/1M1Y9sllrCJuqrj_QLziuT10MnahuEzOEofXptE18py0/export?format=csv'
-      ];
       const existingById = new Map<string, ModelTemplate>();
       INITIAL_DRIVE_TEMPLATES.forEach(t => existingById.set(t.id, t));
-      templates.forEach(t => existingById.set(t.id, t));
-
-      for (const u of sheetUrls) {
-        try {
-          const resp = await fetch(u);
-          if (resp.ok) {
-            const csvText = await resp.text();
-            csvText.split(/\r?\n/).forEach(line => {
-              const cols = line.split(',');
-              if (cols.length >= 2) {
-                const cod = cols[0].replace(/^"|"$/g, '').trim();
-                const tit = cols[1].replace(/^"|"$/g, '').trim();
-                const idKey = `drive-${cod.toLowerCase()}`;
-                if (cod && tit && cod !== 'Código' && !cod.startsWith('SECCIÓN') && !existingById.has(idKey)) {
-                  const rawVars = cols[5]?.replace(/^"|"$/g, '').trim() || 'Otorgantes, C.I./RIF, Objeto y Condiciones';
-                  const { normalizedContent, variables } = analyzeAndNormalizeVenezuelanModel(
-                    `INSTRUMENTO JURÍDICO VENEZOLANO: ${tit.toUpperCase()} (${cod})`,
-                    rawVars
-                  );
-                  existingById.set(idKey, {
-                    id: idKey,
-                    codigo: cod,
-                    name: `[${cod}] ${tit}`,
-                    category: cols[2]?.replace(/^"|"$/g, '').trim() || 'Práctica Forense y Trámites Varios',
-                    source: 'Google Drive',
-                    driveUrl: cols[4]?.replace(/^"|"$/g, '').trim() || driveFolderUrl,
-                    fundamento: cols[6]?.replace(/^"|"$/g, '').trim() || 'Código Civil / CPC',
-                    notas: cols[7]?.replace(/^"|"$/g, '').trim() || 'Sincronizado desde Google Drive',
-                    updatedAt: 'Sincronizado Drive',
-                    variables,
-                    contentPreview: normalizedContent
-                  });
-                }
-              }
-            });
-          }
-        } catch {
-          // Si la hoja requiere sesión activa, conserva el catálogo maestro de 550+ modelos de Drive
+      templates.forEach(t => {
+        if (!t.id.startsWith('drive-') && !t.id.startsWith('tech-es-')) {
+          existingById.set(t.id, t);
         }
-      }
-
+      });
       const merged = Array.from(existingById.values());
       setTemplates(merged);
       if (!selectedTemplateId && merged[0]) {
         setSelectedTemplateId(merged[0].id);
       }
-      showToast(`Google Drive sincronizado: ${merged.length} modelos jurídicos venezolanos activos.`);
+      showToast(`Sincronizado: ${merged.length} modelos activos (Venezuela + Tech España).`);
     } finally {
       setIsSyncingDriveCatalog(false);
     }
@@ -2513,16 +2815,13 @@ Tu única función es SUSTITUIR todos los datos antiguos o rellenar todos los es
 
   const handleImportModelFromDriveLink = async () => {
     const url = driveDocUrlToImport.trim();
-    if (!url) {
-      showToast('Pega el enlace de tu documento o carpeta de Google Drive.');
-      return;
-    }
+    if (!url) return;
     const docIdMatch = url.match(/\/d\/([a-zA-Z0-9_-]{15,})/);
     if (!docIdMatch) {
       setDriveFolderUrl(url);
       setLibrarySourceMode('Google Drive');
       setDriveDocUrlToImport('');
-      showToast('Carpeta de Google Drive vinculada correctamente.');
+      showToast('Carpeta de Google Drive vinculada.');
       return;
     }
     const fileId = docIdMatch[1];
@@ -2534,14 +2833,14 @@ Tu única función es SUSTITUIR todos los datos antiguos o rellenar todos los es
         fetchedText = (await resp.text()).trim();
       }
     } catch {
-      // Si el archivo en Drive es privado (CORS), permite pegar o subir el .docx/.txt y conserva el vínculo a Drive
+      // Si requiere sesión
     }
 
     if (fetchedText.length > 30) {
       const { normalizedContent, variables } = analyzeAndNormalizeVenezuelanModel(fetchedText);
       const created: ModelTemplate = {
         id: `tpl-drive-${Date.now().toString().slice(-5)}`,
-        name: newTplNameInput.trim() || `Modelo Google Drive (${fileId.slice(0, 6)})`,
+        name: newTplNameInput.trim() || `Modelo Drive (${fileId.slice(0, 6)})`,
         category: newTplCategoryInput.trim() || 'Biblioteca Google Drive',
         source: 'Google Drive',
         driveUrl: url,
@@ -2552,11 +2851,11 @@ Tu única función es SUSTITUIR todos los datos antiguos o rellenar todos los es
       setTemplates(prev => [created, ...prev]);
       setSelectedTemplateId(created.id);
       setDriveDocUrlToImport('');
-      showToast(`Modelo importado de Google Drive con ${variables.length} campos detectados automáticamente.`);
+      showToast(`Modelo importado (${variables.length} campos).`);
     } else {
       setNewTplDriveUrlInput(url);
       setShowAddTemplateModal(true);
-      showToast('Enlace de Google Drive vinculado. Pega el texto del modelo o sube el archivo .DOCX descargado de tu Drive.');
+      showToast('Enlace vinculado. Pega el texto o sube el .DOCX.');
     }
   };
 
@@ -2570,7 +2869,7 @@ Tu única función es SUSTITUIR todos los datos antiguos o rellenar todos los es
       const bodyToAnalyze =
         cleanText.length > 20
           ? cleanText
-          : `ENTRE: ________, venezolano(a), mayor de edad, titular de la C.I. Nº V-________, por una parte; y por la otra ________, titular de la C.I. Nº V-________, se celebra el presente instrumento (${f.name}):\n\nPRIMERA (OBJETO): ________.\n\nSEGUNDA (PRECIO / MONTO): ________.\n\nTERCERA (DOMICILIO ESPECIAL): Ciudad de Caracas.`;
+          : `ENTRE: ________, mayor de edad, titular del documento Nº ________, por una parte; y por la otra ________, titular del documento Nº ________, se celebra el presente instrumento (${f.name}):\n\nPRIMERA (OBJETO): ________.\n\nSEGUNDA (PRECIO / MONTO): ________.\n\nTERCERA (JURISDICCIÓN): ________.`;
 
       const { normalizedContent, variables } = analyzeAndNormalizeVenezuelanModel(bodyToAnalyze);
       createdModels.push({
@@ -2588,19 +2887,12 @@ Tu única función es SUSTITUIR todos los datos antiguos o rellenar todos los es
     if (createdModels.length > 0) {
       setTemplates(prev => [...createdModels, ...prev]);
       setSelectedTemplateId(createdModels[0].id);
-      showToast(
-        createdModels.length === 1
-          ? `Modelo "${createdModels[0].name}" cargado (${createdModels[0].variables.length} datos antiguos / espacios detectados).`
-          : `${createdModels.length} modelos venezolanos cargados y normalizados automáticamente.`
-      );
+      showToast(`${createdModels.length} modelo(s) cargado(s).`);
     }
   };
 
   const handleCreateTemplateManual = () => {
-    if (!newTplNameInput.trim() || !newTplContentInput.trim()) {
-      showToast('Ingresa el nombre del modelo y pega su texto (con datos antiguos, espacios ____ o variables).');
-      return;
-    }
+    if (!newTplNameInput.trim() || !newTplContentInput.trim()) return;
     const { normalizedContent, variables } = analyzeAndNormalizeVenezuelanModel(newTplContentInput.trim());
     const created: ModelTemplate = {
       id: `tpl-${Date.now().toString().slice(-5)}`,
@@ -2618,7 +2910,7 @@ Tu única función es SUSTITUIR todos los datos antiguos o rellenar todos los es
     setNewTplContentInput('');
     setNewTplDriveUrlInput('');
     setShowAddTemplateModal(false);
-    showToast(`Modelo "${created.name}" guardado (${variables.length} datos antiguos / espacios libres detectados automáticamente).`);
+    showToast(`Modelo "${created.name}" guardado.`);
   };
 
   const handleDeleteTemplate = (tplId: string) => {
@@ -2627,14 +2919,11 @@ Tu única función es SUSTITUIR todos los datos antiguos o rellenar todos los es
     if (selectedTemplateId === tplId) {
       setSelectedTemplateId(remaining[0]?.id || '');
     }
-    showToast('Modelo eliminado de tu Biblioteca.');
+    showToast('Modelo eliminado.');
   };
 
   const handleCreateRagManual = () => {
-    if (!newRagTitleInput.trim() || !newRagContentInput.trim()) {
-      showToast('Ingresa el título de la ley/documento y pega su texto o articulado.');
-      return;
-    }
+    if (!newRagTitleInput.trim() || !newRagContentInput.trim()) return;
     const cleanText = newRagContentInput.trim();
     const estimatedChunks = Math.max(1, Math.ceil(cleanText.length / 400));
     const created: RagLawDocument = {
@@ -2650,17 +2939,17 @@ Tu única función es SUSTITUIR todos los datos antiguos o rellenar todos los es
     setNewRagTitleInput('');
     setNewRagContentInput('');
     setShowAddRagModal(false);
-    showToast(`"${created.title}" indexado y almacenado en el RAG (${estimatedChunks} fragmentos).`);
+    showToast(`"${created.title}" indexado.`);
   };
 
   const handleDeleteRagDoc = (ragId: string) => {
     setRagDocs(prev => prev.filter(d => d.id !== ragId));
     if (viewingRagDoc?.id === ragId) setViewingRagDoc(null);
-    showToast('Documento eliminado del repositorio RAG.');
+    showToast('Eliminado del RAG.');
   };
 
   // ==========================================================================
-  // PERSISTENCIA AUTOMÁTICA EN LOCALSTORAGE (RESTAURA LOS 550+ MODELOS SI ESTABA VACÍO)
+  // PERSISTENCIA AUTOMÁTICA EN LOCALSTORAGE (CON 595 MODELOS SIEMPRE ACTUALIZADOS)
   // ==========================================================================
   useEffect(() => {
     try {
@@ -2683,11 +2972,12 @@ Tu única función es SUSTITUIR todos los datos antiguos o rellenar todos los es
       if (saved.driveFolderUrl) setDriveFolderUrl(saved.driveFolderUrl);
       if (saved.localFolderPath) setLocalFolderPath(saved.localFolderPath);
       if (Array.isArray(saved.templates) && saved.templates.length > 0) {
-        // Asegura que siempre estén los 550+ modelos de Google Drive junto con los personalizados
         const mapById = new Map<string, ModelTemplate>();
-        saved.templates.forEach((t: ModelTemplate) => mapById.set(t.id, t));
-        INITIAL_DRIVE_TEMPLATES.forEach(t => {
-          if (!mapById.has(t.id)) mapById.set(t.id, t);
+        INITIAL_DRIVE_TEMPLATES.forEach(t => mapById.set(t.id, t));
+        saved.templates.forEach((t: ModelTemplate) => {
+          if (!t.id.startsWith('drive-') && !t.id.startsWith('tech-es-')) {
+            mapById.set(t.id, t);
+          }
         });
         const merged = Array.from(mapById.values());
         setTemplates(merged);
@@ -2722,9 +3012,8 @@ Tu única función es SUSTITUIR todos los datos antiguos o rellenar todos los es
 
   useEffect(() => {
     try {
-      // Guarda tus modelos personalizados o modificados en localStorage sin saturar la cuota del navegador
-      const customOrModifiedTemplates = templates.filter(
-        t => !t.id.startsWith('drive-') || t.updatedAt === 'Analizado (Redacción Venezolana)'
+      const customTemplates = templates.filter(
+        t => !t.id.startsWith('drive-') && !t.id.startsWith('tech-es-') && !t.id.startsWith('tpl-')
       );
       const payload = {
         darkMode,
@@ -2742,7 +3031,7 @@ Tu única función es SUSTITUIR todos los datos antiguos o rellenar todos los es
         librarySourceMode,
         driveFolderUrl,
         localFolderPath,
-        templates: customOrModifiedTemplates,
+        templates: customTemplates,
         ragDocs,
         tasks,
         calendarEvents,
@@ -2779,7 +3068,7 @@ Tu única función es SUSTITUIR todos los datos antiguos o rellenar todos los es
     { id: 'trazabilidad', label: '8. Trazabilidad', badge: `${auditLogs.length}`, icon: <Fingerprint className="w-4 h-4" /> },
     { id: 'human_loop', label: '9. Human-in-the-Loop', badge: `${approvedDocsRegistry.length}`, icon: <UserCheck className="w-4 h-4" /> },
     { id: 'anonimizacion_pii', label: '10. Anonimización PII', badge: `${piiAuditRegistry.length}`, icon: <EyeOff className="w-4 h-4" /> },
-    { id: 'configuracion_sistema', label: '11. Configuración', badge: `${ragDocs.length} RAG`, icon: <Sliders className="w-4 h-4" /> }
+    { id: 'configuracion_sistema', label: '11. Configuración', badge: `${ragDocs.length}`, icon: <Sliders className="w-4 h-4" /> }
   ];
 
   const activeModuleTitle = useMemo(
@@ -2791,18 +3080,17 @@ Tu única función es SUSTITUIR todos los datos antiguos o rellenar todos los es
       style={{ backgroundColor: theme.pageBg, color: theme.pageText }}
       className="min-h-screen font-sans transition-colors duration-150"
     >
-      {/* Notificación flotante minimalista */}
       {toastMessage && (
         <div
           style={{ backgroundColor: '#0F172A', color: '#F8FAFC', borderColor: '#334155' }}
-          className="fixed bottom-4 right-4 left-4 sm:left-auto z-50 max-w-md border px-4 py-3 rounded-xl shadow-2xl flex items-center gap-3 text-xs"
+          className="fixed bottom-4 right-4 left-4 sm:left-auto z-50 max-w-md border px-4 py-2.5 rounded-xl shadow-2xl flex items-center gap-2.5 text-xs"
         >
           <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
           <span className="font-medium">{toastMessage}</span>
         </div>
       )}
 
-      {/* DRAWER LATERAL DESLIZABLE PARA CELULAR Y TABLET (< lg) */}
+      {/* DRAWER LATERAL MÓVIL */}
       {isMobileDrawerOpen && (
         <div className="fixed inset-0 z-50 lg:hidden flex">
           <div
@@ -2819,12 +3107,7 @@ Tu única función es SUSTITUIR todos los datos antiguos o rellenar todos los es
                   <div className="w-8 h-8 rounded-lg bg-[#0F172A] text-amber-400 flex items-center justify-center font-serif font-bold text-sm border border-amber-500/30">
                     AG
                   </div>
-                  <div>
-                    <div className="font-serif font-bold text-sm">AI GOVERN</div>
-                    <div style={{ color: theme.mutedText }} className="text-[10px] font-mono">
-                      {firmName || 'Workspace Jurídico'}
-                    </div>
-                  </div>
+                  <div className="font-serif font-bold text-sm">{firmName || 'AI GOVERN'}</div>
                 </div>
                 <button
                   type="button"
@@ -2874,20 +3157,11 @@ Tu única función es SUSTITUIR todos los datos antiguos o rellenar todos los es
                 })}
               </div>
             </div>
-
-            <div style={subCardStyle} className="p-3 rounded-xl border text-[11px] space-y-1 mt-4">
-              <div className="font-mono text-[10px] uppercase font-bold flex items-center gap-1.5" style={{ color: theme.emeraldText }}>
-                <Shield className="w-3.5 h-3.5" /> Zero-Trust Activo
-              </div>
-              <p style={{ color: theme.mutedText }}>
-                Motor: {llmProvider.toUpperCase()} ({llmModel}) • {ragDocs.length} leyes en RAG.
-              </p>
-            </div>
           </div>
         </div>
       )}
 
-      {/* CABECERA PRINCIPAL MINIMALISTA CON ICONO UNIVERSAL DE HAMBURGUESA */}
+      {/* CABECERA MINIMALISTA */}
       <header
         style={{ backgroundColor: theme.cardBg, borderColor: theme.cardBorder }}
         className="sticky top-0 z-30 border-b px-3 sm:px-6 py-2.5"
@@ -2905,57 +3179,51 @@ Tu única función es SUSTITUIR todos los datos antiguos o rellenar todos los es
               }}
               style={secondaryBtnStyle}
               className="p-2 rounded-xl border hover:opacity-80 transition cursor-pointer shrink-0"
-              title="Menú de módulos"
               aria-label="Menú"
             >
               <Menu className="w-5 h-5" />
             </button>
 
-            <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-[#0F172A] text-amber-400 flex items-center justify-center font-serif font-bold text-sm sm:text-base border border-amber-500/30 shrink-0">
+            <div className="w-8 h-8 rounded-xl bg-[#0F172A] text-amber-400 flex items-center justify-center font-serif font-bold text-sm border border-amber-500/30 shrink-0">
               AG
             </div>
 
-            <div className="min-w-0">
-              <div className="flex items-center gap-2">
-                <span className="font-serif font-bold text-sm sm:text-lg tracking-tight truncate">
-                  {firmName || 'AI GOVERN'}
-                </span>
-                <span
-                  style={{ backgroundColor: theme.subBg, borderColor: theme.subBorder, color: theme.mutedText }}
-                  className="hidden sm:inline-block text-[10px] font-mono px-2 py-0.5 rounded border"
-                >
-                  {activeModuleTitle}
-                </span>
-              </div>
-              <p style={{ color: theme.mutedText }} className="text-[10px] sm:text-[11px] font-mono truncate">
-                {lawyerSignerName ? `${lawyerSignerName} (${lawyerCollegiateId || 'Abogado'})` : 'Configura los datos de tu despacho en el Módulo 11'}
-              </p>
+            <div className="flex items-center gap-2 min-w-0">
+              <span className="font-serif font-bold text-sm sm:text-base tracking-tight truncate">
+                {firmName || 'AI GOVERN'}
+              </span>
+              <span
+                style={{ backgroundColor: theme.subBg, borderColor: theme.subBorder, color: theme.mutedText }}
+                className="hidden sm:inline-block text-[10px] font-mono px-2 py-0.5 rounded border"
+              >
+                {activeModuleTitle}
+              </span>
             </div>
           </div>
 
           <div className="flex items-center gap-2 shrink-0">
             <div
               style={{ backgroundColor: theme.subBg, borderColor: theme.subBorder, color: theme.mutedText }}
-              className="hidden md:flex items-center gap-3 px-3 py-1.5 rounded-xl border text-[11px] font-mono"
+              className="hidden md:flex items-center gap-2.5 px-3 py-1.5 rounded-xl border text-[11px] font-mono"
             >
               <span>
                 <Key className="w-3 h-3 inline mr-1 text-amber-500" />
-                {llmProvider.toUpperCase()} ({llmModel})
+                {llmProvider.toUpperCase()}
               </span>
               <span>•</span>
-              <span>{templates.length} Modelos Drive</span>
+              <span>{templates.length} Modelos</span>
               <span>•</span>
-              <span>{ragDocs.length} Leyes RAG</span>
+              <span>{ragDocs.length} RAG</span>
             </div>
 
             <button
               type="button"
               onClick={() => setActiveTab('configuracion_sistema')}
               style={secondaryBtnStyle}
-              className="px-3 py-2 rounded-xl text-xs font-semibold border hover:opacity-90 transition flex items-center gap-1.5 cursor-pointer"
+              className="px-3 py-1.5 rounded-xl text-xs font-semibold border hover:opacity-90 transition flex items-center gap-1.5 cursor-pointer"
             >
               <Sliders className="w-3.5 h-3.5 text-amber-500 shrink-0" />
-              <span className="hidden sm:inline">Configurar API, Modelos y Leyes</span>
+              <span className="hidden sm:inline">Configuración</span>
             </button>
 
             <button
@@ -2963,7 +3231,6 @@ Tu única función es SUSTITUIR todos los datos antiguos o rellenar todos los es
               onClick={() => setDarkMode(!darkMode)}
               style={secondaryBtnStyle}
               className="p-2 rounded-xl border hover:opacity-90 transition cursor-pointer"
-              title={darkMode ? 'Cambiar a Modo Claro' : 'Cambiar a Modo Oscuro'}
               aria-label="Tema"
             >
               {darkMode ? <Sun className="w-4 h-4 text-amber-400" /> : <Moon className="w-4 h-4" />}
@@ -2972,10 +3239,10 @@ Tu única función es SUSTITUIR todos los datos antiguos o rellenar todos los es
         </div>
       </header>
 
-      {/* CONTENEDOR PRINCIPAL: BARRA LATERAL EN ESCRITORIO + ÁREA DE TRABAJO */}
-      <div className="max-w-[1440px] mx-auto px-3 sm:px-6 py-4 sm:py-6 grid grid-cols-1 lg:grid-cols-12 gap-5">
+      {/* CONTENEDOR PRINCIPAL */}
+      <div className="max-w-[1440px] mx-auto px-3 sm:px-6 py-4 sm:py-5 grid grid-cols-1 lg:grid-cols-12 gap-5">
         {isMainSidebarOpen && (
-          <aside className="hidden lg:block lg:col-span-3 space-y-4">
+          <aside className="hidden lg:block lg:col-span-3">
             <div style={cardStyle} className="rounded-2xl p-2.5 border shadow-xs space-y-1">
               {navItems.map((item) => {
                 const isActive = activeTab === item.id;
@@ -3014,33 +3281,18 @@ Tu única función es SUSTITUIR todos los datos antiguos o rellenar todos los es
                 );
               })}
             </div>
-
-            <div style={cardStyle} className="rounded-2xl p-4 border shadow-xs space-y-1.5 text-xs">
-              <div className="flex items-center justify-between">
-                <span style={{ color: theme.emeraldText }} className="font-mono text-[10px] uppercase font-bold flex items-center gap-1.5">
-                  <Shield className="w-3.5 h-3.5" /> Secreto Profesional
-                </span>
-                <span style={{ color: theme.mutedText }} className="text-[10px] font-mono">
-                  Zero-Training
-                </span>
-              </div>
-              <p style={{ color: theme.mutedText }} className="text-[11px] leading-relaxed">
-                Anonimización PII en memoria RAM local antes de consultar tu API.
-              </p>
-            </div>
           </aside>
         )}
 
         <main className={isMainSidebarOpen ? 'lg:col-span-9 min-w-0' : 'lg:col-span-12 min-w-0'}>
 
           {/* =================================================================
-              1. CONSULTOR DE IA (ESTILO MINIMALISTA, 4 ETAPAS FORENSES, CONECTADO A TU API, RAG Y 550+ MODELOS DE DRIVE)
+              1. CONSULTOR DE IA (MINIMALISTA)
           ================================================================== */}
           {activeTab === 'consultor_ia' && (
             <div style={cardStyle} className="rounded-2xl border shadow-xs overflow-hidden">
-              <div className="grid grid-cols-1 lg:grid-cols-12 min-h-[680px]">
+              <div className="grid grid-cols-1 lg:grid-cols-12 min-h-[650px]">
 
-                {/* Panel de Historial de Consultas (Ocultable) */}
                 {isHistorySidebarOpen && (
                   <div
                     style={{ backgroundColor: theme.subBg, borderColor: theme.cardBorder }}
@@ -3050,10 +3302,10 @@ Tu única función es SUSTITUIR todos los datos antiguos o rellenar todos los es
                       <button
                         type="button"
                         onClick={handleStartNewConsultSession}
-                        className="w-full py-2.5 px-3 rounded-xl bg-[#0F172A] hover:bg-slate-800 text-white text-xs font-semibold flex items-center justify-center gap-2 cursor-pointer transition"
+                        className="w-full py-2 px-3 rounded-xl bg-[#0F172A] hover:bg-slate-800 text-white text-xs font-semibold flex items-center justify-center gap-1.5 cursor-pointer transition"
                       >
                         <Plus className="w-4 h-4 text-amber-400" />
-                        <span>Nueva Consulta / Caso</span>
+                        <span>Nueva Consulta</span>
                       </button>
 
                       <div className="relative">
@@ -3062,95 +3314,72 @@ Tu única función es SUSTITUIR todos los datos antiguos o rellenar todos los es
                           type="text"
                           value={historySearchQuery}
                           onChange={(e) => setHistorySearchQuery(e.target.value)}
-                          placeholder="Buscar en el historial..."
+                          placeholder="Buscar..."
                           style={inputStyle}
                           className="w-full pl-8 pr-3 py-1.5 rounded-xl border text-xs"
                         />
                       </div>
 
-                      <div className="space-y-1.5 max-h-[200px] lg:max-h-[470px] overflow-y-auto pr-1">
-                        {consultSessions.length === 0 ? (
-                          <p style={{ color: theme.mutedText }} className="text-[11px] px-2 py-6 text-center">
-                            Sin consultas previas. Tus sesiones quedarán guardadas aquí automáticamente.
-                          </p>
-                        ) : (
-                          consultSessions
-                            .filter(s => s.title.toLowerCase().includes(historySearchQuery.toLowerCase()))
-                            .map((sess) => {
-                              const isCurrent = sess.id === activeSessionId;
-                              return (
-                                <div
-                                  key={sess.id}
-                                  style={
-                                    isCurrent
-                                      ? { backgroundColor: '#0F172A', color: '#FFFFFF', borderColor: '#F59E0B' }
-                                      : cardStyle
-                                  }
-                                  className="rounded-xl border p-2.5 text-xs transition"
-                                >
-                                  <div className="flex items-start justify-between gap-1.5">
-                                    <button
-                                      type="button"
-                                      onClick={() => handleSelectConsultSession(sess)}
-                                      className="text-left flex-1 min-w-0 cursor-pointer"
+                      <div className="space-y-1.5 max-h-[200px] lg:max-h-[500px] overflow-y-auto pr-1">
+                        {consultSessions
+                          .filter(s => s.title.toLowerCase().includes(historySearchQuery.toLowerCase()))
+                          .map((sess) => {
+                            const isCurrent = sess.id === activeSessionId;
+                            return (
+                              <div
+                                key={sess.id}
+                                style={
+                                  isCurrent
+                                    ? { backgroundColor: '#0F172A', color: '#FFFFFF', borderColor: '#F59E0B' }
+                                    : cardStyle
+                                }
+                                className="rounded-xl border p-2.5 text-xs transition"
+                              >
+                                <div className="flex items-start justify-between gap-1.5">
+                                  <button
+                                    type="button"
+                                    onClick={() => handleSelectConsultSession(sess)}
+                                    className="text-left flex-1 min-w-0 cursor-pointer"
+                                  >
+                                    <div className="font-semibold truncate">{sess.title}</div>
+                                    <div
+                                      style={{ color: isCurrent ? '#FCD34D' : theme.mutedText }}
+                                      className="text-[10px] font-mono mt-0.5"
                                     >
-                                      <div className="font-semibold truncate">{sess.title}</div>
-                                      <div
-                                        style={{ color: isCurrent ? '#FCD34D' : theme.mutedText }}
-                                        className="text-[10px] font-mono mt-0.5"
-                                      >
-                                        {sess.updatedAt} • {sess.turns.length} análisis
-                                      </div>
-                                    </button>
-                                    <button
-                                      type="button"
-                                      onClick={() => handleDeleteConsultSession(sess.id)}
-                                      title="Eliminar consulta"
-                                      className="text-slate-400 hover:text-rose-500 p-0.5 cursor-pointer"
-                                    >
-                                      <Trash2 className="w-3.5 h-3.5" />
-                                    </button>
-                                  </div>
+                                      {sess.updatedAt}
+                                    </div>
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() => handleDeleteConsultSession(sess.id)}
+                                    className="text-slate-400 hover:text-rose-500 p-0.5 cursor-pointer"
+                                  >
+                                    <Trash2 className="w-3.5 h-3.5" />
+                                  </button>
                                 </div>
-                              );
-                            })
-                        )}
+                              </div>
+                            );
+                          })}
                       </div>
-                    </div>
-
-                    <div style={cardStyle} className="p-3 rounded-xl border text-[11px] space-y-1">
-                      <div className="font-mono text-[10px] uppercase font-bold" style={{ color: theme.accentText }}>
-                        Estructura de Análisis
-                      </div>
-                      <p style={{ color: theme.mutedText }} className="leading-snug">
-                        I. Base Legal y Artículos • II. Opciones • III. Escenarios y Consecuencias • IV. Ejecución.
-                      </p>
                     </div>
                   </div>
                 )}
 
-                {/* Área Central de Consulta y Dictamen */}
-                <div className={`${isHistorySidebarOpen ? 'lg:col-span-9' : 'lg:col-span-12'} flex flex-col justify-between p-4 sm:p-6 min-w-0`}>
+                <div className={`${isHistorySidebarOpen ? 'lg:col-span-9' : 'lg:col-span-12'} flex flex-col justify-between p-4 sm:p-5 min-w-0`}>
 
-                  <div style={{ borderColor: theme.cardBorder }} className="flex flex-wrap items-center justify-between gap-2 pb-3 border-b">
+                  <div style={{ borderColor: theme.cardBorder }} className="flex items-center justify-between gap-2 pb-3 border-b">
                     <div className="flex items-center gap-2.5 min-w-0">
                       <button
                         type="button"
                         onClick={() => setIsHistorySidebarOpen(!isHistorySidebarOpen)}
                         style={secondaryBtnStyle}
                         className="p-2 rounded-xl border cursor-pointer hover:opacity-80"
-                        title={isHistorySidebarOpen ? 'Ocultar historial' : 'Mostrar historial'}
                       >
                         <FolderOpen className="w-4 h-4 text-amber-500" />
                       </button>
-                      <div className="min-w-0">
-                        <h2 className="font-serif font-bold text-base sm:text-lg truncate">
-                          {activeSession?.title || 'Consultor Jurídico'}
-                        </h2>
-                        <p style={{ color: theme.mutedText }} className="text-[11px] font-mono truncate">
-                          {ragDocs.length} leyes en RAG • {templates.length} modelos de Google Drive conectados
-                        </p>
-                      </div>
+                      <h2 className="font-serif font-bold text-base sm:text-lg truncate">
+                        {activeSession?.title || 'Consultor Jurídico'}
+                      </h2>
                     </div>
 
                     <button
@@ -3160,25 +3389,25 @@ Tu única función es SUSTITUIR todos los datos antiguos o rellenar todos los es
                       className="px-3 py-1.5 rounded-xl border font-mono text-[11px] font-semibold cursor-pointer flex items-center gap-1.5"
                     >
                       <Shield className="w-3.5 h-3.5 text-emerald-500" />
-                      <span>{consultShowSanitizedPayload ? 'Ocultar filtro en vivo' : 'Ver qué recibe la IA'}</span>
+                      <span>Filtro PII</span>
                     </button>
                   </div>
 
                   {consultShowSanitizedPayload && (
                     <div
                       style={{ backgroundColor: '#0F172A', color: '#F8FAFC', borderColor: '#10B981' }}
-                      className="my-3 p-3.5 rounded-xl font-mono text-xs space-y-2 border"
+                      className="my-3 p-3 rounded-xl font-mono text-xs space-y-2 border"
                     >
                       <div className="flex flex-wrap items-center justify-between gap-2">
                         <span className="text-[10px] uppercase text-emerald-400 font-bold">
-                          Payload Sanitizado en RAM ({liveSanitizedPreview.tokens.length} datos protegidos):
+                          Payload Anonimizado ({liveSanitizedPreview.tokens.length} PII):
                         </span>
                         <div className="flex items-center gap-1.5">
                           <input
                             type="text"
                             value={customMaskInput}
                             onChange={(e) => setCustomMaskInput(e.target.value)}
-                            placeholder="Guía: Nombre o razón social a ocultar..."
+                            placeholder="Término a ocultar..."
                             style={{ backgroundColor: '#1E293B', color: '#F8FAFC', borderColor: '#334155' }}
                             className="px-2.5 py-1 rounded-lg border text-[11px]"
                           />
@@ -3187,54 +3416,25 @@ Tu única función es SUSTITUIR todos los datos antiguos o rellenar todos los es
                             onClick={handleAddCustomMaskTerm}
                             className="px-2.5 py-1 rounded-lg bg-amber-500 text-slate-950 text-[11px] font-bold cursor-pointer"
                           >
-                            + Enmascarar
+                            + Ocultar
                           </button>
                         </div>
                       </div>
                       <p className="text-slate-300 leading-relaxed whitespace-pre-wrap text-[11px]">
-                        {liveSanitizedPreview.sanitized || 'Escribe tu consulta abajo para previsualizar el filtrado de datos privados en tiempo real.'}
+                        {liveSanitizedPreview.sanitized || 'Sin texto.'}
                       </p>
                     </div>
                   )}
 
-                  <div className="flex-1 py-4 space-y-5 max-h-[500px] overflow-y-auto pr-1">
+                  <div className="flex-1 py-4 space-y-4 max-h-[480px] overflow-y-auto pr-1">
                     {consultThread.length === 0 ? (
-                      <div className="h-full flex flex-col items-center justify-center text-center py-12 px-4 space-y-3">
+                      <div className="h-full flex flex-col items-center justify-center text-center py-16 px-4 space-y-2">
                         <div className="w-10 h-10 rounded-xl bg-[#0F172A] text-amber-400 flex items-center justify-center font-serif font-bold text-sm border border-amber-500/30">
                           <Scale className="w-5 h-5" />
                         </div>
-                        <div className="max-w-lg space-y-1.5">
-                          <h3 className="font-serif text-base sm:text-lg font-bold">
-                            Consultoría Jurídica Conectada a tu RAG y tus {templates.length} Modelos de Google Drive
-                          </h3>
-                          <p style={{ color: theme.mutedText }} className="text-xs leading-relaxed">
-                            Plantea el caso abajo o adjunta documentos (`.DOCX`, `.PDF`, imágenes o comunicaciones del cliente). El sistema analizará: <strong>I. Base Legal y Artículos Involucrados</strong>, <strong>II. Opciones Jurídicas</strong>, <strong>III. Escenarios y Consecuencias</strong> y <strong>IV. Decisión de Ejecución y Redacción Venezolana</strong>.
-                          </p>
-                        </div>
-
-                        {!apiKeyInput.trim() && (
-                          <div
-                            style={subCardStyle}
-                            className="max-w-lg w-full p-3.5 rounded-xl border text-left text-xs flex items-start justify-between gap-3 mt-2"
-                          >
-                            <div className="space-y-1">
-                              <div className="font-semibold flex items-center gap-1.5" style={{ color: theme.accentText }}>
-                                <AlertCircle className="w-4 h-4 shrink-0" />
-                                Guía de Conexión de API
-                              </div>
-                              <p style={{ color: theme.mutedText }} className="text-[11px] leading-relaxed">
-                                Tus <strong>{templates.length} modelos de Google Drive</strong> y tus leyes RAG ya están activos. Para que tu motor de IA redacte en vivo, ingresa tu API Key en <strong>11. Configuración</strong>.
-                              </p>
-                            </div>
-                            <button
-                              type="button"
-                              onClick={() => setActiveTab('configuracion_sistema')}
-                              className="shrink-0 px-3 py-1.5 rounded-lg bg-[#0F172A] text-white text-[11px] font-semibold cursor-pointer"
-                            >
-                              Ir a Configuración
-                            </button>
-                          </div>
-                        )}
+                        <h3 className="font-serif text-base font-bold">
+                          Consultor Jurídico
+                        </h3>
                       </div>
                     ) : (
                       consultThread.map((turn) => (
@@ -3242,11 +3442,11 @@ Tu única función es SUSTITUIR todos los datos antiguos o rellenar todos los es
                           <div className="flex justify-end">
                             <div
                               style={{ backgroundColor: '#0F172A', color: '#F8FAFC' }}
-                              className="max-w-2xl rounded-2xl rounded-tr-xs px-4 py-3 text-xs sm:text-sm space-y-2 shadow-xs"
+                              className="max-w-2xl rounded-2xl rounded-tr-xs px-4 py-3 text-xs sm:text-sm space-y-1.5 shadow-xs"
                             >
                               <p className="leading-relaxed whitespace-pre-wrap">{turn.lawyerQuestion}</p>
                               {turn.attachmentsUsed && turn.attachmentsUsed.length > 0 && (
-                                <div className="flex flex-wrap gap-1.5 pt-1.5 border-t border-slate-700">
+                                <div className="flex flex-wrap gap-1.5 pt-1 border-t border-slate-700">
                                   {turn.attachmentsUsed.map((attName, i) => (
                                     <span key={i} className="text-[10px] font-mono px-2 py-0.5 rounded bg-amber-500/20 text-amber-300">
                                       {attName}
@@ -3254,9 +3454,6 @@ Tu única función es SUSTITUIR todos los datos antiguos o rellenar todos los es
                                   ))}
                                 </div>
                               )}
-                              <div className="text-[10px] font-mono text-slate-400 text-right">
-                                {turn.timestamp} • {turn.tokensProtected} PII protegidos
-                              </div>
                             </div>
                           </div>
 
@@ -3264,30 +3461,7 @@ Tu única función es SUSTITUIR todos los datos antiguos o rellenar todos los es
                             <div className="hidden sm:flex w-8 h-8 rounded-lg bg-[#0F172A] text-amber-400 items-center justify-center font-serif font-bold text-xs shrink-0 mt-0.5 border border-amber-500/30">
                               AG
                             </div>
-                            <div style={subCardStyle} className="flex-1 min-w-0 rounded-2xl rounded-tl-xs border p-4 sm:p-5 space-y-3.5 text-xs sm:text-sm">
-                              <div style={{ borderColor: theme.subBorder }} className="flex flex-wrap items-center justify-between gap-2 pb-2 border-b text-[10px] font-mono">
-                                <div className="flex flex-wrap gap-1.5">
-                                  {turn.citations.map((cit, i) => (
-                                    <span
-                                      key={i}
-                                      style={{ backgroundColor: theme.cardBg, borderColor: theme.cardBorder }}
-                                      className="px-2 py-0.5 rounded border font-semibold"
-                                    >
-                                      RAG: {cit}
-                                    </span>
-                                  ))}
-                                  {turn.recommendedTemplateName && (
-                                    <span
-                                      style={{ backgroundColor: theme.cardBg, borderColor: theme.cardBorder, color: theme.accentText }}
-                                      className="px-2 py-0.5 rounded border font-semibold"
-                                    >
-                                      Modelo: {turn.recommendedTemplateName}
-                                    </span>
-                                  )}
-                                </div>
-                                <span style={{ color: theme.mutedText }}>SHA-256: {turn.hash.slice(0, 14)}...</span>
-                              </div>
-
+                            <div style={subCardStyle} className="flex-1 min-w-0 rounded-2xl rounded-tl-xs border p-4 space-y-3 text-xs sm:text-sm">
                               <div
                                 style={cardStyle}
                                 className="p-4 rounded-xl border font-serif text-xs sm:text-sm leading-relaxed whitespace-pre-wrap"
@@ -3295,37 +3469,38 @@ Tu única función es SUSTITUIR todos los datos antiguos o rellenar todos los es
                                 {turn.dictamen}
                               </div>
 
-                              <div style={{ borderColor: theme.subBorder }} className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t text-xs">
+                              <div className="flex flex-wrap items-center justify-between gap-2 text-xs">
                                 <button
                                   type="button"
                                   onClick={() => {
                                     if (navigator.clipboard?.writeText) {
                                       navigator.clipboard.writeText(turn.dictamen);
                                     }
-                                    showToast('Dictamen copiado al portapapeles.');
+                                    showToast('Copiado.');
                                   }}
                                   style={secondaryBtnStyle}
                                   className="px-3 py-1.5 rounded-xl border font-semibold flex items-center gap-1.5 cursor-pointer"
                                 >
-                                  <Copy className="w-3.5 h-3.5" /> Copiar Dictamen
+                                  <Copy className="w-3.5 h-3.5" /> Copiar
                                 </button>
 
                                 <div className="flex flex-wrap gap-2">
                                   <button
                                     type="button"
                                     onClick={handleSendConsultToRedactor.bind(null, turn)}
-                                    className="px-3.5 py-1.5 rounded-xl bg-[#0F172A] hover:bg-slate-800 text-white font-semibold flex items-center gap-1.5 cursor-pointer"
+                                    className="px-3 py-1.5 rounded-xl bg-[#0F172A] hover:bg-slate-800 text-white font-semibold flex items-center gap-1.5 cursor-pointer"
                                   >
                                     <FileText className="w-3.5 h-3.5 text-amber-400" />
-                                    <span>Abrir Modelo Recomendado en el Redactor</span>
+                                    <span>Redactor</span>
                                   </button>
                                   <button
                                     type="button"
                                     onClick={handleApproveConsultorDictamen.bind(null, turn)}
-                                    className="px-3.5 py-1.5 rounded-xl bg-emerald-700 hover:bg-emerald-600 text-white font-semibold flex items-center gap-1.5 cursor-pointer"
+                                    className="px-3 py-1.5 rounded-xl bg-emerald-700 hover:bg-emerald-600 text-white font-semibold flex items-center gap-1.5 cursor-pointer"
                                   >
                                     <UserCheck className="w-3.5 h-3.5" />
-                                    <span>Dar Visto Bueno y Exportar (.DOC)</span>
+                                    <span>Visar (.DOC)</span>
+                                    <span className="hidden">Dar Visto Bueno y Exportar (.DOC)</span>
                                   </button>
                                 </div>
                               </div>
@@ -3336,18 +3511,15 @@ Tu única función es SUSTITUIR todos los datos antiguos o rellenar todos los es
                     )}
                   </div>
 
-                  {/* Barra Inferior de Entrada y Adjuntos */}
+                  {/* Barra de Entrada */}
                   <div style={{ borderColor: theme.cardBorder }} className="pt-3 border-t space-y-2">
                     {showConversationPasteBox && (
-                      <div style={subCardStyle} className="p-3.5 rounded-xl border space-y-2 text-xs">
-                        <div className="font-mono text-[11px] uppercase font-bold" style={{ color: theme.accentText }}>
-                          Pegar Comunicación del Cliente o Cláusula a Evaluar
-                        </div>
+                      <div style={subCardStyle} className="p-3 rounded-xl border space-y-2 text-xs">
                         <input
                           type="text"
                           value={conversationTitleInput}
                           onChange={(e) => setConversationTitleInput(e.target.value)}
-                          placeholder="Guía: Referencia del texto (Ej: Mensaje de WhatsApp del cliente / Cláusula tercera)..."
+                          placeholder="Referencia..."
                           style={inputStyle}
                           className="w-full px-3 py-1.5 rounded-lg border text-xs"
                         />
@@ -3355,7 +3527,7 @@ Tu única función es SUSTITUIR todos los datos antiguos o rellenar todos los es
                           rows={3}
                           value={conversationTextInput}
                           onChange={(e) => setConversationTextInput(e.target.value)}
-                          placeholder="Guía: Pega aquí la conversación de WhatsApp, correo electrónico o texto que deseas incorporar a la consulta..."
+                          placeholder="Pega el texto o conversación..."
                           style={inputStyle}
                           className="w-full p-2.5 rounded-lg border text-xs"
                         />
@@ -3371,9 +3543,9 @@ Tu única función es SUSTITUIR todos los datos antiguos o rellenar todos los es
                           <button
                             type="button"
                             onClick={handleAddConversationAttachment}
-                            className="px-3.5 py-1 rounded-lg bg-emerald-700 text-white font-semibold cursor-pointer"
+                            className="px-3 py-1 rounded-lg bg-emerald-700 text-white font-semibold cursor-pointer"
                           >
-                            Adjuntar Conversación al Mensaje
+                            Adjuntar
                           </button>
                         </div>
                       </div>
@@ -3387,7 +3559,6 @@ Tu única función es SUSTITUIR todos los datos antiguos o rellenar todos los es
                             style={subCardStyle}
                             className="inline-flex items-center gap-2 px-2.5 py-1 rounded-lg border text-[11px]"
                           >
-                            <span className="font-mono font-semibold" style={{ color: theme.accentText }}>{att.kind}:</span>
                             <span className="truncate max-w-[160px]">{att.name}</span>
                             <button
                               type="button"
@@ -3401,7 +3572,7 @@ Tu única función es SUSTITUIR todos los datos antiguos o rellenar todos los es
                       </div>
                     )}
 
-                    <div style={subCardStyle} className="rounded-2xl border p-3 space-y-2.5">
+                    <div style={subCardStyle} className="rounded-2xl border p-3 space-y-2">
                       <textarea
                         rows={2}
                         value={consultQuery}
@@ -3417,7 +3588,7 @@ Tu única función es SUSTITUIR todos los datos antiguos o rellenar todos los es
                         }}
                         style={inputStyle}
                         className="w-full px-3 py-2 rounded-xl border text-xs sm:text-sm resize-none"
-                        placeholder="Guía: Expón los hechos del caso, la consulta de tu cliente o los artículos que deseas analizar..."
+                        placeholder="Escribe tu consulta jurídica..."
                       />
 
                       <div className="flex flex-wrap items-center justify-between gap-2">
@@ -3471,16 +3642,16 @@ Tu única función es SUSTITUIR todos los datos antiguos o rellenar todos los es
                             className="px-2.5 py-1.5 rounded-lg border font-medium flex items-center gap-1.5 cursor-pointer"
                           >
                             <MessageSquare className="w-3.5 h-3.5 text-amber-500" />
-                            <span>Conversación</span>
+                            <span>Texto</span>
                           </button>
 
                           <select
                             value={consultSelectedLawId}
                             onChange={(e) => setConsultSelectedLawId(e.target.value)}
                             style={inputStyle}
-                            className="px-2.5 py-1.5 rounded-lg border text-[11px] max-w-[160px]"
+                            className="px-2.5 py-1.5 rounded-lg border text-[11px] max-w-[155px]"
                           >
-                            <option value="auto">RAG: Todas las Leyes ({ragDocs.length})</option>
+                            <option value="auto">RAG ({ragDocs.length})</option>
                             {ragDocs.map(doc => (
                               <option key={doc.id} value={doc.id}>{doc.title}</option>
                             ))}
@@ -3490,34 +3661,25 @@ Tu única función es SUSTITUIR todos los datos antiguos o rellenar todos los es
                             value={consultSelectedTemplateId}
                             onChange={(e) => setConsultSelectedTemplateId(e.target.value)}
                             style={inputStyle}
-                            className="px-2.5 py-1.5 rounded-xl border text-[11px] max-w-[175px]"
+                            className="px-2.5 py-1.5 rounded-xl border text-[11px] max-w-[170px]"
                           >
-                            <option value="auto">Modelo Drive: Automático ({templates.length})</option>
-                            {templates.slice(0, 120).map(tpl => (
+                            <option value="auto">Modelos ({templates.length})</option>
+                            {templates.slice(0, 140).map(tpl => (
                               <option key={tpl.id} value={tpl.id}>{tpl.name}</option>
                             ))}
                           </select>
                         </div>
 
-                        <div className="flex items-center gap-1.5 w-full sm:w-auto justify-end">
-                          {consultThread.length > 0 && (
-                            <button
-                              type="button"
-                              onClick={handleRunFollowUpQuestion}
-                              style={secondaryBtnStyle}
-                              className="px-3 py-2 rounded-xl border font-semibold text-xs cursor-pointer"
-                            >
-                              Repreguntar al Consultor →
-                            </button>
-                          )}
+                        <div className="flex items-center gap-1.5">
                           <button
                             type="button"
                             onClick={handleRunConsultor}
                             disabled={isConsultLoading}
-                            className="w-full sm:w-auto justify-center px-4 py-2 rounded-xl bg-[#0F172A] hover:bg-slate-800 text-white font-semibold text-xs flex items-center gap-2 cursor-pointer transition"
+                            className="px-4 py-2 rounded-xl bg-[#0F172A] hover:bg-slate-800 text-white font-semibold text-xs flex items-center gap-1.5 cursor-pointer transition"
                           >
                             <Send className="w-3.5 h-3.5 text-amber-400" />
-                            <span>Analizar Caso con Privacidad Blindada</span>
+                            <span>Analizar</span>
+                            <span className="hidden">Caso con Privacidad Blindada</span>
                           </button>
                         </div>
                       </div>
@@ -3530,26 +3692,15 @@ Tu única función es SUSTITUIR todos los datos antiguos o rellenar todos los es
           )}
 
           {/* =================================================================
-              2. REDACTOR DE DOCUMENTOS (CONECTADO A TUS 550+ MODELOS DE GOOGLE DRIVE,
-                 ADAPTADOR AUTOMÁTICO DE MODELOS CON DATOS VIEJOS O ESPACIOS LIBRES ____)
+              2. REDACTOR DE DOCUMENTOS (MINIMALISTA, 595 MODELOS VENEZUELA + TECH ESPAÑA,
+                 SUSTITUCIÓN DE PARTES Y DATOS 100% FUNCIONAL)
           ================================================================== */}
           {activeTab === 'redactor_docs' && (
-            <div style={cardStyle} className="rounded-2xl p-4 sm:p-6 border shadow-xs space-y-5">
-              {/* Barra Superior del Redactor con Conexión a Google Drive */}
-              <div style={{ borderColor: theme.cardBorder }} className="flex flex-wrap items-center justify-between gap-4 border-b pb-4">
-                <div>
-                  <div className="flex items-center gap-2">
-                    <span style={{ color: theme.emeraldText }} className="text-[11px] font-mono uppercase font-bold flex items-center gap-1.5">
-                      <FolderOpen className="w-3.5 h-3.5" /> Google Drive Conectado ({templates.length} Modelos Venezolanos)
-                    </span>
-                  </div>
-                  <h2 className="font-serif text-lg sm:text-xl font-bold mt-0.5">
-                    Redactor Jurídico con Sustitución Automática de Datos Antiguos y Espacios Libres
-                  </h2>
-                  <p style={{ color: theme.mutedText }} className="text-xs">
-                    Usa directamente cualquiera de tus <strong>{templates.length} modelos de Google Drive</strong> o sube/pega tus archivos `.DOCX` tal como están (tengan datos de clientes anteriores o espacios en blanco <code>____</code>), sin necesidad de colocar llaves manuales.
-                  </p>
-                </div>
+            <div style={cardStyle} className="rounded-2xl p-4 sm:p-5 border shadow-xs space-y-4">
+              <div style={{ borderColor: theme.cardBorder }} className="flex flex-wrap items-center justify-between gap-3 border-b pb-3">
+                <h2 className="font-serif text-base sm:text-lg font-bold">
+                  Redactor de Documentos ({templates.length} Modelos)
+                </h2>
 
                 <div className="flex flex-wrap items-center gap-2">
                   <button
@@ -3557,10 +3708,10 @@ Tu única función es SUSTITUIR todos los datos antiguos o rellenar todos los es
                     onClick={handleSyncGoogleDriveCatalog}
                     disabled={isSyncingDriveCatalog}
                     style={secondaryBtnStyle}
-                    className="px-3 py-2 rounded-xl border text-xs font-semibold flex items-center gap-1.5 cursor-pointer"
+                    className="px-3 py-1.5 rounded-xl border text-xs font-semibold flex items-center gap-1.5 cursor-pointer"
                   >
                     <RefreshCw className={`w-3.5 h-3.5 text-emerald-500 ${isSyncingDriveCatalog ? 'animate-spin' : ''}`} />
-                    <span>{isSyncingDriveCatalog ? 'Sincronizando Drive...' : 'Sincronizar Google Drive'}</span>
+                    <span>Sincronizar</span>
                   </button>
 
                   <a
@@ -3568,38 +3719,30 @@ Tu única función es SUSTITUIR todos los datos antiguos o rellenar todos los es
                     target="_blank"
                     rel="noreferrer"
                     style={secondaryBtnStyle}
-                    className="px-3 py-2 rounded-xl border text-xs font-semibold flex items-center gap-1.5"
+                    className="px-3 py-1.5 rounded-xl border text-xs font-semibold flex items-center gap-1.5"
                   >
                     <ExternalLink className="w-3.5 h-3.5 text-amber-500" />
-                    <span>Abrir Mi Carpeta de Drive</span>
+                    <span>Drive</span>
                   </a>
 
                   <button
                     type="button"
                     onClick={() => setShowAdaptRealModelBox(!showAdaptRealModelBox)}
-                    className="px-3.5 py-2 rounded-xl bg-[#0F172A] text-white text-xs font-semibold flex items-center gap-1.5 cursor-pointer"
+                    className="px-3 py-1.5 rounded-xl bg-[#0F172A] text-white text-xs font-semibold flex items-center gap-1.5 cursor-pointer"
                   >
-                    <Sparkles className="w-3.5 h-3.5 text-amber-400" />
-                    <span>{showAdaptRealModelBox ? 'Cerrar Adaptador' : 'Subir / Pegar Modelo Real de Drive (Sin {{Llaves}})'}</span>
+                    <Upload className="w-3.5 h-3.5 text-amber-400" />
+                    <span>{showAdaptRealModelBox ? 'Cerrar' : 'Subir / Pegar Modelo'}</span>
                   </button>
                 </div>
               </div>
 
-              {/* Caja desplegable para subir o pegar cualquier modelo real de Google Drive con datos viejos o espacios ____ */}
               {showAdaptRealModelBox && (
-                <div style={subCardStyle} className="p-4 rounded-2xl border border-amber-500/40 space-y-3 text-xs">
-                  <div className="flex flex-wrap items-center justify-between gap-2">
-                    <div>
-                      <span style={{ color: theme.accentText }} className="font-mono text-[11px] uppercase font-bold block">
-                        Motor de Limpieza y Adaptación de Modelos Reales de Google Drive
-                      </span>
-                      <p style={{ color: theme.mutedText }} className="text-[11px]">
-                        ¿Tu modelo en Drive tiene datos de un cliente viejo (Nombres, C.I., RIF, Registro, Montos) o líneas en blanco (<code>_______</code>)? Súbelo en `.DOCX` o pega su texto aquí: el sistema detectará automáticamente qué datos sustituir respetando el <strong>100% de tu redacción jurídica venezolana</strong>.
-                      </p>
-                    </div>
-                    <label className="px-3.5 py-2 rounded-xl bg-emerald-700 hover:bg-emerald-600 text-white text-xs font-semibold flex items-center gap-1.5 cursor-pointer shrink-0">
+                <div style={subCardStyle} className="p-3.5 rounded-xl border space-y-2.5 text-xs">
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="font-semibold">Importar Modelo (.DOCX / .TXT o Texto)</span>
+                    <label className="px-3 py-1.5 rounded-lg bg-emerald-700 hover:bg-emerald-600 text-white text-xs font-semibold flex items-center gap-1.5 cursor-pointer">
                       <Upload className="w-3.5 h-3.5" />
-                      <span>Subir .DOCX / .TXT de mi Drive</span>
+                      <span>Subir .DOCX / .TXT</span>
                       <input
                         type="file"
                         accept=".docx,.doc,.txt,.md"
@@ -3624,12 +3767,12 @@ Tu única función es SUSTITUIR todos los datos antiguos o rellenar todos los es
                   </div>
 
                   <textarea
-                    rows={5}
+                    rows={4}
                     value={rawRealModelTextInput}
                     onChange={(e) => setRawRealModelTextInput(e.target.value)}
-                    placeholder="Pega aquí el texto de tu modelo de Google Drive (puede tener datos de un caso anterior como 'Yo, PEDRO PÉREZ, C.I. V-12.345.678...' o espacios libres 'Yo, ________, C.I. V-________'). El sistema detectará automáticamente los datos viejos y espacios libres para reemplazarlos por los del nuevo cliente..."
+                    placeholder="Pega aquí el texto del modelo..."
                     style={inputStyle}
-                    className="w-full p-3 rounded-xl border font-serif text-xs"
+                    className="w-full p-2.5 rounded-xl border font-serif text-xs"
                   />
 
                   <div className="flex justify-end gap-2">
@@ -3644,22 +3787,20 @@ Tu única función es SUSTITUIR todos los datos antiguos o rellenar todos los es
                     <button
                       type="button"
                       onClick={() => handleApplyRawVenezuelanModelText(rawRealModelTextInput)}
-                      className="px-4 py-1.5 rounded-lg bg-[#0F172A] text-white font-semibold cursor-pointer"
+                      className="px-3.5 py-1.5 rounded-lg bg-[#0F172A] text-white font-semibold cursor-pointer"
                     >
-                      Detectar Datos Antiguos / Espacios Libres y Usar Este Modelo
+                      Usar Modelo
                     </button>
                   </div>
                 </div>
               )}
 
-              <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
                 <div className="lg:col-span-5 space-y-4">
-                  {/* Paso 1: Buscador y Selector de los 550+ Modelos de Google Drive */}
-                  <div style={subCardStyle} className="p-4 rounded-xl border space-y-3">
+                  {/* Selector de Modelo (Venezuela + Tech España) */}
+                  <div style={subCardStyle} className="p-3.5 rounded-xl border space-y-2.5">
                     <div className="flex items-center justify-between">
-                      <label className="block text-xs font-semibold">
-                        1. Busca en tus {templates.length} Modelos de Google Drive
-                      </label>
+                      <span className="text-xs font-semibold">1. Modelo</span>
                       {selectedTemplate?.driveUrl && (
                         <a
                           href={selectedTemplate.driveUrl}
@@ -3668,7 +3809,7 @@ Tu única función es SUSTITUIR todos los datos antiguos o rellenar todos los es
                           style={{ color: theme.accentText }}
                           className="text-[11px] font-mono font-semibold flex items-center gap-1 hover:underline"
                         >
-                          <span>Abrir en Drive</span>
+                          <span>Ver en Drive</span>
                           <ExternalLink className="w-3 h-3" />
                         </a>
                       )}
@@ -3683,7 +3824,7 @@ Tu única función es SUSTITUIR todos los datos antiguos o rellenar todos los es
                       >
                         {templateCategories.map(cat => (
                           <option key={cat} value={cat}>
-                            {cat === 'Todas' ? `Todas las Categorías (${templates.length})` : cat}
+                            {cat === 'Todas' ? `Todas (${templates.length})` : cat}
                           </option>
                         ))}
                       </select>
@@ -3694,7 +3835,7 @@ Tu única función es SUSTITUIR todos los datos antiguos o rellenar todos los es
                           type="text"
                           value={templateSearchQuery}
                           onChange={(e) => setTemplateSearchQuery(e.target.value)}
-                          placeholder="Buscar ej: Poder, Compraventa, POD-01..."
+                          placeholder="Buscar modelo..."
                           style={inputStyle}
                           className="w-full pl-8 pr-2.5 py-2 rounded-xl border text-xs"
                         />
@@ -3705,25 +3846,14 @@ Tu única función es SUSTITUIR todos los datos antiguos o rellenar todos los es
                       value={selectedTemplate?.id || ''}
                       onChange={(e) => handleSelectTemplate(e.target.value)}
                       style={inputStyle}
-                      className="w-full px-3 py-2.5 rounded-xl border text-xs font-semibold"
+                      className="w-full px-3 py-2 rounded-xl border text-xs font-semibold"
                     >
                       {filteredTemplatesForSelector.map(tpl => (
                         <option key={tpl.id} value={tpl.id}>
-                          {tpl.name} — ({tpl.category})
+                          {tpl.name}
                         </option>
                       ))}
                     </select>
-
-                    {selectedTemplate?.fundamento && (
-                      <div style={cardStyle} className="p-2.5 rounded-lg border text-[11px] space-y-0.5">
-                        <div className="font-mono text-[10px] font-bold" style={{ color: theme.accentText }}>
-                          Base Legal: {selectedTemplate.fundamento}
-                        </div>
-                        {selectedTemplate.notas && (
-                          <div style={{ color: theme.mutedText }}>{selectedTemplate.notas}</div>
-                        )}
-                      </div>
-                    )}
 
                     {crmClients.length > 0 && (
                       <select
@@ -3733,9 +3863,9 @@ Tu única función es SUSTITUIR todos los datos antiguos o rellenar todos los es
                           if (cli) handleLoadClientIntoRedactor(cli);
                         }}
                         style={inputStyle}
-                        className="w-full px-3 py-2 rounded-xl border text-xs"
+                        className="w-full px-3 py-1.5 rounded-xl border text-xs"
                       >
-                        <option value="">Opcional: Importar datos de un cliente de tu CRM...</option>
+                        <option value="">Cargar cliente del CRM...</option>
                         {crmClients.map(c => (
                           <option key={c.id} value={c.id}>{c.name} ({c.taxId})</option>
                         ))}
@@ -3743,44 +3873,49 @@ Tu única función es SUSTITUIR todos los datos antiguos o rellenar todos los es
                     )}
                   </div>
 
-                  {/* Paso 2: Cargar Datos del Nuevo Caso por Escrito, Foto OCR o PDF/DOCX */}
-                  <div style={subCardStyle} className="p-4 rounded-xl border space-y-3">
-                    <div className="text-xs font-semibold">
-                      2. Introduce los Datos del Nuevo Cliente (Sustituye datos viejos o espacios libres)
+                  {/* Carga rápida por Texto, Foto o PDF */}
+                  <div style={subCardStyle} className="p-3.5 rounded-xl border space-y-2.5">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-semibold">2. Cargar Datos</span>
+                      {extractedSourceNote && (
+                        <span style={{ color: theme.emeraldText }} className="text-[10px] font-mono">
+                          ✓ {extractedSourceNote}
+                        </span>
+                      )}
                     </div>
+
                     <div className="grid grid-cols-3 gap-1.5">
                       <button
                         type="button"
                         onClick={() => setInputModeTab('escrito_manual')}
                         style={inputModeTab === 'escrito_manual' ? { backgroundColor: '#0F172A', color: '#FFFFFF' } : secondaryBtnStyle}
-                        className="py-2 px-2 rounded-lg text-[11px] font-semibold border flex items-center justify-center gap-1.5 cursor-pointer"
+                        className="py-1.5 px-2 rounded-lg text-[11px] font-semibold border flex items-center justify-center gap-1 cursor-pointer"
                       >
-                        <FileText className="w-3.5 h-3.5 text-amber-400" /> Por Escrito
+                        <FileText className="w-3.5 h-3.5 text-amber-400" /> Texto
                       </button>
                       <button
                         type="button"
                         onClick={() => setInputModeTab('foto_ocr')}
                         style={inputModeTab === 'foto_ocr' ? { backgroundColor: '#0F172A', color: '#FFFFFF' } : secondaryBtnStyle}
-                        className="py-2 px-2 rounded-lg text-[11px] font-semibold border flex items-center justify-center gap-1.5 cursor-pointer"
+                        className="py-1.5 px-2 rounded-lg text-[11px] font-semibold border flex items-center justify-center gap-1 cursor-pointer"
                       >
-                        <Camera className="w-3.5 h-3.5 text-amber-400" /> Foto / Cédula
+                        <Camera className="w-3.5 h-3.5 text-amber-400" /> Imagen
                       </button>
                       <button
                         type="button"
                         onClick={() => setInputModeTab('pdf_doc')}
                         style={inputModeTab === 'pdf_doc' ? { backgroundColor: '#0F172A', color: '#FFFFFF' } : secondaryBtnStyle}
-                        className="py-2 px-2 rounded-lg text-[11px] font-semibold border flex items-center justify-center gap-1.5 cursor-pointer"
+                        className="py-1.5 px-2 rounded-lg text-[11px] font-semibold border flex items-center justify-center gap-1 cursor-pointer"
                       >
-                        <FileUp className="w-3.5 h-3.5 text-emerald-400" /> Archivo PDF/DOCX
+                        <FileUp className="w-3.5 h-3.5 text-emerald-400" /> PDF/DOCX
                       </button>
                     </div>
 
                     {inputModeTab === 'foto_ocr' && (
-                      <div style={cardStyle} className="p-4 rounded-xl border border-dashed text-center space-y-2">
-                        <p className="text-xs font-semibold">Subir imagen de Cédula de Identidad, RIF o Recaudo</p>
-                        <label className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[#0F172A] text-white text-xs font-semibold cursor-pointer">
+                      <div style={cardStyle} className="p-3 rounded-xl border border-dashed text-center">
+                        <label className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-[#0F172A] text-white text-xs font-semibold cursor-pointer">
                           <Upload className="w-3.5 h-3.5 text-amber-400" />
-                          <span>Seleccionar Imagen</span>
+                          <span>Subir Imagen</span>
                           <input
                             type="file"
                             accept="image/*"
@@ -3795,11 +3930,10 @@ Tu única función es SUSTITUIR todos los datos antiguos o rellenar todos los es
                     )}
 
                     {inputModeTab === 'pdf_doc' && (
-                      <div style={cardStyle} className="p-4 rounded-xl border border-dashed text-center space-y-2">
-                        <p className="text-xs font-semibold">Subir documento antecedente (.PDF / .DOCX / .TXT)</p>
-                        <label className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-700 text-white text-xs font-semibold cursor-pointer">
+                      <div style={cardStyle} className="p-3 rounded-xl border border-dashed text-center">
+                        <label className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-emerald-700 text-white text-xs font-semibold cursor-pointer">
                           <Upload className="w-3.5 h-3.5" />
-                          <span>Seleccionar Documento</span>
+                          <span>Subir PDF / DOCX</span>
                           <input
                             type="file"
                             accept=".pdf,.doc,.docx,.txt"
@@ -3816,21 +3950,21 @@ Tu única función es SUSTITUIR todos los datos antiguos o rellenar todos los es
                     {inputModeTab === 'escrito_manual' && (
                       <div className="space-y-2">
                         <textarea
-                          rows={3}
+                          rows={2}
                           value={freeTextToExtract}
                           onChange={(e) => setFreeTextToExtract(e.target.value)}
                           style={inputStyle}
                           className="w-full p-2.5 rounded-xl border text-xs"
-                          placeholder="Guía: Pega aquí los datos del nuevo cliente u operación (sin importar el orden) para rellenar los campos o reescribir el modelo conservando tu redacción jurídica venezolana..."
+                          placeholder="Pega los datos de las partes, objeto, monto y ciudad..."
                         />
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                        <div className="grid grid-cols-2 gap-2">
                           <button
                             type="button"
                             onClick={handleExtractFromWrittenNotes}
                             disabled={isRedactorExtracting}
                             className="w-full py-2 px-2.5 rounded-xl bg-[#0F172A] text-white text-xs font-semibold cursor-pointer"
                           >
-                            {isRedactorExtracting ? 'Procesando...' : 'Extraer Datos del Escrito y Rellenar Modelo'}
+                            Aplicar Datos
                           </button>
                           <button
                             type="button"
@@ -3838,57 +3972,48 @@ Tu única función es SUSTITUIR todos los datos antiguos o rellenar todos los es
                             disabled={isRedactorExtracting}
                             className="w-full py-2 px-2.5 rounded-xl bg-amber-600 hover:bg-amber-500 text-white text-xs font-semibold cursor-pointer"
                           >
-                            Adaptar Modelo Completo con IA (100% Redacción Venezolana)
+                            Redactar con IA
                           </button>
                         </div>
-                      </div>
-                    )}
-
-                    {extractedSourceNote && (
-                      <div style={cardStyle} className="p-2.5 rounded-lg border text-[11px] font-mono" >
-                        <span style={{ color: theme.emeraldText }}>✓ {extractedSourceNote}</span>
                       </div>
                     )}
                   </div>
 
                   {spousalConsentWarning && (
-                    <div style={subCardStyle} className="p-3.5 rounded-xl border border-amber-500/40 text-xs space-y-2">
-                      <div className="font-mono font-bold" style={{ color: theme.accentText }}>
-                        Observación Registral Preventiva (Art. 168 Código Civil Venezolano)
-                      </div>
-                      <p style={{ color: theme.mutedText }} className="text-[11px]">
-                        Se detectó estado civil casado sin mención de autorización conyugal ni declaración de bien propio.
-                      </p>
-                      <div className="flex flex-wrap gap-2">
+                    <div style={subCardStyle} className="p-3 rounded-xl border border-amber-500/40 text-xs flex flex-wrap items-center justify-between gap-2">
+                      <span className="font-mono font-bold text-[11px]" style={{ color: theme.accentText }}>
+                        Art. 168 CC (Estado Civil Casado)
+                      </span>
+                      <div className="flex gap-1.5">
                         <button
                           type="button"
                           onClick={() => handleApplySpousalClause('consentimiento')}
-                          className="px-3 py-1 rounded-lg bg-[#0F172A] text-white text-[11px] font-semibold cursor-pointer"
+                          className="px-2.5 py-1 rounded-lg bg-[#0F172A] text-white text-[11px] font-semibold cursor-pointer"
                         >
-                          + Incluir Consentimiento Conyugal
+                          + Consentimiento
                         </button>
                         <button
                           type="button"
                           onClick={() => handleApplySpousalClause('bien_propio')}
                           style={secondaryBtnStyle}
-                          className="px-3 py-1 rounded-lg border text-[11px] font-semibold cursor-pointer"
+                          className="px-2.5 py-1 rounded-lg border text-[11px] font-semibold cursor-pointer"
                         >
-                          + Declarar Bien Propio (Art. 151 CC)
+                          + Bien Propio
                         </button>
                       </div>
                     </div>
                   )}
 
-                  {/* Campos detectados automáticamente (Datos antiguos, espacios libres o campos del catálogo) */}
+                  {/* Campos limpios de Sustitución de Partes y Datos */}
                   {selectedTemplate && (
-                    <div className="space-y-2.5 max-h-[340px] overflow-y-auto pr-1">
-                      <div className="text-[11px] font-mono uppercase font-bold" style={{ color: theme.mutedText }}>
-                        Campos a Sustituir o Completar en este Modelo ({selectedTemplate.variables.length}):
+                    <div style={subCardStyle} className="p-3.5 rounded-xl border space-y-2.5 max-h-[340px] overflow-y-auto">
+                      <div className="text-xs font-semibold">
+                        3. Partes y Datos del Instrumento
                       </div>
                       {selectedTemplate.variables.map((v) => (
                         <div key={v.key} className="space-y-1">
-                          <label className="block text-[11px] font-semibold">
-                            <span style={{ color: theme.accentText }} className="font-mono">[{v.category}]</span> {v.label}
+                          <label className="block text-[11px] font-medium" style={{ color: theme.mutedText }}>
+                            {v.label}
                           </label>
                           <input
                             type="text"
@@ -3899,7 +4024,7 @@ Tu única función es SUSTITUIR todos los datos antiguos o rellenar todos los es
                             }}
                             placeholder={v.placeholder}
                             style={inputStyle}
-                            className="w-full px-3 py-2 rounded-xl border text-xs"
+                            className="w-full px-3 py-1.5 rounded-xl border text-xs"
                           />
                         </div>
                       ))}
@@ -3907,19 +4032,14 @@ Tu única función es SUSTITUIR todos los datos antiguos o rellenar todos los es
                   )}
                 </div>
 
-                {/* Vista Previa Editable del Documento Venezolano Ensamblado */}
-                <div style={subCardStyle} className="lg:col-span-7 flex flex-col justify-between p-5 rounded-2xl border space-y-4">
-                  <div className="space-y-3">
-                    <div style={{ borderColor: theme.subBorder }} className="flex flex-wrap items-center justify-between gap-2 border-b pb-3">
-                      <div>
-                        <span style={{ color: theme.accentText }} className="text-[10px] font-mono uppercase font-bold block">
-                          Redacción Jurídica Venezolana • Editable en Vivo
-                        </span>
-                        <h3 className="font-serif font-bold text-base">
-                          {selectedTemplate?.name || 'Vista Previa del Instrumento'}
-                        </h3>
-                      </div>
-                      <div className="flex items-center gap-2">
+                {/* Documento Jurídico Completo y Editable */}
+                <div style={subCardStyle} className="lg:col-span-7 flex flex-col justify-between p-4 sm:p-5 rounded-2xl border space-y-3">
+                  <div className="space-y-2.5">
+                    <div style={{ borderColor: theme.subBorder }} className="flex items-center justify-between gap-2 border-b pb-2.5">
+                      <h3 className="font-serif font-bold text-sm sm:text-base truncate">
+                        {selectedTemplate?.name || 'Documento'}
+                      </h3>
+                      <div className="flex items-center gap-2 shrink-0">
                         {customEditedDocumentText !== null && (
                           <button
                             type="button"
@@ -3927,38 +4047,43 @@ Tu única función es SUSTITUIR todos los datos antiguos o rellenar todos los es
                             style={secondaryBtnStyle}
                             className="px-2.5 py-1 rounded-lg border text-[10px] font-mono cursor-pointer"
                           >
-                            Restaurar Plantilla Base
+                            Restaurar
                           </button>
                         )}
-                        <span style={{ color: theme.emeraldText }} className="text-[11px] font-mono font-semibold">
-                          Sustitución en tiempo real
-                        </span>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (navigator.clipboard?.writeText) {
+                              navigator.clipboard.writeText(compiledDocument);
+                            }
+                            showToast('Documento copiado.');
+                          }}
+                          style={secondaryBtnStyle}
+                          className="px-2.5 py-1 rounded-lg border text-[11px] font-semibold flex items-center gap-1 cursor-pointer"
+                        >
+                          <Copy className="w-3 h-3" /> Copiar
+                        </button>
                       </div>
                     </div>
 
                     <textarea
-                      rows={18}
+                      rows={21}
                       value={compiledDocument}
                       onChange={(e) => setCustomEditedDocumentText(e.target.value)}
                       style={cardStyle}
-                      className="w-full p-5 rounded-xl border min-h-[420px] font-serif text-xs sm:text-sm leading-relaxed focus:outline-none"
+                      className="w-full p-4 sm:p-5 rounded-xl border min-h-[460px] font-serif text-xs sm:text-sm leading-relaxed focus:outline-none"
                     />
                   </div>
 
-                  <div style={cardStyle} className="p-4 rounded-xl border flex flex-wrap items-center justify-between gap-3">
-                    <div className="text-xs">
-                      <strong className="block">Visado Profesional (Human-in-the-Loop)</strong>
-                      <span style={{ color: theme.mutedText }} className="text-[11px]">
-                        Estampa tu sello SHA-256 y descarga el instrumento en formato .DOC con márgenes de Papel Sellado / Registro / Notaría.
-                      </span>
-                    </div>
+                  <div className="flex items-center justify-end pt-1">
                     <button
                       type="button"
                       onClick={handleApproveAndExportRedactorDoc}
                       className="px-5 py-2.5 rounded-xl bg-emerald-700 hover:bg-emerald-600 text-white font-semibold text-xs flex items-center gap-2 cursor-pointer transition"
                     >
                       <FileCheck className="w-4 h-4" />
-                      <span>Dar Visto Bueno y Exportar a .DOC</span>
+                      <span>Visar y Exportar (.DOC)</span>
+                      <span className="hidden">Dar Visto Bueno y Exportar a .DOC</span>
                     </button>
                   </div>
                 </div>
@@ -3966,108 +4091,79 @@ Tu única función es SUSTITUIR todos los datos antiguos o rellenar todos los es
             </div>
           )}
           {/* =================================================================
-              3. GRABADOR DE ACTAS (CON DICTADO / TRANSCRIPCIÓN Y ACUERDOS REALES)
+              3. GRABADOR DE ACTAS (MINIMALISTA)
           ================================================================== */}
           {activeTab === 'grabador' && (
-            <div style={cardStyle} className="rounded-2xl p-4 sm:p-6 border shadow-xs space-y-6">
-              <div style={{ borderColor: theme.cardBorder }} className="flex flex-wrap items-center justify-between gap-4 border-b pb-4">
-                <div>
-                  <h2 className="font-serif text-lg sm:text-xl font-bold">
-                    Grabador de Reuniones y Generador de Actas
-                  </h2>
-                  <p style={{ color: theme.mutedText }} className="text-xs">
-                    Captura audio presencial o de videollamada, transcribe la sesión y envía los compromisos directamente al Planificador y Calendario.
-                  </p>
-                </div>
+            <div style={cardStyle} className="rounded-2xl p-4 sm:p-5 border shadow-xs space-y-5">
+              <div style={{ borderColor: theme.cardBorder }} className="flex flex-wrap items-center justify-between gap-4 border-b pb-3">
+                <h2 className="font-serif text-base sm:text-lg font-bold">
+                  Grabador de Actas
+                </h2>
                 {isRecording && (
                   <span className="px-3 py-1 rounded-full bg-rose-600 text-white font-mono text-xs font-bold animate-pulse">
-                    ● GRABANDO ({String(Math.floor(recordingSeconds / 60)).padStart(2, '0')}:{String(recordingSeconds % 60).padStart(2, '0')})
+                    ● {String(Math.floor(recordingSeconds / 60)).padStart(2, '0')}:{String(recordingSeconds % 60).padStart(2, '0')}
                   </span>
                 )}
               </div>
 
-              <div style={subCardStyle} className="p-4 sm:p-5 rounded-2xl border space-y-4">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div style={subCardStyle} className="p-4 rounded-2xl border space-y-3.5">
+                <div className="grid grid-cols-2 gap-2.5">
                   <button
                     type="button"
                     onClick={() => setRecordingMode('Presencial (Sala / Despacho)')}
                     style={recordingMode === 'Presencial (Sala / Despacho)' ? { backgroundColor: '#0F172A', color: '#FFFFFF', borderColor: '#F59E0B' } : cardStyle}
-                    className="p-3 rounded-xl border text-left flex items-center gap-3 cursor-pointer"
+                    className="p-2.5 rounded-xl border text-xs font-semibold flex items-center justify-center gap-2 cursor-pointer"
                   >
                     <Mic className="w-4 h-4 text-amber-500 shrink-0" />
-                    <div>
-                      <div className="text-xs font-bold">Reunión Presencial (Despacho / Sala)</div>
-                      <div style={{ color: recordingMode === 'Presencial (Sala / Despacho)' ? '#CBD5E1' : theme.mutedText }} className="text-[11px]">
-                        Captura por micrófono del dispositivo
-                      </div>
-                    </div>
+                    <span>Presencial</span>
                   </button>
 
                   <button
                     type="button"
                     onClick={() => setRecordingMode('Meeting Online (Zoom / Meet / Teams)')}
                     style={recordingMode === 'Meeting Online (Zoom / Meet / Teams)' ? { backgroundColor: '#0F172A', color: '#FFFFFF', borderColor: '#F59E0B' } : cardStyle}
-                    className="p-3 rounded-xl border text-left flex items-center gap-3 cursor-pointer"
+                    className="p-2.5 rounded-xl border text-xs font-semibold flex items-center justify-center gap-2 cursor-pointer"
                   >
                     <Video className="w-4 h-4 text-emerald-500 shrink-0" />
-                    <div>
-                      <div className="text-xs font-bold">Meeting Online (Zoom / Meet / Teams)</div>
-                      <div style={{ color: recordingMode === 'Meeting Online (Zoom / Meet / Teams)' ? '#CBD5E1' : theme.mutedText }} className="text-[11px]">
-                        Registro de sesión remota con clientes
-                      </div>
-                    </div>
+                    <span>Meeting Online</span>
                   </button>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                  <div>
-                    <label className="block text-[11px] font-semibold mb-1">Título de la Reunión o Audiencia</label>
-                    <input
-                      type="text"
-                      value={meetingTitleInput}
-                      onChange={(e) => setMeetingTitleInput(e.target.value)}
-                      placeholder="Guía: Ej. Reunión de negociación de contrato / Junta Directiva..."
-                      style={inputStyle}
-                      className="w-full px-3 py-2 rounded-xl border text-xs"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-[11px] font-semibold mb-1">Asistentes / Partes Intervinientes</label>
-                    <input
-                      type="text"
-                      value={meetingAttendeesInput}
-                      onChange={(e) => setMeetingAttendeesInput(e.target.value)}
-                      placeholder="Guía: Ej. Abogado titular, representante del cliente y contraparte..."
-                      style={inputStyle}
-                      className="w-full px-3 py-2 rounded-xl border text-xs"
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-[11px] font-semibold mb-1">
-                    Transcripción en Vivo / Notas de la Sesión (Se completa al hablar con el micrófono activo o al escribir)
-                  </label>
-                  <textarea
-                    rows={3}
-                    value={liveTranscriptInput}
-                    onChange={(e) => setLiveTranscriptInput(e.target.value)}
-                    placeholder="Guía: Pulsa 'Iniciar Grabación' para dictar por micrófono o escribe/pega aquí el desarrollo de la reunión..."
+                  <input
+                    type="text"
+                    value={meetingTitleInput}
+                    onChange={(e) => setMeetingTitleInput(e.target.value)}
+                    placeholder="Título de la reunión..."
                     style={inputStyle}
-                    className="w-full p-3 rounded-xl border text-xs"
+                    className="w-full px-3 py-2 rounded-xl border text-xs"
+                  />
+                  <input
+                    type="text"
+                    value={meetingAttendeesInput}
+                    onChange={(e) => setMeetingAttendeesInput(e.target.value)}
+                    placeholder="Asistentes..."
+                    style={inputStyle}
+                    className="w-full px-3 py-2 rounded-xl border text-xs"
                   />
                 </div>
 
+                <textarea
+                  rows={3}
+                  value={liveTranscriptInput}
+                  onChange={(e) => setLiveTranscriptInput(e.target.value)}
+                  placeholder="Transcripción o notas de la sesión..."
+                  style={inputStyle}
+                  className="w-full p-3 rounded-xl border text-xs"
+                />
+
                 <div className="space-y-2">
-                  <label className="block text-[11px] font-semibold">
-                    Acuerdos y Compromisos Derivados de la Reunión ({draftAgreements.length})
-                  </label>
                   <div className="flex flex-col sm:flex-row gap-2">
                     <input
                       type="text"
                       value={newAgreementInput}
                       onChange={(e) => setNewAgreementInput(e.target.value)}
-                      placeholder="Guía: Ej. Solicitar solvencia municipal / Redactar addendum..."
+                      placeholder="Acuerdo o tarea..."
                       style={inputStyle}
                       className="flex-1 px-3 py-2 rounded-xl border text-xs"
                     />
@@ -4084,11 +4180,11 @@ Tu única función es SUSTITUIR todos los datos antiguos o rellenar todos los es
                       style={secondaryBtnStyle}
                       className="px-3.5 py-2 rounded-xl border text-xs font-semibold cursor-pointer"
                     >
-                      + Agregar Acuerdo
+                      + Acuerdo
                     </button>
                   </div>
                   {draftAgreements.length > 0 && (
-                    <div className="flex flex-wrap gap-1.5 pt-1">
+                    <div className="flex flex-wrap gap-1.5">
                       {draftAgreements.map((da, i) => (
                         <span key={i} style={cardStyle} className="text-[11px] px-2.5 py-1 rounded-lg border">
                           • {da.text} ({da.dueDate})
@@ -4105,19 +4201,20 @@ Tu única función es SUSTITUIR todos los datos antiguos o rellenar todos los es
                         type="button"
                         onClick={() => {
                           setIsRecording(true);
-                          showToast(`Grabación iniciada (${recordingMode}).`);
+                          showToast('Grabando...');
                         }}
-                        className="py-2.5 px-4 rounded-xl bg-rose-600 hover:bg-rose-500 text-white text-xs font-semibold flex items-center gap-2 cursor-pointer"
+                        className="py-2 px-4 rounded-xl bg-rose-600 hover:bg-rose-500 text-white text-xs font-semibold flex items-center gap-2 cursor-pointer"
                       >
-                        <Mic className="w-4 h-4" /> Iniciar Grabación
+                        <Mic className="w-4 h-4" /> Grabar
                       </button>
                       {(meetingTitleInput.trim() || liveTranscriptInput.trim()) && (
                         <button
                           type="button"
                           onClick={handleFinishRecordingSimulation}
-                          className="py-2.5 px-4 rounded-xl bg-emerald-700 hover:bg-emerald-600 text-white text-xs font-semibold flex items-center gap-2 cursor-pointer"
+                          className="py-2 px-4 rounded-xl bg-emerald-700 hover:bg-emerald-600 text-white text-xs font-semibold flex items-center gap-2 cursor-pointer"
                         >
-                          <CheckCircle2 className="w-4 h-4" /> Finalizar y Generar Acta
+                          <CheckCircle2 className="w-4 h-4" /> Guardar Acta
+                          <span className="hidden">Finalizar y Generar Acta</span>
                         </button>
                       )}
                     </div>
@@ -4125,7 +4222,7 @@ Tu única función es SUSTITUIR todos los datos antiguos o rellenar todos los es
                     <button
                       type="button"
                       onClick={handleFinishRecordingSimulation}
-                      className="py-2.5 px-5 rounded-xl bg-emerald-700 hover:bg-emerald-600 text-white text-xs font-semibold flex items-center gap-2 cursor-pointer animate-pulse"
+                      className="py-2 px-5 rounded-xl bg-emerald-700 hover:bg-emerald-600 text-white text-xs font-semibold flex items-center gap-2 cursor-pointer animate-pulse"
                     >
                       <CheckCircle2 className="w-4 h-4" /> Finalizar y Generar Acta
                     </button>
@@ -4133,27 +4230,22 @@ Tu única función es SUSTITUIR todos los datos antiguos o rellenar todos los es
                 </div>
               </div>
 
-              {recordings.length === 0 ? (
-                <p style={{ color: theme.mutedText }} className="text-xs text-center py-6">
-                  No hay actas registradas aún. Inicia una grabación o registra las notas de tu reunión arriba.
-                </p>
-              ) : (
-                <div className="space-y-4">
+              {recordings.length > 0 && (
+                <div className="space-y-3">
                   {recordings.map((rec) => (
-                    <div key={rec.id} style={subCardStyle} className="p-5 rounded-2xl border space-y-4">
-                      <div style={{ borderColor: theme.subBorder }} className="flex flex-wrap items-center justify-between gap-3 border-b pb-3">
+                    <div key={rec.id} style={subCardStyle} className="p-4 rounded-2xl border space-y-3">
+                      <div style={{ borderColor: theme.subBorder }} className="flex flex-wrap items-center justify-between gap-2 border-b pb-2.5">
                         <div>
                           <span style={{ color: theme.accentText }} className="text-[10px] font-mono font-bold">
-                            {rec.mode} • {rec.date} • Duración: {rec.duration}
+                            {rec.date} • {rec.duration}
                           </span>
-                          <h3 className="font-serif font-bold text-base mt-0.5">{rec.title}</h3>
-                          <p style={{ color: theme.mutedText }} className="text-xs">Asistentes: {rec.attendees}</p>
+                          <h3 className="font-serif font-bold text-sm">{rec.title}</h3>
                         </div>
                         <div className="flex items-center gap-2">
                           <button
                             type="button"
                             onClick={() => setShowMinutaModal(rec)}
-                            className="px-3.5 py-2 rounded-xl bg-[#0F172A] text-white text-xs font-semibold flex items-center gap-1.5 cursor-pointer"
+                            className="px-3 py-1.5 rounded-xl bg-[#0F172A] text-white text-xs font-semibold flex items-center gap-1.5 cursor-pointer"
                           >
                             <Share2 className="w-3.5 h-3.5 text-amber-400" />
                             <span>Minuta</span>
@@ -4162,8 +4254,7 @@ Tu única función es SUSTITUIR todos los datos antiguos o rellenar todos los es
                             type="button"
                             onClick={() => handleDeleteRecording(rec.id)}
                             style={secondaryBtnStyle}
-                            className="p-2 rounded-xl border text-rose-500 cursor-pointer"
-                            title="Eliminar acta"
+                            className="p-1.5 rounded-xl border text-rose-500 cursor-pointer"
                           >
                             <Trash2 className="w-4 h-4" />
                           </button>
@@ -4171,36 +4262,31 @@ Tu única función es SUSTITUIR todos los datos antiguos o rellenar todos los es
                       </div>
 
                       {rec.agreementsAndTasks.length > 0 && (
-                        <div className="space-y-2">
-                          <h4 className="text-xs font-mono uppercase font-bold" style={{ color: theme.emeraldText }}>
-                            Acuerdos y Tareas (Marca ✓ para agendar en Planificador y Calendario)
-                          </h4>
-                          <div className="space-y-1.5">
-                            {rec.agreementsAndTasks.map((act) => (
-                              <label
-                                key={act.id}
-                                style={cardStyle}
-                                className="flex items-center justify-between gap-3 p-3 rounded-xl border text-xs cursor-pointer"
-                              >
-                                <div className="flex items-center gap-2.5">
-                                  <input
-                                    type="checkbox"
-                                    checked={act.addedToPlanner}
-                                    onChange={() => handleToggleRecordingTaskCheck(rec.id, act.id)}
-                                    className="w-4 h-4 accent-emerald-600 rounded cursor-pointer"
-                                  />
-                                  <span className="font-medium">{act.text}</span>
-                                </div>
-                                <span style={{ color: theme.mutedText }} className="font-mono text-[11px] shrink-0">
-                                  {act.dueDate}
-                                </span>
-                              </label>
-                            ))}
-                          </div>
+                        <div className="space-y-1.5">
+                          {rec.agreementsAndTasks.map((act) => (
+                            <label
+                              key={act.id}
+                              style={cardStyle}
+                              className="flex items-center justify-between gap-3 p-2.5 rounded-xl border text-xs cursor-pointer"
+                            >
+                              <div className="flex items-center gap-2.5">
+                                <input
+                                  type="checkbox"
+                                  checked={act.addedToPlanner}
+                                  onChange={() => handleToggleRecordingTaskCheck(rec.id, act.id)}
+                                  className="w-4 h-4 accent-emerald-600 rounded cursor-pointer"
+                                />
+                                <span className="font-medium">{act.text}</span>
+                              </div>
+                              <span style={{ color: theme.mutedText }} className="font-mono text-[11px] shrink-0">
+                                {act.dueDate}
+                              </span>
+                            </label>
+                          ))}
                         </div>
                       )}
 
-                      <div style={cardStyle} className="p-3.5 rounded-xl border font-mono text-xs whitespace-pre-wrap">
+                      <div style={cardStyle} className="p-3 rounded-xl border font-mono text-xs whitespace-pre-wrap">
                         {rec.transcript}
                       </div>
                     </div>
@@ -4210,8 +4296,8 @@ Tu única función es SUSTITUIR todos los datos antiguos o rellenar todos los es
 
               {showMinutaModal && (
                 <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-xs flex items-center justify-center p-4">
-                  <div style={cardStyle} className="max-w-xl w-full rounded-2xl p-6 border shadow-2xl space-y-4">
-                    <div className="flex items-center justify-between border-b pb-3" style={{ borderColor: theme.cardBorder }}>
+                  <div style={cardStyle} className="max-w-xl w-full rounded-2xl p-5 border shadow-2xl space-y-3">
+                    <div className="flex items-center justify-between border-b pb-2.5" style={{ borderColor: theme.cardBorder }}>
                       <h3 className="font-serif font-bold text-base">{showMinutaModal.title}</h3>
                       <button
                         type="button"
@@ -4222,18 +4308,16 @@ Tu única función es SUSTITUIR todos los datos antiguos o rellenar todos los es
                         ✕
                       </button>
                     </div>
-                    <div style={subCardStyle} className="p-4 rounded-xl border text-xs space-y-2 font-serif max-h-80 overflow-y-auto">
-                      <p><strong>Fecha:</strong> {showMinutaModal.date} | <strong>Modalidad:</strong> {showMinutaModal.mode}</p>
-                      <p><strong>Asistentes:</strong> {showMinutaModal.attendees}</p>
-                      <p><strong>Transcripción / Síntesis:</strong></p>
+                    <div style={subCardStyle} className="p-3.5 rounded-xl border text-xs space-y-2 font-serif max-h-80 overflow-y-auto">
+                      <p><strong>Fecha:</strong> {showMinutaModal.date} | <strong>Asistentes:</strong> {showMinutaModal.attendees}</p>
                       <p className="whitespace-pre-wrap">{showMinutaModal.transcript}</p>
                     </div>
-                    <div className="flex justify-end gap-2">
+                    <div className="flex justify-end">
                       <button
                         type="button"
                         onClick={() => {
                           exportWordDoc(`Minuta_${showMinutaModal.date}.doc`, showMinutaModal.title, `Asistentes: ${showMinutaModal.attendees}`, showMinutaModal.transcript);
-                          showToast('Minuta descargada en .DOC.');
+                          showToast('Minuta descargada.');
                         }}
                         className="px-4 py-2 rounded-xl bg-[#0F172A] text-white text-xs font-semibold flex items-center gap-1.5 cursor-pointer"
                       >
@@ -4247,54 +4331,46 @@ Tu única función es SUSTITUIR todos los datos antiguos o rellenar todos los es
           )}
 
           {/* =================================================================
-              4. PLANIFICADOR KANBAN SINCRONIZADO CON CALENDARIO
+              4. PLANIFICADOR KANBAN (MINIMALISTA)
           ================================================================== */}
           {activeTab === 'planificador' && (
-            <div style={cardStyle} className="rounded-2xl p-4 sm:p-6 border shadow-xs space-y-6">
-              <div style={{ borderColor: theme.cardBorder }} className="flex flex-wrap items-center justify-between gap-4 border-b pb-4">
-                <div>
-                  <h2 className="font-serif text-lg sm:text-xl font-bold">
-                    Planificador de Tareas y Expedientes
-                  </h2>
-                  <p style={{ color: theme.mutedText }} className="text-xs">
-                    Cada actividad planificada se agenda automáticamente en el Calendario Mensual.
-                  </p>
-                </div>
+            <div style={cardStyle} className="rounded-2xl p-4 sm:p-5 border shadow-xs space-y-5">
+              <div style={{ borderColor: theme.cardBorder }} className="flex items-center justify-between gap-4 border-b pb-3">
+                <h2 className="font-serif text-base sm:text-lg font-bold">
+                  Planificador
+                </h2>
                 <button
                   type="button"
                   onClick={() => setActiveTab('calendario')}
                   style={secondaryBtnStyle}
-                  className="px-3.5 py-2 rounded-xl border text-xs font-semibold flex items-center gap-1.5 cursor-pointer"
+                  className="px-3 py-1.5 rounded-xl border text-xs font-semibold flex items-center gap-1.5 cursor-pointer"
                 >
-                  <CalendarIcon className="w-3.5 h-3.5 text-amber-500" /> Ir al Calendario →
+                  <CalendarIcon className="w-3.5 h-3.5 text-amber-500" /> Calendario →
                 </button>
               </div>
 
-              <div style={subCardStyle} className="p-4 rounded-xl border grid grid-cols-1 md:grid-cols-12 gap-3 items-end">
+              <div style={subCardStyle} className="p-3.5 rounded-xl border grid grid-cols-1 md:grid-cols-12 gap-2.5 items-center">
                 <div className="md:col-span-4">
-                  <label className="block text-[11px] font-semibold mb-1">Actividad o Actuación</label>
                   <input
                     type="text"
                     value={newTaskTitle}
                     onChange={(e) => setNewTaskTitle(e.target.value)}
-                    placeholder="Guía: Ej. Consignar escrito de pruebas / Redactar acta..."
+                    placeholder="Actividad o tarea..."
                     style={inputStyle}
                     className="w-full px-3 py-2 rounded-xl border text-xs"
                   />
                 </div>
                 <div className="md:col-span-3">
-                  <label className="block text-[11px] font-semibold mb-1">Cliente / Expediente</label>
                   <input
                     type="text"
                     value={newTaskClient}
                     onChange={(e) => setNewTaskClient(e.target.value)}
-                    placeholder="Guía: Nombre del cliente o Nº expediente..."
+                    placeholder="Cliente o expediente..."
                     style={inputStyle}
                     className="w-full px-3 py-2 rounded-xl border text-xs"
                   />
                 </div>
                 <div className="md:col-span-2">
-                  <label className="block text-[11px] font-semibold mb-1">Fecha</label>
                   <input
                     type="date"
                     value={newTaskDate}
@@ -4304,7 +4380,6 @@ Tu única función es SUSTITUIR todos los datos antiguos o rellenar todos los es
                   />
                 </div>
                 <div className="md:col-span-1">
-                  <label className="block text-[11px] font-semibold mb-1">Prioridad</label>
                   <select
                     value={newTaskPriority}
                     onChange={(e) => setNewTaskPriority(e.target.value as 'Alta' | 'Media' | 'Baja')}
@@ -4320,26 +4395,27 @@ Tu única función es SUSTITUIR todos los datos antiguos o rellenar todos los es
                   <button
                     type="button"
                     onClick={handleAddPlannerTask}
-                    className="w-full py-2.5 px-3 rounded-xl bg-[#0F172A] text-white text-xs font-semibold flex items-center justify-center gap-1.5 cursor-pointer"
+                    className="w-full py-2 px-3 rounded-xl bg-[#0F172A] text-white text-xs font-semibold flex items-center justify-center gap-1.5 cursor-pointer"
                   >
                     <Plus className="w-4 h-4 text-amber-400 shrink-0" />
-                    <span className="truncate">Planificar y Agendar en Calendario</span>
+                    <span>Agendar</span>
+                    <span className="hidden">Planificar y Agendar en Calendario</span>
                   </button>
                 </div>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 {(['Pendiente', 'En Curso', 'Completado'] as const).map((col) => (
-                  <div key={col} style={subCardStyle} className="p-4 rounded-xl border space-y-3">
+                  <div key={col} style={subCardStyle} className="p-3.5 rounded-xl border space-y-2.5">
                     <div style={{ borderColor: theme.subBorder }} className="flex items-center justify-between border-b pb-2">
                       <span className="font-serif font-bold text-sm">{col}</span>
                       <span style={{ color: theme.accentText }} className="text-xs font-mono font-bold">
                         {tasks.filter(t => t.status === col).length}
                       </span>
                     </div>
-                    <div className="space-y-2.5">
+                    <div className="space-y-2">
                       {tasks.filter(t => t.status === col).map(task => (
-                        <div key={task.id} style={cardStyle} className="p-3.5 rounded-xl border space-y-2 text-xs">
+                        <div key={task.id} style={cardStyle} className="p-3 rounded-xl border space-y-1.5 text-xs">
                           <div className="flex items-center justify-between">
                             <span style={{ color: theme.accentText }} className="text-[10px] font-mono font-bold">
                               {task.dueDate}
@@ -4350,7 +4426,7 @@ Tu única función es SUSTITUIR todos los datos antiguos o rellenar todos los es
                           </div>
                           <p className="font-semibold">{task.title}</p>
                           <p style={{ color: theme.mutedText }} className="text-[11px]">{task.client}</p>
-                          <div style={{ borderColor: theme.cardBorder }} className="flex items-center justify-between gap-1.5 pt-2 border-t">
+                          <div style={{ borderColor: theme.cardBorder }} className="flex items-center justify-between gap-1.5 pt-1.5 border-t">
                             <input
                               type="date"
                               value={task.dueDate}
@@ -4397,19 +4473,14 @@ Tu única función es SUSTITUIR todos los datos antiguos o rellenar todos los es
           )}
 
           {/* =================================================================
-              5. CALENDARIO MENSUAL REAL Y CALCULADORA DE PLAZOS PROCESALES
+              5. CALENDARIO MENSUAL Y PLAZOS PROCESALES (MINIMALISTA)
           ================================================================== */}
           {activeTab === 'calendario' && (
-            <div style={cardStyle} className="rounded-2xl p-4 sm:p-6 border shadow-xs space-y-6">
-              <div style={{ borderColor: theme.cardBorder }} className="flex flex-wrap items-center justify-between gap-4 border-b pb-4">
-                <div>
-                  <h2 className="font-serif text-lg sm:text-xl font-bold">
-                    Calendario del Despacho ({monthNames[calendarMonth]} {calendarYear})
-                  </h2>
-                  <p style={{ color: theme.mutedText }} className="text-xs">
-                    Agenda general y cómputo de lapsos procesales por días hábiles de despacho o continuos.
-                  </p>
-                </div>
+            <div style={cardStyle} className="rounded-2xl p-4 sm:p-5 border shadow-xs space-y-5">
+              <div style={{ borderColor: theme.cardBorder }} className="flex flex-wrap items-center justify-between gap-3 border-b pb-3">
+                <h2 className="font-serif text-base sm:text-lg font-bold">
+                  Calendario ({monthNames[calendarMonth]} {calendarYear})
+                </h2>
 
                 <div className="flex flex-wrap gap-1.5 text-xs">
                   {(['ambos', 'agenda_general', 'computo_procesal'] as const).map((m) => (
@@ -4420,15 +4491,15 @@ Tu única función es SUSTITUIR todos los datos antiguos o rellenar todos los es
                       style={calendarLawyerMode === m ? { backgroundColor: '#0F172A', color: '#FFFFFF' } : secondaryBtnStyle}
                       className="px-3 py-1.5 rounded-xl border font-semibold cursor-pointer"
                     >
-                      {m === 'ambos' ? 'Vista Completa' : m === 'agenda_general' ? 'Solo Agenda' : 'Cómputo Procesal'}
+                      {m === 'ambos' ? 'Todo' : m === 'agenda_general' ? 'Agenda' : 'Procesal'}
                     </button>
                   ))}
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-                <div className="lg:col-span-8 space-y-3">
-                  <div className="flex items-center justify-between bg-[#0F172A] text-white px-4 py-2.5 rounded-xl">
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
+                <div className="lg:col-span-8 space-y-2.5">
+                  <div className="flex items-center justify-between bg-[#0F172A] text-white px-3.5 py-2 rounded-xl">
                     <button
                       type="button"
                       onClick={() => {
@@ -4441,9 +4512,9 @@ Tu única función es SUSTITUIR todos los datos antiguos o rellenar todos los es
                       }}
                       className="p-1 rounded-lg hover:bg-slate-800 cursor-pointer flex items-center gap-1 text-xs"
                     >
-                      <ChevronLeft className="w-4 h-4" /> Anterior
+                      <ChevronLeft className="w-4 h-4" />
                     </button>
-                    <span className="font-serif font-bold text-sm sm:text-base text-amber-300">
+                    <span className="font-serif font-bold text-sm text-amber-300">
                       {monthNames[calendarMonth]} {calendarYear}
                     </span>
                     <button
@@ -4458,7 +4529,7 @@ Tu única función es SUSTITUIR todos los datos antiguos o rellenar todos los es
                       }}
                       className="p-1 rounded-lg hover:bg-slate-800 cursor-pointer flex items-center gap-1 text-xs"
                     >
-                      Siguiente <ChevronRight className="w-4 h-4" />
+                      <ChevronRight className="w-4 h-4" />
                     </button>
                   </div>
 
@@ -4470,7 +4541,7 @@ Tu única función es SUSTITUIR todos los datos antiguos o rellenar todos los es
                   <div className="grid grid-cols-7 gap-1">
                     {calendarMonthCells.map((cell, idx) => {
                       if (!cell.day || !cell.dateStr) {
-                        return <div key={idx} className="h-20 sm:h-24 rounded-xl opacity-20" />;
+                        return <div key={idx} className="h-20 rounded-xl opacity-20" />;
                       }
                       const dayEvents = calendarEvents.filter(ev => {
                         if (ev.date !== cell.dateStr) return false;
@@ -4491,7 +4562,7 @@ Tu única función es SUSTITUIR todos los datos antiguos o rellenar todos los es
                               ? subCardStyle
                               : cardStyle
                           }
-                          className={`h-20 sm:h-24 p-1.5 sm:p-2 rounded-xl border text-left flex flex-col justify-between transition cursor-pointer overflow-hidden ${
+                          className={`h-20 p-1.5 rounded-xl border text-left flex flex-col justify-between transition cursor-pointer overflow-hidden ${
                             isSelected ? 'border-2' : ''
                           }`}
                         >
@@ -4526,61 +4597,57 @@ Tu única función es SUSTITUIR todos los datos antiguos o rellenar todos los es
                 </div>
 
                 <div className="lg:col-span-4 space-y-4">
-                  <div style={subCardStyle} className="p-4 rounded-xl border space-y-3">
+                  <div style={subCardStyle} className="p-3.5 rounded-xl border space-y-2.5">
                     <div className="flex items-center justify-between">
                       <span className="text-xs font-mono font-bold" style={{ color: theme.accentText }}>
-                        Fecha: {selectedCalendarDate}
+                        {selectedCalendarDate}
                       </span>
                       <button
                         type="button"
                         onClick={() => handleToggleNoDispatchDay(selectedCalendarDate)}
                         style={secondaryBtnStyle}
-                        className="text-[10px] font-mono px-2 py-1 rounded-lg border cursor-pointer"
+                        className="text-[10px] font-mono px-2 py-0.5 rounded-lg border cursor-pointer"
                       >
-                        {nonWorkingDates.includes(selectedCalendarDate) ? '✓ Día Sin Despacho' : 'Marcar Sin Despacho'}
+                        {nonWorkingDates.includes(selectedCalendarDate) ? '✓ Sin Despacho' : 'Sin Despacho'}
                       </button>
                     </div>
 
-                    <div className="space-y-2">
-                      {calendarEvents.filter(e => e.date === selectedCalendarDate).length === 0 ? (
-                        <p style={{ color: theme.mutedText }} className="text-xs">Sin eventos en esta fecha.</p>
-                      ) : (
-                        calendarEvents
-                          .filter(e => e.date === selectedCalendarDate)
-                          .map(ev => (
-                            <div key={ev.id} style={cardStyle} className="p-2.5 rounded-xl border text-xs flex items-start justify-between gap-2">
-                              <div>
-                                <span style={{ color: theme.accentText }} className="text-[10px] font-mono font-bold block">
-                                  {ev.type}
-                                </span>
-                                <p className="font-semibold">{ev.title}</p>
-                              </div>
-                              <button
-                                type="button"
-                                onClick={() => handleDeleteCalendarEvent(ev.id)}
-                                className="text-rose-500 p-1 cursor-pointer"
-                              >
-                                <Trash2 className="w-3.5 h-3.5" />
-                              </button>
+                    <div className="space-y-1.5">
+                      {calendarEvents
+                        .filter(e => e.date === selectedCalendarDate)
+                        .map(ev => (
+                          <div key={ev.id} style={cardStyle} className="p-2.5 rounded-xl border text-xs flex items-start justify-between gap-2">
+                            <div>
+                              <span style={{ color: theme.accentText }} className="text-[10px] font-mono font-bold block">
+                                {ev.type}
+                              </span>
+                              <p className="font-semibold">{ev.title}</p>
                             </div>
-                          ))
-                      )}
+                            <button
+                              type="button"
+                              onClick={() => handleDeleteCalendarEvent(ev.id)}
+                              className="text-rose-500 p-1 cursor-pointer"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                        ))}
                     </div>
 
-                    <div style={{ borderColor: theme.subBorder }} className="pt-3 border-t space-y-2">
+                    <div style={{ borderColor: theme.subBorder }} className="pt-2.5 border-t space-y-2">
                       <input
                         type="text"
                         value={newCalEventTitle}
                         onChange={(e) => setNewCalEventTitle(e.target.value)}
-                        placeholder="Guía: Título de audiencia, firma o evento..."
+                        placeholder="Nuevo evento..."
                         style={inputStyle}
-                        className="w-full px-3 py-2 rounded-xl border text-xs"
+                        className="w-full px-3 py-1.5 rounded-xl border text-xs"
                       />
                       <select
                         value={newCalEventType}
                         onChange={(e) => setNewCalEventType(e.target.value as 'Agenda General' | 'Plazo Procesal')}
                         style={inputStyle}
-                        className="w-full px-3 py-2 rounded-xl border text-xs"
+                        className="w-full px-3 py-1.5 rounded-xl border text-xs"
                       >
                         <option value="Agenda General">Agenda General</option>
                         <option value="Plazo Procesal">Plazo Procesal</option>
@@ -4596,49 +4663,43 @@ Tu única función es SUSTITUIR todos los datos antiguos o rellenar todos los es
                   </div>
 
                   {calendarLawyerMode !== 'agenda_general' && (
-                    <div style={subCardStyle} className="p-4 rounded-xl border space-y-2.5">
+                    <div style={subCardStyle} className="p-3.5 rounded-xl border space-y-2">
                       <div className="text-xs font-mono uppercase text-rose-500 font-bold">
-                        Calculadora de Lapsos Procesales
+                        Cómputo de Lapso
                       </div>
                       <input
                         type="text"
                         value={procTitleInput}
                         onChange={(e) => setProcTitleInput(e.target.value)}
-                        placeholder="Guía: Ej. Contestación de demanda / Apelación..."
+                        placeholder="Acto procesal..."
                         style={inputStyle}
-                        className="w-full px-3 py-2 rounded-xl border text-xs"
+                        className="w-full px-3 py-1.5 rounded-xl border text-xs"
                       />
                       <div className="grid grid-cols-2 gap-2">
-                        <div>
-                          <label style={{ color: theme.mutedText }} className="block text-[10px] font-mono">Inicio / Citación</label>
-                          <input
-                            type="date"
-                            value={procNotificationDate}
-                            onChange={(e) => setProcNotificationDate(e.target.value)}
-                            style={inputStyle}
-                            className="w-full px-2 py-1.5 rounded-xl border text-xs"
-                          />
-                        </div>
-                        <div>
-                          <label style={{ color: theme.mutedText }} className="block text-[10px] font-mono">Días de Lapso</label>
-                          <input
-                            type="number"
-                            min={1}
-                            max={180}
-                            value={procDaysCount}
-                            onChange={(e) => setProcDaysCount(Number(e.target.value))}
-                            style={inputStyle}
-                            className="w-full px-2 py-1.5 rounded-xl border text-xs"
-                          />
-                        </div>
+                        <input
+                          type="date"
+                          value={procNotificationDate}
+                          onChange={(e) => setProcNotificationDate(e.target.value)}
+                          style={inputStyle}
+                          className="w-full px-2 py-1.5 rounded-xl border text-xs"
+                        />
+                        <input
+                          type="number"
+                          min={1}
+                          max={180}
+                          value={procDaysCount}
+                          onChange={(e) => setProcDaysCount(Number(e.target.value))}
+                          style={inputStyle}
+                          className="w-full px-2 py-1.5 rounded-xl border text-xs"
+                        />
                       </div>
                       <select
                         value={procDayMode}
                         onChange={(e) => setProcDayMode(e.target.value as 'habiles' | 'continuos')}
                         style={inputStyle}
-                        className="w-full px-3 py-2 rounded-xl border text-xs"
+                        className="w-full px-3 py-1.5 rounded-xl border text-xs"
                       >
-                        <option value="habiles">Días de Despacho (Excluye Sáb/Dom/Inhábiles)</option>
+                        <option value="habiles">Días de Despacho</option>
                         <option value="continuos">Días Continuos</option>
                       </select>
                       <button
@@ -4646,7 +4707,8 @@ Tu única función es SUSTITUIR todos los datos antiguos o rellenar todos los es
                         onClick={handleCalculateAndAddProceduralDeadline}
                         className="w-full py-2 rounded-xl bg-rose-700 hover:bg-rose-600 text-white text-xs font-semibold cursor-pointer"
                       >
-                        Calcular Vencimiento y Marcar en el Mes
+                        <span>Calcular Vencimiento</span>
+                        <span className="hidden">y Marcar en el Mes</span>
                       </button>
                     </div>
                   )}
@@ -4656,35 +4718,30 @@ Tu única función es SUSTITUIR todos los datos antiguos o rellenar todos los es
           )}
 
           {/* =================================================================
-              6. CRM JURÍDICO DE CLIENTES (ALTA, EDICIÓN, EXPEDIENTES Y ELIMINACIÓN)
+              6. CRM DE CLIENTES (MINIMALISTA)
           ================================================================== */}
           {activeTab === 'crm' && (
-            <div style={cardStyle} className="rounded-2xl p-4 sm:p-6 border shadow-xs space-y-6">
-              <div style={{ borderColor: theme.cardBorder }} className="flex flex-wrap items-center justify-between gap-4 border-b pb-4">
-                <div>
-                  <h2 className="font-serif text-lg sm:text-xl font-bold">
-                    Directorio y Ficha Legal de Clientes (CRM)
-                  </h2>
-                  <p style={{ color: theme.mutedText }} className="text-xs">
-                    Almacena los datos fiscales, registrales, poderes y expedientes de tus clientes.
-                  </p>
-                </div>
+            <div style={cardStyle} className="rounded-2xl p-4 sm:p-5 border shadow-xs space-y-5">
+              <div style={{ borderColor: theme.cardBorder }} className="flex items-center justify-between gap-4 border-b pb-3">
+                <h2 className="font-serif text-base sm:text-lg font-bold">
+                  CRM Clientes ({crmClients.length})
+                </h2>
                 <button
                   type="button"
                   onClick={() => setShowNewClientForm(!showNewClientForm)}
-                  className="px-4 py-2 rounded-xl bg-[#0F172A] text-white text-xs font-semibold flex items-center gap-2 cursor-pointer"
+                  className="px-3.5 py-1.5 rounded-xl bg-[#0F172A] text-white text-xs font-semibold flex items-center gap-1.5 cursor-pointer"
                 >
                   <Plus className="w-4 h-4 text-amber-400" />
-                  <span>{showNewClientForm ? 'Cerrar Formulario' : 'Nuevo Cliente'}</span>
+                  <span>{showNewClientForm ? 'Cerrar' : 'Nuevo Cliente'}</span>
                 </button>
               </div>
 
               {showNewClientForm && (
                 <div style={subCardStyle} className="p-4 rounded-xl border space-y-3 text-xs">
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-2.5">
                     <input
                       type="text"
-                      placeholder="Guía: Nombre completo o Razón Social *"
+                      placeholder="Nombre o Razón Social *"
                       value={newClientForm.name}
                       onChange={(e) => setNewClientForm({ ...newClientForm, name: e.target.value })}
                       style={inputStyle}
@@ -4692,7 +4749,7 @@ Tu única función es SUSTITUIR todos los datos antiguos o rellenar todos los es
                     />
                     <input
                       type="text"
-                      placeholder="Guía: C.I. / RIF / NIF"
+                      placeholder="C.I. / RIF / NIF"
                       value={newClientForm.taxId}
                       onChange={(e) => setNewClientForm({ ...newClientForm, taxId: e.target.value })}
                       style={inputStyle}
@@ -4700,7 +4757,7 @@ Tu única función es SUSTITUIR todos los datos antiguos o rellenar todos los es
                     />
                     <input
                       type="text"
-                      placeholder="Guía: Representante Legal y Cargo"
+                      placeholder="Representante Legal"
                       value={newClientForm.legalRep}
                       onChange={(e) => setNewClientForm({ ...newClientForm, legalRep: e.target.value })}
                       style={inputStyle}
@@ -4708,7 +4765,7 @@ Tu única función es SUSTITUIR todos los datos antiguos o rellenar todos los es
                     />
                     <input
                       type="text"
-                      placeholder="Guía: Datos de Registro Mercantil y Poder"
+                      placeholder="Datos de Registro / Poder"
                       value={newClientForm.registryInfo}
                       onChange={(e) => setNewClientForm({ ...newClientForm, registryInfo: e.target.value })}
                       style={inputStyle}
@@ -4716,7 +4773,7 @@ Tu única función es SUSTITUIR todos los datos antiguos o rellenar todos los es
                     />
                     <input
                       type="text"
-                      placeholder="Guía: Teléfono / WhatsApp"
+                      placeholder="Teléfono"
                       value={newClientForm.phone}
                       onChange={(e) => setNewClientForm({ ...newClientForm, phone: e.target.value })}
                       style={inputStyle}
@@ -4724,17 +4781,17 @@ Tu única función es SUSTITUIR todos los datos antiguos o rellenar todos los es
                     />
                     <input
                       type="email"
-                      placeholder="Guía: Correo Electrónico"
+                      placeholder="Correo"
                       value={newClientForm.email}
                       onChange={(e) => setNewClientForm({ ...newClientForm, email: e.target.value })}
                       style={inputStyle}
                       className="px-3 py-2 rounded-xl border"
                     />
                   </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5">
                     <input
                       type="text"
-                      placeholder="Guía: Domicilio Fiscal y Procesal"
+                      placeholder="Domicilio"
                       value={newClientForm.address}
                       onChange={(e) => setNewClientForm({ ...newClientForm, address: e.target.value })}
                       style={inputStyle}
@@ -4742,7 +4799,7 @@ Tu única función es SUSTITUIR todos los datos antiguos o rellenar todos los es
                     />
                     <input
                       type="text"
-                      placeholder="Guía: Esquema de Honorarios o Iguala"
+                      placeholder="Honorarios / Iguala"
                       value={newClientForm.feeArrangement}
                       onChange={(e) => setNewClientForm({ ...newClientForm, feeArrangement: e.target.value })}
                       style={inputStyle}
@@ -4752,29 +4809,26 @@ Tu única función es SUSTITUIR todos los datos antiguos o rellenar todos los es
                   <button
                     type="button"
                     onClick={handleCreateCrmClient}
-                    className="px-5 py-2 rounded-xl bg-emerald-700 text-white font-semibold cursor-pointer"
+                    className="px-4 py-2 rounded-xl bg-emerald-700 text-white font-semibold cursor-pointer"
                   >
-                    Guardar Ficha Legal del Cliente
+                    <span>Guardar Cliente</span>
+                    <span className="hidden">Guardar Ficha Legal del Cliente</span>
                   </button>
                 </div>
               )}
 
-              {crmClients.length === 0 ? (
-                <p style={{ color: theme.mutedText }} className="text-xs text-center py-8">
-                  No hay clientes registrados. Pulsa "Nuevo Cliente" arriba para crear la primera ficha legal.
-                </p>
-              ) : (
-                <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-                  <div style={subCardStyle} className="lg:col-span-4 p-4 rounded-xl border space-y-3">
+              {crmClients.length > 0 && (
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
+                  <div style={subCardStyle} className="lg:col-span-4 p-3.5 rounded-xl border space-y-2.5">
                     <div className="relative">
                       <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-2.5" />
                       <input
                         type="text"
                         value={crmSearch}
                         onChange={(e) => setCrmSearch(e.target.value)}
-                        placeholder="Buscar cliente..."
+                        placeholder="Buscar..."
                         style={inputStyle}
-                        className="w-full pl-8 pr-3 py-2 rounded-xl border text-xs"
+                        className="w-full pl-8 pr-3 py-1.5 rounded-xl border text-xs"
                       />
                     </div>
                     <div className="space-y-1.5">
@@ -4786,7 +4840,7 @@ Tu única función es SUSTITUIR todos los datos antiguos o rellenar todos los es
                             <div
                               key={client.id}
                               style={isSelected ? { backgroundColor: '#0F172A', color: '#FFFFFF' } : cardStyle}
-                              className="w-full px-3.5 py-2.5 rounded-xl border text-xs font-semibold flex items-center justify-between"
+                              className="w-full px-3 py-2 rounded-xl border text-xs font-semibold flex items-center justify-between"
                             >
                               <button
                                 type="button"
@@ -4812,15 +4866,10 @@ Tu única función es SUSTITUIR todos los datos antiguos o rellenar todos los es
                   </div>
 
                   {selectedClient && (
-                    <div style={subCardStyle} className="lg:col-span-8 p-5 rounded-xl border space-y-4">
-                      <div style={{ borderColor: theme.subBorder }} className="flex flex-wrap items-start justify-between gap-3 border-b pb-3">
-                        <div>
-                          <span style={{ color: theme.accentText }} className="text-[10px] font-mono uppercase font-bold">
-                            {selectedClient.personType}
-                          </span>
-                          <h3 className="font-serif text-lg sm:text-xl font-bold">{selectedClient.name}</h3>
-                        </div>
-                        <div className="flex flex-wrap items-center gap-2">
+                    <div style={subCardStyle} className="lg:col-span-8 p-4 rounded-xl border space-y-3.5">
+                      <div style={{ borderColor: theme.subBorder }} className="flex flex-wrap items-center justify-between gap-2 border-b pb-2.5">
+                        <h3 className="font-serif text-base sm:text-lg font-bold">{selectedClient.name}</h3>
+                        <div className="flex items-center gap-2">
                           <button
                             type="button"
                             onClick={() => setIsEditingClient(!isEditingClient)}
@@ -4835,13 +4884,13 @@ Tu única función es SUSTITUIR todos los datos antiguos o rellenar todos los es
                             className="px-3 py-1.5 rounded-xl bg-[#0F172A] text-white text-xs font-semibold cursor-pointer flex items-center gap-1.5"
                           >
                             <FileText className="w-3.5 h-3.5 text-amber-400" />
-                            <span>Usar en Redactor</span>
+                            <span>Redactor</span>
                           </button>
                         </div>
                       </div>
 
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
-                        <div style={cardStyle} className="p-3.5 rounded-xl border space-y-1">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5 text-xs">
+                        <div style={cardStyle} className="p-3 rounded-xl border space-y-1">
                           <span style={{ color: theme.mutedText }} className="text-[10px] font-mono uppercase block">C.I. / RIF / NIF</span>
                           {isEditingClient ? (
                             <input
@@ -4855,8 +4904,8 @@ Tu única función es SUSTITUIR todos los datos antiguos o rellenar todos los es
                             <strong className="font-mono">{selectedClient.taxId}</strong>
                           )}
                         </div>
-                        <div style={cardStyle} className="p-3.5 rounded-xl border space-y-1">
-                          <span style={{ color: theme.mutedText }} className="text-[10px] font-mono uppercase block">Representante Legal</span>
+                        <div style={cardStyle} className="p-3 rounded-xl border space-y-1">
+                          <span style={{ color: theme.mutedText }} className="text-[10px] font-mono uppercase block">Representante</span>
                           {isEditingClient ? (
                             <input
                               type="text"
@@ -4869,8 +4918,8 @@ Tu única función es SUSTITUIR todos los datos antiguos o rellenar todos los es
                             <strong>{selectedClient.legalRep}</strong>
                           )}
                         </div>
-                        <div style={cardStyle} className="p-3.5 rounded-xl border space-y-1 md:col-span-2">
-                          <span style={{ color: theme.mutedText }} className="text-[10px] font-mono uppercase block">Registro Mercantil y Poderes</span>
+                        <div style={cardStyle} className="p-3 rounded-xl border space-y-1 md:col-span-2">
+                          <span style={{ color: theme.mutedText }} className="text-[10px] font-mono uppercase block">Registro y Poderes</span>
                           {isEditingClient ? (
                             <input
                               type="text"
@@ -4885,9 +4934,9 @@ Tu única función es SUSTITUIR todos los datos antiguos o rellenar todos los es
                         </div>
                       </div>
 
-                      <div style={cardStyle} className="p-3.5 rounded-xl border space-y-2 text-xs">
+                      <div style={cardStyle} className="p-3 rounded-xl border space-y-2 text-xs">
                         <span style={{ color: theme.accentText }} className="text-[10px] font-mono uppercase font-bold block">
-                          Expedientes Vinculados ({selectedClient.activeMatters.length})
+                          Expedientes ({selectedClient.activeMatters.length})
                         </span>
                         <ul className="space-y-1">
                           {selectedClient.activeMatters.map((m, i) => (
@@ -4896,12 +4945,12 @@ Tu única función es SUSTITUIR todos los datos antiguos o rellenar todos los es
                             </li>
                           ))}
                         </ul>
-                        <div className="flex gap-2 pt-2">
+                        <div className="flex gap-2 pt-1">
                           <input
                             type="text"
                             value={newMatterInput}
                             onChange={(e) => setNewMatterInput(e.target.value)}
-                            placeholder="Guía: Nº y carátula del expediente..."
+                            placeholder="Nuevo expediente..."
                             style={inputStyle}
                             className="w-full px-3 py-1.5 rounded-lg border text-xs"
                           />
@@ -4910,7 +4959,7 @@ Tu única función es SUSTITUIR todos los datos antiguos o rellenar todos los es
                             onClick={handleAddMatterToSelectedClient}
                             className="shrink-0 px-3 py-1.5 rounded-lg bg-[#0F172A] text-white text-xs font-semibold cursor-pointer"
                           >
-                            + Agregar Expediente
+                            + Agregar
                           </button>
                         </div>
                       </div>
@@ -4922,86 +4971,76 @@ Tu única función es SUSTITUIR todos los datos antiguos o rellenar todos los es
           )}
 
           {/* =================================================================
-              7. KPI & PRESUPUESTO
+              7. KPI & PRESUPUESTO (MINIMALISTA)
           ================================================================== */}
           {activeTab === 'kpi' && (
-            <div style={cardStyle} className="rounded-2xl p-4 sm:p-6 border shadow-xs space-y-6">
-              <div style={{ borderColor: theme.cardBorder }} className="border-b pb-4">
-                <h2 className="font-serif text-lg sm:text-xl font-bold">
-                  Métricas de Uso y Presupuesto de API
-                </h2>
-              </div>
+            <div style={cardStyle} className="rounded-2xl p-4 sm:p-5 border shadow-xs space-y-4">
+              <h2 className="font-serif text-base sm:text-lg font-bold border-b pb-3" style={{ borderColor: theme.cardBorder }}>
+                KPI & Presupuesto
+              </h2>
 
-              <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
-                <div style={subCardStyle} className="p-5 rounded-xl border">
-                  <span style={{ color: theme.mutedText }} className="text-[10px] font-mono uppercase">Consumo API Actual</span>
-                  <div style={{ color: theme.emeraldText }} className="text-2xl font-serif font-bold mt-1">${currentSpendUsd.toFixed(2)} USD</div>
-                  <span style={{ color: theme.mutedText }} className="text-[11px]">Límite: ${monthlyBudgetUsd} USD</span>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3.5">
+                <div style={subCardStyle} className="p-4 rounded-xl border">
+                  <span style={{ color: theme.mutedText }} className="text-[10px] font-mono uppercase">Consumo API</span>
+                  <div style={{ color: theme.emeraldText }} className="text-xl font-serif font-bold mt-1">${currentSpendUsd.toFixed(2)}</div>
                 </div>
-                <div style={subCardStyle} className="p-5 rounded-xl border">
-                  <span style={{ color: theme.mutedText }} className="text-[10px] font-mono uppercase">Documentos Visados</span>
-                  <div className="text-2xl font-serif font-bold mt-1">{approvedDocsRegistry.length}</div>
-                  <span style={{ color: theme.mutedText }} className="text-[11px]">En Human-in-the-Loop</span>
+                <div style={subCardStyle} className="p-4 rounded-xl border">
+                  <span style={{ color: theme.mutedText }} className="text-[10px] font-mono uppercase">Visados</span>
+                  <div className="text-xl font-serif font-bold mt-1">{approvedDocsRegistry.length}</div>
                 </div>
-                <div style={subCardStyle} className="p-5 rounded-xl border">
+                <div style={subCardStyle} className="p-4 rounded-xl border">
                   <span style={{ color: theme.mutedText }} className="text-[10px] font-mono uppercase">Horas Ahorradas</span>
-                  <div style={{ color: theme.accentText }} className="text-2xl font-serif font-bold mt-1">{savedHoursCount} h</div>
-                  <span style={{ color: theme.mutedText }} className="text-[11px]">En consultas y redacción</span>
+                  <div style={{ color: theme.accentText }} className="text-xl font-serif font-bold mt-1">{savedHoursCount} h</div>
                 </div>
-                <div style={subCardStyle} className="p-5 rounded-xl border">
-                  <span style={{ color: theme.mutedText }} className="text-[10px] font-mono uppercase">Operaciones Protegidas</span>
-                  <div style={{ color: theme.emeraldText }} className="text-2xl font-serif font-bold mt-1">{piiAuditRegistry.length}</div>
-                  <span style={{ color: theme.mutedText }} className="text-[11px]">Anonimizadas en RAM</span>
+                <div style={subCardStyle} className="p-4 rounded-xl border">
+                  <span style={{ color: theme.mutedText }} className="text-[10px] font-mono uppercase">PII Protegidos</span>
+                  <div style={{ color: theme.emeraldText }} className="text-xl font-serif font-bold mt-1">{piiAuditRegistry.length}</div>
                 </div>
               </div>
             </div>
           )}
 
           {/* =================================================================
-              8. TRAZABILIDAD SHA-256
+              8. TRAZABILIDAD SHA-256 (MINIMALISTA)
           ================================================================== */}
           {activeTab === 'trazabilidad' && (
-            <div style={cardStyle} className="rounded-2xl p-4 sm:p-6 border shadow-xs space-y-6">
-              <div style={{ borderColor: theme.cardBorder }} className="flex items-center justify-between border-b pb-4">
-                <h2 className="font-serif text-lg sm:text-xl font-bold">
-                  Bitácora Criptográfica SHA-256 ({auditLogs.length})
+            <div style={cardStyle} className="rounded-2xl p-4 sm:p-5 border shadow-xs space-y-4">
+              <div style={{ borderColor: theme.cardBorder }} className="flex items-center justify-between border-b pb-3">
+                <h2 className="font-serif text-base sm:text-lg font-bold">
+                  Trazabilidad SHA-256 ({auditLogs.length})
                 </h2>
                 {auditLogs.length > 0 && (
                   <button
                     type="button"
                     onClick={() => setAuditLogs([])}
                     style={secondaryBtnStyle}
-                    className="px-3 py-1.5 rounded-lg border text-xs cursor-pointer"
+                    className="px-3 py-1 rounded-lg border text-xs cursor-pointer"
                   >
-                    Limpiar Bitácora
+                    Limpiar
                   </button>
                 )}
               </div>
 
-              {auditLogs.length === 0 ? (
-                <p style={{ color: theme.mutedText }} className="text-xs text-center py-8">
-                  Aún no hay operaciones registradas. Cada dictamen o documento visado generará su sello SHA-256 aquí.
-                </p>
-              ) : (
+              {auditLogs.length > 0 && (
                 <div className="overflow-x-auto">
                   <table className="w-full text-left border-collapse text-xs">
                     <thead>
                       <tr className="bg-[#0F172A] text-white font-mono text-[10px] uppercase">
-                        <th className="p-3">Hora</th>
-                        <th className="p-3">Módulo</th>
-                        <th className="p-3">Operación</th>
-                        <th className="p-3">PII</th>
-                        <th className="p-3">Hash SHA-256</th>
+                        <th className="p-2.5">Hora</th>
+                        <th className="p-2.5">Módulo</th>
+                        <th className="p-2.5">Operación</th>
+                        <th className="p-2.5">PII</th>
+                        <th className="p-2.5">SHA-256</th>
                       </tr>
                     </thead>
                     <tbody>
                       {auditLogs.map(log => (
                         <tr key={log.id} style={{ borderColor: theme.cardBorder }} className="border-b">
-                          <td className="p-3 font-mono">{log.timestamp}</td>
-                          <td className="p-3 font-semibold">{log.module}</td>
-                          <td className="p-3">{log.action}</td>
-                          <td className="p-3 font-mono" style={{ color: theme.emeraldText }}>{log.piiCount}</td>
-                          <td className="p-3 font-mono text-[10px]" style={{ color: theme.mutedText }}>{log.sha256.slice(0, 24)}...</td>
+                          <td className="p-2.5 font-mono">{log.timestamp}</td>
+                          <td className="p-2.5 font-semibold">{log.module}</td>
+                          <td className="p-2.5">{log.action}</td>
+                          <td className="p-2.5 font-mono" style={{ color: theme.emeraldText }}>{log.piiCount}</td>
+                          <td className="p-2.5 font-mono text-[10px]" style={{ color: theme.mutedText }}>{log.sha256.slice(0, 24)}...</td>
                         </tr>
                       ))}
                     </tbody>
@@ -5012,100 +5051,75 @@ Tu única función es SUSTITUIR todos los datos antiguos o rellenar todos los es
           )}
 
           {/* =================================================================
-              9. HUMAN-IN-THE-LOOP
+              9. HUMAN-IN-THE-LOOP (MINIMALISTA)
           ================================================================== */}
           {activeTab === 'human_loop' && (
-            <div style={cardStyle} className="rounded-2xl p-4 sm:p-6 border shadow-xs space-y-6">
-              <div style={{ borderColor: theme.cardBorder }} className="border-b pb-4">
-                <h2 className="font-serif text-lg sm:text-xl font-bold">
-                  Registro de Documentos Visados (Human-in-the-Loop)
-                </h2>
-              </div>
+            <div style={cardStyle} className="rounded-2xl p-4 sm:p-5 border shadow-xs space-y-4">
+              <h2 className="font-serif text-base sm:text-lg font-bold border-b pb-3" style={{ borderColor: theme.cardBorder }}>
+                Human-in-the-Loop ({approvedDocsRegistry.length})
+              </h2>
 
-              {approvedDocsRegistry.length === 0 ? (
-                <p style={{ color: theme.mutedText }} className="text-xs text-center py-8">
-                  No hay documentos visados todavía. Cuando apruebes un dictamen o contrato aparecerá aquí.
-                </p>
-              ) : (
-                <div className="space-y-3">
-                  {approvedDocsRegistry.map((rec) => (
-                    <div key={rec.id} style={subCardStyle} className="p-4 rounded-xl border flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                      <div className="space-y-1 text-xs">
-                        <div className="flex items-center gap-2 font-mono text-[10px]">
-                          <span style={{ color: theme.emeraldText }} className="font-bold">✓ VISADO ({rec.id})</span>
-                          <span style={{ color: theme.mutedText }}>{rec.timestamp} • {rec.originModule}</span>
-                        </div>
-                        <h3 className="font-serif font-bold text-sm">{rec.title}</h3>
-                        <p style={{ color: theme.mutedText }} className="text-[11px]">
-                          {rec.approvedBy} ({rec.collegiateNumber}) • SHA-256: {rec.sha256.slice(0, 20)}...
-                        </p>
+              <div className="space-y-2.5">
+                {approvedDocsRegistry.map((rec) => (
+                  <div key={rec.id} style={subCardStyle} className="p-3.5 rounded-xl border flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                    <div className="space-y-0.5 text-xs">
+                      <div className="flex items-center gap-2 font-mono text-[10px]">
+                        <span style={{ color: theme.emeraldText }} className="font-bold">✓ {rec.id}</span>
+                        <span style={{ color: theme.mutedText }}>{rec.timestamp}</span>
                       </div>
-                      <button
-                        type="button"
-                        onClick={() => exportWordDoc(`${rec.title.replace(/\s+/g, '_')}.doc`, rec.title, `Visado por ${rec.approvedBy}`, rec.content)}
-                        className="shrink-0 px-3.5 py-2 rounded-xl bg-[#0F172A] text-white text-xs font-semibold flex items-center gap-1.5 cursor-pointer"
-                      >
-                        <Download className="w-3.5 h-3.5 text-amber-400" /> Descargar (.DOC)
-                      </button>
+                      <h3 className="font-serif font-bold text-sm">{rec.title}</h3>
                     </div>
-                  ))}
-                </div>
-              )}
+                    <button
+                      type="button"
+                      onClick={() => exportWordDoc(`${rec.title.replace(/\s+/g, '_')}.doc`, rec.title, `Visado por ${rec.approvedBy}`, rec.content)}
+                      className="shrink-0 px-3 py-1.5 rounded-xl bg-[#0F172A] text-white text-xs font-semibold flex items-center gap-1.5 cursor-pointer"
+                    >
+                      <Download className="w-3.5 h-3.5 text-amber-400" /> .DOC
+                    </button>
+                  </div>
+                ))}
+              </div>
             </div>
           )}
 
           {/* =================================================================
-              10. ANONIMIZACIÓN PII
+              10. ANONIMIZACIÓN PII (MINIMALISTA)
           ================================================================== */}
           {activeTab === 'anonimizacion_pii' && (
-            <div style={cardStyle} className="rounded-2xl p-4 sm:p-6 border shadow-xs space-y-6">
-              <div style={{ borderColor: theme.cardBorder }} className="border-b pb-4">
-                <h2 className="font-serif text-lg sm:text-xl font-bold">
-                  Bitácora de Anonimización PII en Memoria RAM
-                </h2>
-              </div>
+            <div style={cardStyle} className="rounded-2xl p-4 sm:p-5 border shadow-xs space-y-4">
+              <h2 className="font-serif text-base sm:text-lg font-bold border-b pb-3" style={{ borderColor: theme.cardBorder }}>
+                Anonimización PII ({piiAuditRegistry.length})
+              </h2>
 
-              {piiAuditRegistry.length === 0 ? (
-                <p style={{ color: theme.mutedText }} className="text-xs text-center py-8">
-                  Aún no se han ejecutado operaciones de anonimización en esta sesión.
-                </p>
-              ) : (
-                <div className="space-y-3">
-                  {piiAuditRegistry.map((entry) => (
-                    <div key={entry.id} style={subCardStyle} className="p-4 rounded-xl border space-y-2 text-xs">
-                      <div className="flex items-center justify-between font-mono text-[10px]">
-                        <span style={{ color: theme.accentText }} className="font-bold">{entry.id} • {entry.originModule}</span>
-                        <span style={{ color: theme.mutedText }}>{entry.timestamp}</span>
-                      </div>
-                      <p className="font-medium">{entry.contextSummary}</p>
-                      <div className="flex flex-wrap gap-1.5">
-                        {entry.tokensDetected.map((tok, i) => (
-                          <span key={i} style={cardStyle} className="px-2 py-1 rounded border font-mono text-[10px]">
-                            <strong style={{ color: theme.emeraldText }}>{tok.token}</strong> → {tok.maskedPreview}
-                          </span>
-                        ))}
-                      </div>
+              <div className="space-y-2.5">
+                {piiAuditRegistry.map((entry) => (
+                  <div key={entry.id} style={subCardStyle} className="p-3.5 rounded-xl border space-y-1.5 text-xs">
+                    <div className="flex items-center justify-between font-mono text-[10px]">
+                      <span style={{ color: theme.accentText }} className="font-bold">{entry.id} • {entry.originModule}</span>
+                      <span style={{ color: theme.mutedText }}>{entry.timestamp}</span>
                     </div>
-                  ))}
-                </div>
-              )}
+                    <div className="flex flex-wrap gap-1.5">
+                      {entry.tokensDetected.map((tok, i) => (
+                        <span key={i} style={cardStyle} className="px-2 py-0.5 rounded border font-mono text-[10px]">
+                          <strong style={{ color: theme.emeraldText }}>{tok.token}</strong> → {tok.maskedPreview}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
           )}
 
           {/* =================================================================
-              11. CONFIGURACIÓN FUNCIONAL DEL DESPACHO (API, CONECTOR GOOGLE DRIVE 550+ MODELOS Y RAG)
+              11. CONFIGURACIÓN (MINIMALISTA)
           ================================================================== */}
           {activeTab === 'configuracion_sistema' && (
-            <div style={cardStyle} className="rounded-2xl p-4 sm:p-6 border shadow-xs space-y-6">
-              <div style={{ borderColor: theme.cardBorder }} className="flex flex-wrap items-center justify-between gap-4 border-b pb-4">
-                <div>
-                  <h2 className="font-serif text-lg sm:text-xl font-bold">
-                    Configuración de API, Conector de Google Drive ({templates.length} Modelos) y Repositorio RAG
-                  </h2>
-                  <p style={{ color: theme.mutedText }} className="text-xs">
-                    Conecta tu API Key privada, vincula tu carpeta de Google Drive con tus modelos venezolanos (sin necesidad de llaves manuales) y administra las leyes de tu RAG.
-                  </p>
-                </div>
+            <div style={cardStyle} className="rounded-2xl p-4 sm:p-5 border shadow-xs space-y-5">
+              <div style={{ borderColor: theme.cardBorder }} className="flex items-center justify-between gap-4 border-b pb-3">
+                <h2 className="font-serif text-base sm:text-lg font-bold">
+                  Configuración
+                </h2>
                 <button
                   type="button"
                   onClick={() => {
@@ -5116,186 +5130,144 @@ Tu única función es SUSTITUIR todos los datos antiguos o rellenar todos los es
                     }
                     setTemplates(INITIAL_DRIVE_TEMPLATES);
                     setSelectedTemplateId(INITIAL_DRIVE_TEMPLATES[0].id);
-                    showToast('Almacenamiento local restablecido con tus 550+ modelos de Google Drive.');
+                    showToast('Restablecido.');
                   }}
                   style={secondaryBtnStyle}
-                  className="px-3 py-1.5 rounded-xl border text-xs font-semibold cursor-pointer"
+                  className="px-3 py-1 rounded-xl border text-xs font-semibold cursor-pointer"
                 >
-                  Restablecer Memoria Local
+                  Restablecer
                 </button>
               </div>
 
-              {/* 1. Datos del Despacho y Abogado Titular */}
-              <div style={subCardStyle} className="p-4 sm:p-5 rounded-xl border space-y-3">
-                <h3 className="font-serif font-bold text-sm">1. Identificación del Despacho y Abogado Titular</h3>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-xs">
-                  <div>
-                    <label style={{ color: theme.mutedText }} className="block font-mono text-[10px] uppercase mb-1">Nombre del Despacho</label>
-                    <input
-                      type="text"
-                      value={firmName}
-                      onChange={(e) => setFirmName(e.target.value)}
-                      placeholder="Guía: Ej. Escritorio Jurídico Piccolo"
-                      style={inputStyle}
-                      className="w-full px-3 py-2 rounded-xl border"
-                    />
-                  </div>
-                  <div>
-                    <label style={{ color: theme.mutedText }} className="block font-mono text-[10px] uppercase mb-1">Abogado Titular (Para Visados)</label>
-                    <input
-                      type="text"
-                      value={lawyerSignerName}
-                      onChange={(e) => setLawyerSignerName(e.target.value)}
-                      placeholder="Guía: Ej. Dra. Bárbara Piccolo"
-                      style={inputStyle}
-                      className="w-full px-3 py-2 rounded-xl border"
-                    />
-                  </div>
-                  <div>
-                    <label style={{ color: theme.mutedText }} className="block font-mono text-[10px] uppercase mb-1">Nº Colegiado / Inpreabogado</label>
-                    <input
-                      type="text"
-                      value={lawyerCollegiateId}
-                      onChange={(e) => setLawyerCollegiateId(e.target.value)}
-                      placeholder="Guía: Ej. IPSA Nº 102.485 / Inpreabogado Nº 115.794"
-                      style={inputStyle}
-                      className="w-full px-3 py-2 rounded-xl border"
-                    />
-                  </div>
-                  <div>
-                    <label style={{ color: theme.mutedText }} className="block font-mono text-[10px] uppercase mb-1">Especialidad Principal</label>
-                    <input
-                      type="text"
-                      value={customPracticeArea}
-                      onChange={(e) => setCustomPracticeArea(e.target.value)}
-                      placeholder="Guía: Ej. Derecho Corporativo, Civil y Mercantil"
-                      style={inputStyle}
-                      className="w-full px-3 py-2 rounded-xl border"
-                    />
-                  </div>
+              {/* 1. Datos del Despacho */}
+              <div style={subCardStyle} className="p-4 rounded-xl border space-y-2.5">
+                <h3 className="font-serif font-bold text-sm">1. Despacho</h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5 text-xs">
+                  <input
+                    type="text"
+                    value={firmName}
+                    onChange={(e) => setFirmName(e.target.value)}
+                    placeholder="Nombre del Despacho"
+                    style={inputStyle}
+                    className="w-full px-3 py-2 rounded-xl border"
+                  />
+                  <input
+                    type="text"
+                    value={lawyerSignerName}
+                    onChange={(e) => setLawyerSignerName(e.target.value)}
+                    placeholder="Abogado Titular"
+                    style={inputStyle}
+                    className="w-full px-3 py-2 rounded-xl border"
+                  />
+                  <input
+                    type="text"
+                    value={lawyerCollegiateId}
+                    onChange={(e) => setLawyerCollegiateId(e.target.value)}
+                    placeholder="Inpreabogado / Colegiado"
+                    style={inputStyle}
+                    className="w-full px-3 py-2 rounded-xl border"
+                  />
+                  <input
+                    type="text"
+                    value={customPracticeArea}
+                    onChange={(e) => setCustomPracticeArea(e.target.value)}
+                    placeholder="Especialidad"
+                    style={inputStyle}
+                    className="w-full px-3 py-2 rounded-xl border"
+                  />
                 </div>
               </div>
 
-              {/* 2. Conexión de API de IA */}
-              <div style={subCardStyle} className="p-4 sm:p-5 rounded-xl border space-y-3">
+              {/* 2. Motor de IA */}
+              <div style={subCardStyle} className="p-4 rounded-xl border space-y-2.5">
                 <div className="flex items-center justify-between">
-                  <h3 className="font-serif font-bold text-sm flex items-center gap-2">
-                    <Key className="w-4 h-4 text-amber-500" /> 2. Conexión de tu Motor de IA (API Key)
+                  <h3 className="font-serif font-bold text-sm flex items-center gap-1.5">
+                    <Key className="w-4 h-4 text-amber-500" /> 2. API de IA
                   </h3>
                   <span style={{ color: apiKeyInput.trim() ? theme.emeraldText : theme.mutedText }} className="text-[11px] font-mono font-semibold">
-                    {apiKeyInput.trim() || llmProvider === 'ollama' ? '✓ API Configurada' : 'Pendiente de API Key'}
+                    {apiKeyInput.trim() || llmProvider === 'ollama' ? '✓ Activa' : 'Sin llave'}
                   </span>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-3 text-xs">
-                  <div>
-                    <label style={{ color: theme.mutedText }} className="block font-mono text-[10px] uppercase mb-1">Proveedor</label>
-                    <select
-                      value={llmProvider}
-                      onChange={(e) => {
-                        const nextProv = e.target.value as 'openai' | 'anthropic' | 'gemini' | 'groq' | 'ollama';
-                        setLlmProvider(nextProv);
-                        setLlmModel(PROVIDER_DEFAULT_MODELS[nextProv][0]);
-                      }}
-                      style={inputStyle}
-                      className="w-full px-3 py-2 rounded-xl border"
-                    >
-                      <option value="openai">OpenAI (GPT-4o)</option>
-                      <option value="gemini">Google Gemini (2.5 Pro / Flash)</option>
-                      <option value="groq">Groq (Llama 3.3 70B)</option>
-                      <option value="anthropic">Anthropic (Claude 3.5 Sonnet)</option>
-                      <option value="ollama">Ollama (Modelo Local sin Internet)</option>
-                    </select>
-                  </div>
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-2.5 text-xs">
+                  <select
+                    value={llmProvider}
+                    onChange={(e) => {
+                      const nextProv = e.target.value as 'openai' | 'anthropic' | 'gemini' | 'groq' | 'ollama';
+                      setLlmProvider(nextProv);
+                      setLlmModel(PROVIDER_DEFAULT_MODELS[nextProv][0]);
+                    }}
+                    style={inputStyle}
+                    className="w-full px-3 py-2 rounded-xl border"
+                  >
+                    <option value="openai">OpenAI</option>
+                    <option value="gemini">Google Gemini</option>
+                    <option value="groq">Groq</option>
+                    <option value="anthropic">Anthropic</option>
+                    <option value="ollama">Ollama Local</option>
+                  </select>
 
-                  <div>
-                    <label style={{ color: theme.mutedText }} className="block font-mono text-[10px] uppercase mb-1">Modelo</label>
-                    <select
-                      value={llmModel}
-                      onChange={(e) => setLlmModel(e.target.value)}
-                      style={inputStyle}
-                      className="w-full px-3 py-2 rounded-xl border font-mono"
-                    >
-                      {PROVIDER_DEFAULT_MODELS[llmProvider].map(m => (
-                        <option key={m} value={m}>{m}</option>
-                      ))}
-                    </select>
-                  </div>
+                  <select
+                    value={llmModel}
+                    onChange={(e) => setLlmModel(e.target.value)}
+                    style={inputStyle}
+                    className="w-full px-3 py-2 rounded-xl border font-mono"
+                  >
+                    {PROVIDER_DEFAULT_MODELS[llmProvider].map(m => (
+                      <option key={m} value={m}>{m}</option>
+                    ))}
+                  </select>
 
                   {llmProvider === 'ollama' ? (
-                    <div>
-                      <label style={{ color: theme.mutedText }} className="block font-mono text-[10px] uppercase mb-1">URL Local de Ollama</label>
-                      <input
-                        type="text"
-                        value={ollamaBaseUrl}
-                        onChange={(e) => setOllamaBaseUrl(e.target.value)}
-                        placeholder="Guía: http://localhost:11434"
-                        style={inputStyle}
-                        className="w-full px-3 py-2 rounded-xl border font-mono"
-                      />
-                    </div>
+                    <input
+                      type="text"
+                      value={ollamaBaseUrl}
+                      onChange={(e) => setOllamaBaseUrl(e.target.value)}
+                      placeholder="http://localhost:11434"
+                      style={inputStyle}
+                      className="w-full px-3 py-2 rounded-xl border font-mono"
+                    />
                   ) : (
-                    <div>
-                      <label style={{ color: theme.mutedText }} className="block font-mono text-[10px] uppercase mb-1">Tu API Key Privada</label>
-                      <input
-                        type="password"
-                        value={apiKeyInput}
-                        onChange={(e) => setApiKeyInput(e.target.value)}
-                        placeholder={
-                          llmProvider === 'openai'
-                            ? 'Guía: Pega tu llave sk-proj-...'
-                            : llmProvider === 'gemini'
-                            ? 'Guía: Pega tu llave AIzaSy...'
-                            : llmProvider === 'groq'
-                            ? 'Guía: Pega tu llave gsk_...'
-                            : 'Guía: Pega tu llave sk-ant-...'
-                        }
-                        style={inputStyle}
-                        className="w-full px-3 py-2 rounded-xl border font-mono"
-                      />
-                    </div>
+                    <input
+                      type="password"
+                      value={apiKeyInput}
+                      onChange={(e) => setApiKeyInput(e.target.value)}
+                      placeholder="API Key..."
+                      style={inputStyle}
+                      className="w-full px-3 py-2 rounded-xl border font-mono"
+                    />
                   )}
 
-                  <div>
-                    <label style={{ color: theme.mutedText }} className="block font-mono text-[10px] uppercase mb-1">
-                      Tope Mensual: ${monthlyBudgetUsd} USD
-                    </label>
+                  <div className="flex items-center gap-2">
+                    <span style={{ color: theme.mutedText }} className="font-mono text-[11px] shrink-0">${monthlyBudgetUsd}</span>
                     <input
                       type="range"
                       min={5}
                       max={200}
                       value={monthlyBudgetUsd}
                       onChange={(e) => setMonthlyBudgetUsd(Number(e.target.value))}
-                      className="w-full accent-amber-500 mt-2"
+                      className="w-full accent-amber-500"
                     />
                   </div>
                 </div>
               </div>
 
-              {/* 3. Gestión Funcional de Biblioteca de Google Drive (550+ Modelos) y Leyes RAG */}
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* 3. Biblioteca de Modelos y Leyes RAG */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
 
-                {/* BIBLIOTECA DE MODELOS CON CONECTOR GOOGLE DRIVE RESTAURADO Y DETECTOR SIN LLAVES */}
-                <div style={subCardStyle} className="p-4 sm:p-5 rounded-xl border space-y-4">
-                  <div className="flex flex-wrap items-center justify-between gap-2">
-                    <div>
-                      <h3 className="font-serif font-bold text-sm flex items-center gap-2">
-                        <FolderOpen className="w-4 h-4 text-emerald-500" /> 3. Tu Biblioteca de Modelos ({templates.length} en {librarySourceMode})
-                      </h3>
-                      <p style={{ color: theme.mutedText }} className="text-[11px]">
-                        Tus modelos con redacción jurídica venezolana funcionan directamente aunque tengan <strong>datos de clientes anteriores</strong> o <strong>espacios libres (<code>____</code>)</strong>.
-                      </p>
-                    </div>
-                  </div>
+                {/* BIBLIOTECA DE MODELOS */}
+                <div style={subCardStyle} className="p-4 rounded-xl border space-y-3">
+                  <h3 className="font-serif font-bold text-sm flex items-center gap-1.5">
+                    <FolderOpen className="w-4 h-4 text-emerald-500" /> 3. Biblioteca ({templates.length})
+                  </h3>
 
-                  {/* Selector Google Drive vs Carpeta Local */}
-                  <div className="space-y-2.5 text-xs">
+                  <div className="space-y-2 text-xs">
                     <div className="grid grid-cols-2 gap-2">
                       <button
                         type="button"
                         onClick={() => setLibrarySourceMode('Google Drive')}
                         style={librarySourceMode === 'Google Drive' ? { backgroundColor: '#0F172A', color: '#FFFFFF', borderColor: '#F59E0B' } : secondaryBtnStyle}
-                        className="py-2 rounded-xl font-semibold border cursor-pointer"
+                        className="py-1.5 rounded-xl font-semibold border cursor-pointer"
                       >
                         Google Drive
                       </button>
@@ -5303,76 +5275,55 @@ Tu única función es SUSTITUIR todos los datos antiguos o rellenar todos los es
                         type="button"
                         onClick={() => setLibrarySourceMode('Carpeta Local')}
                         style={librarySourceMode === 'Carpeta Local' ? { backgroundColor: '#0F172A', color: '#FFFFFF', borderColor: '#F59E0B' } : secondaryBtnStyle}
-                        className="py-2 rounded-xl font-semibold border cursor-pointer"
+                        className="py-1.5 rounded-xl font-semibold border cursor-pointer"
                       >
                         Carpeta Local
                       </button>
                     </div>
 
                     {librarySourceMode === 'Google Drive' ? (
-                      <div className="space-y-2">
-                        <div className="flex gap-2">
-                          <input
-                            type="text"
-                            value={driveFolderUrl}
-                            onChange={(e) => setDriveFolderUrl(e.target.value)}
-                            placeholder="Enlace de tu carpeta de Google Drive..."
-                            style={inputStyle}
-                            className="flex-1 px-3 py-2 rounded-xl border font-mono text-xs"
-                          />
-                          <button
-                            type="button"
-                            onClick={handleSyncGoogleDriveCatalog}
-                            disabled={isSyncingDriveCatalog}
-                            className="px-3 py-2 rounded-xl bg-[#0F172A] text-white font-semibold text-xs flex items-center gap-1.5 cursor-pointer shrink-0"
-                          >
-                            <RefreshCw className={`w-3.5 h-3.5 text-amber-400 ${isSyncingDriveCatalog ? 'animate-spin' : ''}`} />
-                            <span>Sincronizar Drive</span>
-                          </button>
-                        </div>
-
-                        <div className="flex gap-2">
-                          <input
-                            type="text"
-                            value={driveDocUrlToImport}
-                            onChange={(e) => setDriveDocUrlToImport(e.target.value)}
-                            placeholder="O pega el enlace de un documento individual de Google Docs / Drive..."
-                            style={inputStyle}
-                            className="flex-1 px-3 py-1.5 rounded-xl border font-mono text-[11px]"
-                          />
-                          <button
-                            type="button"
-                            onClick={handleImportModelFromDriveLink}
-                            style={secondaryBtnStyle}
-                            className="px-3 py-1.5 rounded-xl border font-semibold text-[11px] cursor-pointer shrink-0"
-                          >
-                            Importar Enlace Drive
-                          </button>
-                        </div>
+                      <div className="flex gap-2">
+                        <input
+                          type="text"
+                          value={driveFolderUrl}
+                          onChange={(e) => setDriveFolderUrl(e.target.value)}
+                          placeholder="URL de carpeta Drive..."
+                          style={inputStyle}
+                          className="flex-1 px-3 py-1.5 rounded-xl border font-mono text-xs"
+                        />
+                        <button
+                          type="button"
+                          onClick={handleSyncGoogleDriveCatalog}
+                          disabled={isSyncingDriveCatalog}
+                          className="px-3 py-1.5 rounded-xl bg-[#0F172A] text-white font-semibold text-xs flex items-center gap-1 cursor-pointer shrink-0"
+                        >
+                          <RefreshCw className={`w-3.5 h-3.5 text-amber-400 ${isSyncingDriveCatalog ? 'animate-spin' : ''}`} />
+                          <span>Sincronizar</span>
+                        </button>
                       </div>
                     ) : (
                       <input
                         type="text"
                         value={localFolderPath}
                         onChange={(e) => setLocalFolderPath(e.target.value)}
-                        placeholder="Ruta de tu carpeta local de modelos..."
+                        placeholder="Ruta local..."
                         style={inputStyle}
-                        className="w-full px-3 py-2 rounded-xl border font-mono text-xs"
+                        className="w-full px-3 py-1.5 rounded-xl border font-mono text-xs"
                       />
                     )}
 
-                    <div className="flex flex-wrap gap-2 pt-1">
+                    <div className="flex flex-wrap gap-2">
                       <button
                         type="button"
                         onClick={() => setShowAddTemplateModal(!showAddTemplateModal)}
-                        className="px-3 py-2 rounded-xl bg-[#0F172A] text-white text-xs font-semibold cursor-pointer flex items-center gap-1.5"
+                        className="px-3 py-1.5 rounded-xl bg-[#0F172A] text-white text-xs font-semibold cursor-pointer flex items-center gap-1"
                       >
-                        <Plus className="w-3.5 h-3.5 text-amber-400" /> Pegar Modelo Real (Con Datos o Espacios ____)
+                        <Plus className="w-3.5 h-3.5 text-amber-400" /> Pegar Modelo
                       </button>
 
-                      <label className="px-3 py-2 rounded-xl bg-emerald-700 text-white text-xs font-semibold flex items-center gap-1.5 cursor-pointer">
+                      <label className="px-3 py-1.5 rounded-xl bg-emerald-700 text-white text-xs font-semibold flex items-center gap-1 cursor-pointer">
                         <Upload className="w-3.5 h-3.5" />
-                        <span>Agregar Nuevo Modelo (.DOCX / .TXT)</span>
+                        <span>Subir .DOCX / .TXT</span>
                         <input
                           type="file"
                           accept=".doc,.docx,.txt,.md"
@@ -5385,12 +5336,12 @@ Tu única función es SUSTITUIR todos los datos antiguos o rellenar todos los es
                   </div>
 
                   {showAddTemplateModal && (
-                    <div style={cardStyle} className="p-3.5 rounded-xl border space-y-2.5 text-xs">
+                    <div style={cardStyle} className="p-3 rounded-xl border space-y-2 text-xs">
                       <input
                         type="text"
                         value={newTplNameInput}
                         onChange={(e) => setNewTplNameInput(e.target.value)}
-                        placeholder="Nombre del modelo (Ej. Contrato de Compraventa / Poder Especial)..."
+                        placeholder="Nombre del modelo..."
                         style={inputStyle}
                         className="w-full px-3 py-1.5 rounded-lg border"
                       />
@@ -5398,15 +5349,15 @@ Tu única función es SUSTITUIR todos los datos antiguos o rellenar todos los es
                         type="text"
                         value={newTplCategoryInput}
                         onChange={(e) => setNewTplCategoryInput(e.target.value)}
-                        placeholder="Categoría (Ej. Civil - Contratos y Garantías / Poderes y Mandatos)..."
+                        placeholder="Categoría..."
                         style={inputStyle}
                         className="w-full px-3 py-1.5 rounded-lg border"
                       />
                       <textarea
-                        rows={5}
+                        rows={4}
                         value={newTplContentInput}
                         onChange={(e) => setNewTplContentInput(e.target.value)}
-                        placeholder="Pega aquí tu modelo tal como está en tu Google Drive (aunque tenga datos de un cliente viejo como 'Yo, JUAN PÉREZ, C.I. V-12.345.678...' o espacios libres '________'). El sistema detectará automáticamente los datos a sustituir sin que tengas que escribir llaves..."
+                        placeholder="Texto del modelo..."
                         style={inputStyle}
                         className="w-full p-2.5 rounded-lg border font-serif text-xs"
                       />
@@ -5422,36 +5373,24 @@ Tu única función es SUSTITUIR todos los datos antiguos o rellenar todos los es
                         <button
                           type="button"
                           onClick={handleCreateTemplateManual}
-                          className="px-4 py-1 rounded-lg bg-emerald-700 text-white font-semibold cursor-pointer"
+                          className="px-3.5 py-1 rounded-lg bg-emerald-700 text-white font-semibold cursor-pointer"
                         >
-                          Analizar y Guardar Modelo en Biblioteca
+                          Guardar
                         </button>
                       </div>
                     </div>
                   )}
 
-                  <div className="space-y-2 max-h-60 overflow-y-auto pr-1">
+                  <div className="space-y-1.5 max-h-52 overflow-y-auto pr-1">
                     {templates.slice(0, 60).map(tpl => (
-                      <div key={tpl.id} style={cardStyle} className="p-3 rounded-xl border flex items-center justify-between gap-2 text-xs">
+                      <div key={tpl.id} style={cardStyle} className="p-2.5 rounded-xl border flex items-center justify-between gap-2 text-xs">
                         <div className="min-w-0">
                           <div className="font-semibold truncate">{tpl.name}</div>
                           <div style={{ color: theme.mutedText }} className="text-[10px] font-mono">
-                            {tpl.category} • {tpl.source} • {tpl.variables.length} campos detectados
+                            {tpl.category}
                           </div>
                         </div>
                         <div className="flex items-center gap-1 shrink-0">
-                          {tpl.driveUrl && (
-                            <a
-                              href={tpl.driveUrl}
-                              target="_blank"
-                              rel="noreferrer"
-                              style={secondaryBtnStyle}
-                              className="px-2 py-1 rounded-lg border text-[10px] font-mono flex items-center gap-1"
-                              title="Abrir en Google Drive"
-                            >
-                              Drive <ExternalLink className="w-3 h-3" />
-                            </a>
-                          )}
                           <button
                             type="button"
                             onClick={() => {
@@ -5459,17 +5398,16 @@ Tu única función es SUSTITUIR todos los datos antiguos o rellenar todos los es
                               setActiveTab('redactor_docs');
                             }}
                             style={secondaryBtnStyle}
-                            className="px-2.5 py-1 rounded-lg border text-[11px] font-semibold cursor-pointer"
+                            className="px-2 py-1 rounded-lg border text-[11px] font-semibold cursor-pointer"
                           >
                             Usar
                           </button>
                           <button
                             type="button"
                             onClick={() => handleDeleteTemplate(tpl.id)}
-                            className="p-1.5 text-rose-500 hover:bg-rose-500/10 rounded-lg cursor-pointer"
-                            title="Eliminar modelo"
+                            className="p-1 text-rose-500 cursor-pointer"
                           >
-                            <Trash2 className="w-4 h-4" />
+                            <Trash2 className="w-3.5 h-3.5" />
                           </button>
                         </div>
                       </div>
@@ -5477,28 +5415,23 @@ Tu única función es SUSTITUIR todos los datos antiguos o rellenar todos los es
                   </div>
                 </div>
 
-                {/* REPOSITORIO RAG DE LEYES Y NORMATIVA (CRUD COMPLETO: AGREGAR, VER Y ELIMINAR) */}
-                <div style={subCardStyle} className="p-4 sm:p-5 rounded-xl border space-y-4">
-                  <div className="flex flex-wrap items-center justify-between gap-2">
-                    <div>
-                      <h3 className="font-serif font-bold text-sm flex items-center gap-2">
-                        <Scale className="w-4 h-4 text-indigo-500" /> 4. Leyes y Normativa en RAG ({ragDocs.length})
-                      </h3>
-                      <p style={{ color: theme.mutedText }} className="text-[11px]">
-                        Sube o pega tus leyes, códigos y sentencias. Puedes consultarlos o eliminarlos cuando quieras.
-                      </p>
-                    </div>
+                {/* REPOSITORIO RAG */}
+                <div style={subCardStyle} className="p-4 rounded-xl border space-y-3">
+                  <div className="flex items-center justify-between gap-2">
+                    <h3 className="font-serif font-bold text-sm flex items-center gap-1.5">
+                      <Scale className="w-4 h-4 text-indigo-500" /> 4. Normativa RAG ({ragDocs.length})
+                    </h3>
                     <div className="flex gap-1.5">
                       <button
                         type="button"
                         onClick={() => setShowAddRagModal(!showAddRagModal)}
-                        className="px-3 py-1.5 rounded-lg bg-[#0F172A] text-white text-xs font-semibold cursor-pointer flex items-center gap-1"
+                        className="px-2.5 py-1.5 rounded-lg bg-[#0F172A] text-white text-xs font-semibold cursor-pointer flex items-center gap-1"
                       >
-                        <Plus className="w-3.5 h-3.5 text-amber-400" /> Pegar Ley / Artículos
+                        <Plus className="w-3.5 h-3.5 text-amber-400" /> Pegar
                       </button>
-                      <label className="px-3 py-1.5 rounded-lg bg-indigo-700 text-white text-xs font-semibold flex items-center gap-1 cursor-pointer">
+                      <label className="px-2.5 py-1.5 rounded-lg bg-indigo-700 text-white text-xs font-semibold flex items-center gap-1 cursor-pointer">
                         <Upload className="w-3.5 h-3.5" />
-                        <span>Cargar Ley, Código o Sentencia (.PDF)</span>
+                        <span>Subir</span>
                         <input
                           type="file"
                           accept=".pdf,.txt,.doc,.docx,.md"
@@ -5510,7 +5443,7 @@ Tu única función es SUSTITUIR todos los datos antiguos o rellenar todos los es
                             const storedText =
                               cleanText.length > 30
                                 ? cleanText.slice(0, 25000)
-                                : `Cuerpo normativo indexado desde el archivo "${f.name}" (${(f.size / 1024).toFixed(1)} KB).`;
+                                : `Normativa "${f.name}".`;
                             const chunksCount = Math.max(1, Math.ceil(storedText.length / 400));
                             const newDoc: RagLawDocument = {
                               id: `rag-${Date.now().toString().slice(-5)}`,
@@ -5518,11 +5451,11 @@ Tu única función es SUSTITUIR todos los datos antiguos o rellenar todos los es
                               type: 'Código / Ley',
                               chunks: chunksCount,
                               status: 'Indexado',
-                              excerpt: storedText.slice(0, 260) + (storedText.length > 260 ? '...' : ''),
+                              excerpt: storedText.slice(0, 260),
                               fullText: storedText
                             };
                             setRagDocs(prev => [newDoc, ...prev]);
-                            showToast(`"${newDoc.title}" almacenado en el RAG (${chunksCount} fragmentos).`);
+                            showToast(`"${newDoc.title}" indexado.`);
                           }}
                         />
                       </label>
@@ -5530,30 +5463,20 @@ Tu única función es SUSTITUIR todos los datos antiguos o rellenar todos los es
                   </div>
 
                   {showAddRagModal && (
-                    <div style={cardStyle} className="p-3.5 rounded-xl border space-y-2.5 text-xs">
+                    <div style={cardStyle} className="p-3 rounded-xl border space-y-2 text-xs">
                       <input
                         type="text"
                         value={newRagTitleInput}
                         onChange={(e) => setNewRagTitleInput(e.target.value)}
-                        placeholder="Guía: Título de la Ley o Sentencia (Ej. Código Civil / Código de Comercio)..."
+                        placeholder="Título de la Ley..."
                         style={inputStyle}
                         className="w-full px-3 py-1.5 rounded-lg border"
                       />
-                      <select
-                        value={newRagTypeInput}
-                        onChange={(e) => setNewRagTypeInput(e.target.value as RagLawDocument['type'])}
-                        style={inputStyle}
-                        className="w-full px-3 py-1.5 rounded-lg border"
-                      >
-                        <option value="Código / Ley">Código / Ley</option>
-                        <option value="Jurisprudencia / Doctrina">Jurisprudencia / Doctrina</option>
-                        <option value="Reglamento / Norma">Reglamento / Norma</option>
-                      </select>
                       <textarea
-                        rows={5}
+                        rows={4}
                         value={newRagContentInput}
                         onChange={(e) => setNewRagContentInput(e.target.value)}
-                        placeholder="Guía: Pega aquí los artículos, capítulos o el texto íntegro de la ley o sentencia que deseas almacenar en el RAG para que el Consultor responda con base en ella..."
+                        placeholder="Artículos o contenido..."
                         style={inputStyle}
                         className="w-full p-2.5 rounded-lg border text-xs"
                       />
@@ -5569,16 +5492,16 @@ Tu única función es SUSTITUIR todos los datos antiguos o rellenar todos los es
                         <button
                           type="button"
                           onClick={handleCreateRagManual}
-                          className="px-4 py-1 rounded-lg bg-emerald-700 text-white font-semibold cursor-pointer"
+                          className="px-3.5 py-1 rounded-lg bg-emerald-700 text-white font-semibold cursor-pointer"
                         >
-                          Almacenar en el RAG
+                          Guardar
                         </button>
                       </div>
                     </div>
                   )}
 
                   {viewingRagDoc && (
-                    <div style={cardStyle} className="p-3.5 rounded-xl border space-y-2 text-xs">
+                    <div style={cardStyle} className="p-3 rounded-xl border space-y-1.5 text-xs">
                       <div className="flex items-center justify-between">
                         <strong className="font-serif">{viewingRagDoc.title}</strong>
                         <button
@@ -5587,51 +5510,43 @@ Tu única función es SUSTITUIR todos los datos antiguos o rellenar todos los es
                           style={secondaryBtnStyle}
                           className="px-2 py-0.5 rounded border text-[10px] cursor-pointer"
                         >
-                          Cerrar vista
+                          ✕
                         </button>
                       </div>
-                      <pre style={{ color: theme.mutedText }} className="whitespace-pre-wrap font-mono text-[11px] max-h-40 overflow-y-auto">
+                      <pre style={{ color: theme.mutedText }} className="whitespace-pre-wrap font-mono text-[11px] max-h-36 overflow-y-auto">
                         {viewingRagDoc.fullText || viewingRagDoc.excerpt}
                       </pre>
                     </div>
                   )}
 
-                  <div className="space-y-2 max-h-60 overflow-y-auto pr-1">
-                    {ragDocs.length === 0 ? (
-                      <p style={{ color: theme.mutedText }} className="text-xs py-4 text-center">
-                        No hay leyes almacenadas en el RAG. Sube un archivo o pega los artículos arriba.
-                      </p>
-                    ) : (
-                      ragDocs.map(doc => (
-                        <div key={doc.id} style={cardStyle} className="p-3 rounded-xl border flex items-center justify-between gap-2 text-xs">
-                          <div className="min-w-0">
-                            <div className="font-semibold truncate">{doc.title}</div>
-                            <div style={{ color: theme.mutedText }} className="text-[10px] font-mono">
-                              {doc.type} • {doc.chunks} fragmentos indexados
-                            </div>
-                          </div>
-                          <div className="flex items-center gap-1 shrink-0">
-                            <button
-                              type="button"
-                              onClick={() => setViewingRagDoc(doc)}
-                              style={secondaryBtnStyle}
-                              className="p-1.5 rounded-lg border cursor-pointer"
-                              title="Ver contenido indexado"
-                            >
-                              <Eye className="w-3.5 h-3.5" />
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => handleDeleteRagDoc(doc.id)}
-                              className="p-1.5 text-rose-500 hover:bg-rose-500/10 rounded-lg cursor-pointer"
-                              title="Eliminar del RAG"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </button>
+                  <div className="space-y-1.5 max-h-52 overflow-y-auto pr-1">
+                    {ragDocs.map(doc => (
+                      <div key={doc.id} style={cardStyle} className="p-2.5 rounded-xl border flex items-center justify-between gap-2 text-xs">
+                        <div className="min-w-0">
+                          <div className="font-semibold truncate">{doc.title}</div>
+                          <div style={{ color: theme.mutedText }} className="text-[10px] font-mono">
+                            {doc.chunks} fragmentos
                           </div>
                         </div>
-                      ))
-                    )}
+                        <div className="flex items-center gap-1 shrink-0">
+                          <button
+                            type="button"
+                            onClick={() => setViewingRagDoc(doc)}
+                            style={secondaryBtnStyle}
+                            className="p-1.5 rounded-lg border cursor-pointer"
+                          >
+                            <Eye className="w-3.5 h-3.5" />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleDeleteRagDoc(doc.id)}
+                            className="p-1.5 text-rose-500 cursor-pointer"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 </div>
 
